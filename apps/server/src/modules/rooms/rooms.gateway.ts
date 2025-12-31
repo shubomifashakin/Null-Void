@@ -13,7 +13,14 @@ import { Server, Socket } from 'socket.io';
 @WebSocketGateway({
   namespace: 'rooms',
   pingTimeout: 15000,
-  pingInterval: 15000,
+  pingInterval: 30000,
+  cors: {
+    origin: '*',
+  },
+  perMessageDeflate: true,
+  connectTimeout: 10000,
+  upgradeTimeout: 10000,
+  maxHttpBufferSize: 5e8,
 })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //FIXME: IMPORT REDIS SERVICE
@@ -31,6 +38,8 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.broadcast.emit('draw', data);
 
     //FIXME: Publish to Redis for other servers
+
+    //FIXME: ADD TO QUEUE so it can be saved to database
   }
 
   @SubscribeMessage('leave')
@@ -47,6 +56,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleConnection(client: Socket): void {
     console.log('Client connected:', client.id);
     console.log('Client data:', client.data);
+
     // FIXME: Add client to room tracking
 
     //FIXME: Broadcast that a new user joined the room
@@ -55,6 +65,10 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket): void {
     console.log('Client disconnected:', client.id);
+
     //FIXME: REMOVE CLIENT from room tracking
+
+    //FIXME: Broadcast that user left the room
+    this.server.emit('user_left', { userId: client.id });
   }
 }
