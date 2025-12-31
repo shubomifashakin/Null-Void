@@ -1,0 +1,16 @@
+{
+  "name": "null-void",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "keywords": [],
+  "author": "Fashakin Olashubomi",
+  "license": "ISC",
+  "type": "module"
+}
