@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
@@ -27,6 +28,7 @@ import { validateConfig } from './common/utils';
     LoggerModule.forRoot({
       pinoHttp: {
         messageKey: 'message',
+        errorKey: 'error',
         level: process.env.LOG_LEVEL! || 'info',
         base: { service: process.env.SERVICE_NAME! },
         timestamp: () => `,"time":"${new Date(Date.now()).toISOString()}"`,
@@ -91,6 +93,14 @@ import { validateConfig } from './common/utils';
             'apiKey',
           ],
           remove: true,
+        },
+        genReqId: (req: Request) => {
+          return (
+            req?.requestId ||
+            req.headers['x-request-id'] ||
+            req.headers['X-Request-Id'] ||
+            Date.now().toString()
+          );
         },
       },
       assignResponse: false,
