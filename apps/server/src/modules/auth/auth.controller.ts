@@ -17,12 +17,6 @@ export class AuthController {
     return this.authService.callback();
   }
 
-  @Post('token')
-  @HttpCode(200)
-  token() {
-    return this.authService.token();
-  }
-
   @Post('logout')
   @HttpCode(200)
   logout() {

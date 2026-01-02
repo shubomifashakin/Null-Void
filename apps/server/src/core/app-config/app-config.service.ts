@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-export type FnResult<T> =
-  | { success: true; data: T; error: null }
-  | { success: false; data: null; error: string };
+import { FnResult } from 'types/fnResult';
 
 @Injectable()
 export class AppConfigService {
@@ -26,7 +23,7 @@ export class AppConfigService {
       return {
         success: false,
         data: null,
-        error: 'DATABASE_URL is not defined',
+        error: 'DATABASE_URL is not defined in .env',
       };
     }
   }
@@ -48,7 +45,119 @@ export class AppConfigService {
       return {
         success: false,
         data: null,
-        error: 'RESEND_API_KEY is not defined',
+        error: 'RESEND_API_KEY is not defined in .env',
+      };
+    }
+  }
+
+  get GOOGLE_CLIENT_ID(): FnResult<string> {
+    try {
+      const clientId = this.config.getOrThrow<string>('GOOGLE_CLIENT_ID');
+
+      return { success: true, data: clientId, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'GOOGLE_CLIENT_ID is not defined in .env',
+      };
+    }
+  }
+
+  get GOOGLE_CLIENT_SECRET(): FnResult<string> {
+    try {
+      const clientSecret = this.config.getOrThrow<string>(
+        'GOOGLE_CLIENT_SECRET',
+      );
+
+      return { success: true, data: clientSecret, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'GOOGLE_CLIENT_SECRET is not defined in .env',
+      };
+    }
+  }
+
+  get BASE_URL(): FnResult<string> {
+    try {
+      const baseUrl = this.config.getOrThrow<string>('BASE_URL');
+
+      return { success: true, data: baseUrl.trim(), error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'BASE_URL is not defined in .env',
+      };
+    }
+  }
+
+  get REDIS_URL(): FnResult<string> {
+    try {
+      const baseUrl = this.config.getOrThrow<string>('REDIS_URL');
+
+      return { success: true, data: baseUrl.trim(), error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'REDIS_URL is not defined in .env',
+      };
+    }
+  }
+
+  get SERVICE_NAME(): FnResult<string> {
+    try {
+      const serviceName = this.config.getOrThrow<string>('SERVICE_NAME');
+
+      return { success: true, data: serviceName.trim(), error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'SERVICE_NAME is not defined in .env',
       };
     }
   }
