@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   InternalServerErrorException,
+  Logger,
   Post,
   Query,
   Req,
@@ -17,6 +18,8 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
 
 @Controller('auth')
 export class AuthController {
+  private logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: AppConfigService,
@@ -45,11 +48,7 @@ export class AuthController {
         this.configService.FRONTEND_URL.error ||
         this.configService.DOMAIN.error;
 
-      const title = this.configService.FRONTEND_URL.error
-        ? 'Frontend URL Error'
-        : 'Domain Error';
-
-      console.error(title, message);
+      this.logger.error(message);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -82,9 +81,7 @@ export class AuthController {
     if (!this.configService.DOMAIN.success) {
       const message = this.configService.DOMAIN.error;
 
-      const title = 'Domain Error';
-
-      console.error(title, message);
+      this.logger.error(message);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -117,9 +114,7 @@ export class AuthController {
     if (!this.configService.DOMAIN.success) {
       const message = this.configService.DOMAIN.error;
 
-      const title = 'Domain Error';
-
-      console.error(title, message);
+      this.logger.error(message);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
