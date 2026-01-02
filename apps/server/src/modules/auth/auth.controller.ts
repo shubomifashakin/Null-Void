@@ -1,4 +1,4 @@
-import { type Response } from 'express';
+import { type Request, type Response } from 'express';
 import {
   Controller,
   Get,
@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   Post,
   Query,
+  Req,
   Res,
 } from '@nestjs/common';
 
@@ -29,7 +30,6 @@ export class AuthController {
   }
 
   @Get('callback')
-  @HttpCode(200)
   async callback(
     @Res() res: Response,
     @Query('state') state: string,
@@ -74,7 +74,34 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(200)
-  logout() {
-    return this.authService.logout();
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const accessToken = req.cookies[TOKEN.ACCESS.TYPE] as string;
+    const refreshToken = req.cookies[TOKEN.REFRESH.TYPE] as string;
+    const message = await this.authService.logout(accessToken, refreshToken);
+
+    if (!this.configService.DOMAIN.success) {
+      const message = this.configService.DOMAIN.error;
+
+      const title = 'Domain Error';
+
+      console.error(title, message);
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+
+    res.clearCookie(TOKEN.ACCESS.TYPE, {
+      domain: this.configService.DOMAIN.data,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+
+    res.clearCookie(TOKEN.REFRESH.TYPE, {
+      domain: this.configService.DOMAIN.data,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+
+    return { message };
   }
 }

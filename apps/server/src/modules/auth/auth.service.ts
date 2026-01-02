@@ -12,6 +12,7 @@ import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
+import { makeBlacklistedKey, makeOauthStateKey } from '../../common/utils';
 import { MESSAGES, MINUTES_1, TOKEN } from '../../common/constants';
 
 @Injectable()
@@ -57,7 +58,7 @@ export class AuthService {
     });
 
     const result = await this.redisService.setInCache(
-      `oauth_state:${state}`,
+      makeOauthStateKey(state),
       { timestamp: Date.now() },
       MINUTES_1,
     );
@@ -80,7 +81,7 @@ export class AuthService {
     }
 
     const { success, data, error } = await this.redisService.getFromCache(
-      `oauth_state:${state}`,
+      makeOauthStateKey(state),
     );
 
     if (!success) {
@@ -144,7 +145,7 @@ export class AuthService {
     }
 
     const deleted = await this.redisService.deleteFromCache(
-      `oauth_state:${state}`,
+      makeOauthStateKey(state),
     );
 
     if (!deleted.success) {
@@ -230,7 +231,47 @@ export class AuthService {
     };
   }
 
-  async logout() {
-    // TODO: Handle logout
+  async logout(accessToken: string, refreshToken: string) {
+    const accessTokenId = this.jwtService.decode<{ jti: string }>(
+      accessToken,
+    )?.jti;
+
+    if (accessTokenId) {
+      const { success, error } = await this.redisService.setInCache(
+        makeBlacklistedKey(accessTokenId),
+        true,
+        TOKEN.ACCESS.EXPIRATION_SEC,
+      );
+
+      if (!success) {
+        console.error('Failed to blacklist access token:', error);
+      }
+    }
+
+    const refreshTokenId = this.jwtService.decode<{ jti: string }>(
+      refreshToken,
+    )?.jti;
+
+    if (!refreshTokenId) {
+      return { message: 'success' };
+    }
+
+    const refreshExists = await this.databaseService.refreshTokens.findUnique({
+      where: {
+        token_id: refreshTokenId,
+      },
+    });
+
+    if (!refreshExists) {
+      return { message: 'success' };
+    }
+
+    await this.databaseService.refreshTokens.deleteMany({
+      where: {
+        token_id: refreshTokenId,
+      },
+    });
+
+    return { message: 'success' };
   }
 }
