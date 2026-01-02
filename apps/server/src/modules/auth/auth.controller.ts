@@ -1,5 +1,5 @@
 import { type Response } from 'express';
-import { Controller, Get, HttpCode, Post, Res } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, Query, Res } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
@@ -16,8 +16,8 @@ export class AuthController {
 
   @Get('callback')
   @HttpCode(200)
-  callback() {
-    return this.authService.callback();
+  callback(@Query('state') state: string, @Query('code') code: string) {
+    return this.authService.callback(state, code);
   }
 
   @Post('logout')

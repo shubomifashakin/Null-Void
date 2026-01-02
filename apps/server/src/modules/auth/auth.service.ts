@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 
 import { DatabaseService } from '../../core/database/database.service';
@@ -13,6 +18,7 @@ export class AuthService {
     private readonly databaseService: DatabaseService,
     private readonly configService: AppConfigService,
     private readonly redisService: RedisService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async authorize() {
@@ -65,14 +71,91 @@ export class AuthService {
     return url;
   }
 
-  callback() {
-    console.log('callback');
-    // TODO: Handle OAuth callback
-    //confirm the state received is the one we generated
-    //if it is we make a request with the code received and send it to the token endpoint
+  async callback(state: string, code: string) {
+    if (!state || !code) {
+      console.error('Invalid state or code');
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+
+    const { success, data, error } = await this.redisService.getFromCache(
+      `oauth_state:${state}`,
+    );
+
+    if (!success) {
+      console.error(error);
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+
+    if (!data) {
+      console.error('Invalid state');
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    if (
+      !this.configService.GOOGLE_CLIENT_SECRET.success ||
+      !this.configService.GOOGLE_CLIENT_ID.success ||
+      !this.configService.BASE_URL.success
+    ) {
+      console.error(
+        this.configService.GOOGLE_CLIENT_SECRET.error ||
+          this.configService.GOOGLE_CLIENT_ID.error ||
+          this.configService.BASE_URL.error,
+      );
+
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+
+    const body = {
+      code,
+      client_id: this.configService.GOOGLE_CLIENT_ID.data,
+      client_secret: this.configService.GOOGLE_CLIENT_SECRET.data,
+      redirect_uri: this.configService.BASE_URL.data + '/api/v1/auth/callback',
+      grant_type: 'authorization_code',
+    };
+
+    const url = `https://oauth2.googleapis.com/token`;
+
+    const req = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    const res = (await req.json()) as {
+      scope: string;
+      id_token: string;
+      access_token: string;
+      refresh_token: string;
+    };
+
+    if (
+      !this.configService.JWT_SECRET.success ||
+      !this.configService.BASE_URL.success
+    ) {
+      console.error(
+        this.configService.JWT_SECRET.error ||
+          this.configService.BASE_URL.error,
+      );
+
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+
+    const userInfo = this.jwtService.decode<{
+      email: string;
+      sub: string;
+      name: string;
+      picture?: string;
+      iss: string;
+      auth_time: string;
+    }>(res.id_token, {
+      complete: true,
+    });
+
+    console.log(userInfo);
+
+    return userInfo;
   }
 
-  logout() {
+  async logout() {
     // TODO: Handle logout
   }
 }

@@ -96,6 +96,28 @@ export class AppConfigService {
     }
   }
 
+  get JWT_SECRET(): FnResult<string> {
+    try {
+      const jwtSecret = this.config.getOrThrow<string>('JWT_SECRET');
+
+      return { success: true, data: jwtSecret, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'JWT_SECRET is not defined in .env',
+      };
+    }
+  }
+
   get BASE_URL(): FnResult<string> {
     try {
       const baseUrl = this.config.getOrThrow<string>('BASE_URL');
