@@ -1,9 +1,11 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+
 import * as crypto from 'crypto';
 
 import { v4 as uuid } from 'uuid';
@@ -18,6 +20,8 @@ import { FnResult } from 'types/fnResult';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger(AuthService.name);
+
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly configService: AppConfigService,
@@ -91,12 +95,12 @@ export class AuthService {
     const { success, data, error } = this.configService.GOOGLE_CLIENT_ID;
 
     if (!success) {
-      console.error(error);
+      this.logger.error(error);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!this.configService.BASE_URL.success) {
-      console.error(this.configService.BASE_URL.error);
+      this.logger.error(this.configService.BASE_URL.error);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -118,7 +122,7 @@ export class AuthService {
     );
 
     if (!result.success) {
-      console.error('Failed to store state in cache:', result.error);
+      this.logger.error(result.error);
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -130,7 +134,7 @@ export class AuthService {
 
   async callback(state: string, code: string) {
     if (!state || !code) {
-      console.error('Invalid state or code');
+      this.logger.error('Invalid state or code');
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -139,12 +143,12 @@ export class AuthService {
     );
 
     if (!success) {
-      console.error(error);
+      this.logger.error(error);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!data) {
-      console.error('Invalid state');
+      this.logger.error('Invalid state');
       throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
@@ -153,7 +157,7 @@ export class AuthService {
       !this.configService.GOOGLE_CLIENT_ID.success ||
       !this.configService.BASE_URL.success
     ) {
-      console.error(
+      this.logger.error(
         this.configService.GOOGLE_CLIENT_SECRET.error ||
           this.configService.GOOGLE_CLIENT_ID.error ||
           this.configService.BASE_URL.error,
@@ -190,7 +194,7 @@ export class AuthService {
       !this.configService.JWT_SECRET.success ||
       !this.configService.BASE_URL.success
     ) {
-      console.error(
+      this.logger.error(
         this.configService.JWT_SECRET.error ||
           this.configService.BASE_URL.error,
       );
@@ -203,7 +207,7 @@ export class AuthService {
     );
 
     if (!deleted.success) {
-      console.error('Failed to delete state from cache:', deleted.error);
+      this.logger.error(deleted.error);
     }
 
     const decodedInfo = this.jwtService.decode<{
@@ -252,7 +256,7 @@ export class AuthService {
     } = await this.generateToken(userInfo);
 
     if (!tokenSuccess) {
-      console.error('Failed to generate tokens:', tokensError);
+      this.logger.error(tokensError);
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -273,7 +277,7 @@ export class AuthService {
       );
 
       if (!success) {
-        console.error('Failed to blacklist access token:', error);
+        this.logger.error(error);
       }
     }
 
@@ -352,7 +356,7 @@ export class AuthService {
     });
 
     if (!tokenSuccess) {
-      console.error('Failed to generate tokens:', tokensError);
+      this.logger.error(tokensError);
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }

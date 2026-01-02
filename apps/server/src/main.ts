@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -13,8 +14,10 @@ async function bootstrap() {
       origin: [process.env.FRONTEND_URL!],
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
     },
+    bufferLogs: true,
   });
 
+  app.useLogger(app.get(Logger));
   app.use(cookieParser());
   app.set('trust proxy', true);
   app.setGlobalPrefix('/api/v1');
