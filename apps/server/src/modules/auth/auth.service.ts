@@ -16,19 +16,15 @@ export class AuthService {
   ) {}
 
   async authorize() {
-    // generate CSRF state for security
     const state = crypto.randomBytes(32).toString('hex');
 
-    // scopes we want: email, profile
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ];
 
-    // response type: code
     const response_type = 'code';
 
-    // clientId from environment
     const { success, data, error } = this.configService.GOOGLE_CLIENT_ID;
 
     if (!success) {
@@ -42,7 +38,7 @@ export class AuthService {
     }
 
     const redirect_uri =
-      this.configService.BASE_URL.data + 'api/v1/auth/callback';
+      this.configService.BASE_URL.data + '/api/v1/auth/callback';
 
     const searchParams = new URLSearchParams({
       client_id: data,
@@ -70,6 +66,7 @@ export class AuthService {
   }
 
   callback() {
+    console.log('callback');
     // TODO: Handle OAuth callback
     //confirm the state received is the one we generated
     //if it is we make a request with the code received and send it to the token endpoint

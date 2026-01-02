@@ -1,4 +1,5 @@
-import { Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { type Response } from 'express';
+import { Controller, Get, HttpCode, Post, Res } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
@@ -7,11 +8,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get()
-  authorize() {
-    return this.authService.authorize();
+  async authorize(@Res() res: Response) {
+    const url = await this.authService.authorize();
+
+    res.redirect(url);
   }
 
-  @Post('callback')
+  @Get('callback')
   @HttpCode(200)
   callback() {
     return this.authService.callback();
