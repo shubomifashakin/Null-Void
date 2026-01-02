@@ -7,6 +7,7 @@ import { RedisModule } from '../../core/redis/redis.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
+import { DEFAULT_JWT_ALG } from '../../common/constants';
 
 @Module({
   providers: [AuthService],
@@ -22,7 +23,8 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
         return {
           secret: appConfigService.JWT_SECRET.data!,
           signOptions: {
-            expiresIn: '300s',
+            expiresIn: '5m',
+            algorithm: DEFAULT_JWT_ALG,
             issuer: appConfigService.BASE_URL.data!,
           },
         };

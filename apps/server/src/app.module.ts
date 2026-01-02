@@ -14,7 +14,6 @@ import { validateConfig } from './common/utils';
 
 @Module({
   imports: [
-    RoomsModule,
     ConfigModule.forRoot({
       isGlobal: false,
       envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
@@ -24,6 +23,7 @@ import { validateConfig } from './common/utils';
         return config;
       },
     }),
+    AppConfigModule,
     LoggerModule.forRoot({
       pinoHttp: {
         messageKey: 'message',
@@ -95,7 +95,8 @@ import { validateConfig } from './common/utils';
       },
       assignResponse: false,
     }),
-    AppConfigModule,
+
+    RoomsModule,
     DatabaseModule,
     MailerModule,
     AccountsModule,

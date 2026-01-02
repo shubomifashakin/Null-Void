@@ -1,3 +1,5 @@
+import { Algorithm } from 'jsonwebtoken';
+
 export const DAYS_1 = 60 * 60 * 24;
 export const DAYS_1_MS = DAYS_1 * 1000;
 export const DAYS_7 = 60 * 60 * 24 * 7;
@@ -10,6 +12,8 @@ export const MINUTES_5 = 5 * 60;
 export const MINUTES_5_MS = MINUTES_5 * 1000;
 export const MINUTES_1 = 1 * 60;
 export const MINUTES_1_MS = MINUTES_1 * 1000;
+
+export const DEFAULT_JWT_ALG: Algorithm = 'HS256';
 
 export const TOKEN = {
   ACCESS: {

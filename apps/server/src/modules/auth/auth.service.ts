@@ -15,7 +15,12 @@ import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
 import { makeBlacklistedKey, makeOauthStateKey } from '../../common/utils';
-import { MESSAGES, MINUTES_1, TOKEN } from '../../common/constants';
+import {
+  DEFAULT_JWT_ALG,
+  MESSAGES,
+  MINUTES_1,
+  TOKEN,
+} from '../../common/constants';
 import { FnResult } from 'types/fnResult';
 
 @Injectable()
@@ -44,6 +49,7 @@ export class AuthService {
             email: userInfo.email,
           },
           {
+            algorithm: DEFAULT_JWT_ALG,
             jwtid: accessTokenId,
             expiresIn: TOKEN.ACCESS.EXPIRATION,
           },
@@ -54,6 +60,7 @@ export class AuthService {
             email: userInfo.email,
           },
           {
+            algorithm: DEFAULT_JWT_ALG,
             jwtid: refreshTokenId,
             expiresIn: TOKEN.REFRESH.EXPIRATION,
           },
