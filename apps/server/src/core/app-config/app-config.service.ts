@@ -28,6 +28,28 @@ export class AppConfigService {
     }
   }
 
+  get DOMAIN(): FnResult<string> {
+    try {
+      const domain = this.config.getOrThrow<string>('DOMAIN');
+
+      return { success: true, data: domain, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'DOMAIN is not defined in .env',
+      };
+    }
+  }
+
   get RESEND_API_KEY(): FnResult<string> {
     try {
       const resendApiKey = this.config.getOrThrow<string>('RESEND_API_KEY');

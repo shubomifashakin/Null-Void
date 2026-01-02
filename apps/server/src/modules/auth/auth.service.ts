@@ -107,19 +107,21 @@ export class AuthService {
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
-    const body = {
-      code,
-      client_id: this.configService.GOOGLE_CLIENT_ID.data,
-      client_secret: this.configService.GOOGLE_CLIENT_SECRET.data,
-      redirect_uri: this.configService.BASE_URL.data + '/api/v1/auth/callback',
-      grant_type: 'authorization_code',
-    };
-
     const url = `https://oauth2.googleapis.com/token`;
 
     const req = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code,
+        grant_type: 'authorization_code',
+        client_id: this.configService.GOOGLE_CLIENT_ID.data,
+        client_secret: this.configService.GOOGLE_CLIENT_SECRET.data,
+        redirect_uri:
+          this.configService.BASE_URL.data + '/api/v1/auth/callback',
+      }),
     });
 
     const res = (await req.json()) as {
@@ -139,6 +141,14 @@ export class AuthService {
       );
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+
+    const deleted = await this.redisService.deleteFromCache(
+      `oauth_state:${state}`,
+    );
+
+    if (!deleted.success) {
+      console.error('Failed to delete state from cache:', deleted.error);
     }
 
     const decodedInfo = this.jwtService.decode<{

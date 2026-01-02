@@ -37,28 +37,39 @@ export class AuthController {
   ) {
     const userInfo = await this.authService.callback(state, code);
 
-    if (!this.configService.FRONTEND_URL.success) {
-      console.error(
-        'Frontend URL not configured:',
-        this.configService.FRONTEND_URL.error,
-      );
+    if (
+      !this.configService.FRONTEND_URL.success ||
+      !this.configService.DOMAIN.success
+    ) {
+      const message =
+        this.configService.FRONTEND_URL.error ||
+        this.configService.DOMAIN.error;
+
+      const title = this.configService.FRONTEND_URL.error
+        ? 'Frontend URL Error'
+        : 'Domain Error';
+
+      console.error(title, message);
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     res.cookie(TOKEN.ACCESS.TYPE, userInfo.accessToken, {
       httpOnly: true,
+      sameSite: 'none',
       secure: true,
       maxAge: TOKEN.ACCESS.EXPIRATION_MS,
-      sameSite: 'strict',
-    });
-    res.cookie(TOKEN.REFRESH.TYPE, userInfo.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: TOKEN.REFRESH.EXPIRATION_MS,
-      sameSite: 'strict',
+      domain: this.configService.DOMAIN.data,
     });
 
-    res.redirect(this.configService.FRONTEND_URL.data);
+    res.cookie(TOKEN.REFRESH.TYPE, userInfo.refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: TOKEN.REFRESH.EXPIRATION_MS,
+      domain: this.configService.DOMAIN.data,
+    });
+
+    res.redirect(302, this.configService.FRONTEND_URL.data);
   }
 
   @Post('logout')
