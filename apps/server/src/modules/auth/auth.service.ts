@@ -14,6 +14,7 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
 
 import { makeBlacklistedKey, makeOauthStateKey } from '../../common/utils';
 import { MESSAGES, MINUTES_1, TOKEN } from '../../common/constants';
+import { FnResult } from 'types/fnResult';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,59 @@ export class AuthService {
     private readonly redisService: RedisService,
     private readonly jwtService: JwtService,
   ) {}
+
+  private async generateToken(userInfo: {
+    id: string;
+    email: string;
+  }): Promise<FnResult<{ accessToken: string; refreshToken: string }>> {
+    try {
+      const accessTokenId = uuid();
+      const refreshTokenId = uuid();
+
+      const [accessToken, refreshToken] = await Promise.all([
+        this.jwtService.signAsync(
+          {
+            userId: userInfo.id,
+            email: userInfo.email,
+          },
+          {
+            jwtid: accessTokenId,
+            expiresIn: TOKEN.ACCESS.EXPIRATION,
+          },
+        ),
+        this.jwtService.signAsync(
+          {
+            userId: userInfo.id,
+            email: userInfo.email,
+          },
+          {
+            jwtid: refreshTokenId,
+            expiresIn: TOKEN.REFRESH.EXPIRATION,
+          },
+        ),
+      ]);
+
+      await this.databaseService.refreshTokens.create({
+        data: {
+          token_id: refreshTokenId,
+          user_id: userInfo.id,
+          expires_at: new Date(Date.now() + TOKEN.REFRESH.EXPIRATION_MS),
+        },
+      });
+
+      return {
+        success: true,
+        data: { accessToken, refreshToken },
+        error: null,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { success: false, error: error.message, data: null };
+      }
+
+      return { success: false, error: 'Failed to generate JWTs', data: null };
+    }
+  }
 
   async authorize() {
     const state = crypto.randomBytes(32).toString('hex');
@@ -191,44 +245,19 @@ export class AuthService {
       });
     }
 
-    const accessTokenId = uuid();
-    const refreshTokenId = uuid();
+    const {
+      data: tokens,
+      error: tokensError,
+      success: tokenSuccess,
+    } = await this.generateToken(userInfo);
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        {
-          userId: userInfo.id,
-          email: userInfo.email,
-        },
-        {
-          jwtid: accessTokenId,
-          expiresIn: TOKEN.ACCESS.EXPIRATION,
-        },
-      ),
-      this.jwtService.signAsync(
-        {
-          userId: userInfo.id,
-          email: userInfo.email,
-        },
-        {
-          jwtid: refreshTokenId,
-          expiresIn: TOKEN.REFRESH.EXPIRATION,
-        },
-      ),
-    ]);
+    if (!tokenSuccess) {
+      console.error('Failed to generate tokens:', tokensError);
 
-    await this.databaseService.refreshTokens.create({
-      data: {
-        token_id: refreshTokenId,
-        user_id: userInfo.id,
-        expires_at: new Date(Date.now() + TOKEN.REFRESH.EXPIRATION_MS),
-      },
-    });
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
+    }
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return tokens;
   }
 
   async logout(accessToken: string, refreshToken: string) {
@@ -266,12 +295,68 @@ export class AuthService {
       return { message: 'success' };
     }
 
-    await this.databaseService.refreshTokens.deleteMany({
+    await this.databaseService.refreshTokens.delete({
       where: {
         token_id: refreshTokenId,
       },
     });
 
     return { message: 'success' };
+  }
+
+  async refresh(refreshToken: string) {
+    const refreshTokenId = this.jwtService.decode<{ jti: string }>(
+      refreshToken,
+    )?.jti;
+
+    if (!refreshTokenId) {
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+    }
+
+    const refreshExists = await this.databaseService.refreshTokens.findUnique({
+      where: {
+        token_id: refreshTokenId,
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        expires_at: true,
+      },
+    });
+
+    if (!refreshExists) {
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+    }
+
+    await this.databaseService.refreshTokens.delete({
+      where: {
+        token_id: refreshTokenId,
+      },
+    });
+
+    if (new Date() > refreshExists.expires_at) {
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+    }
+
+    const {
+      data: tokens,
+      error: tokensError,
+      success: tokenSuccess,
+    } = await this.generateToken({
+      id: refreshExists.user.id,
+      email: refreshExists.user.email,
+    });
+
+    if (!tokenSuccess) {
+      console.error('Failed to generate tokens:', tokensError);
+
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+
+    return tokens;
   }
 }

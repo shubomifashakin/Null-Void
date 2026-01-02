@@ -104,4 +104,41 @@ export class AuthController {
 
     return { message };
   }
+
+  @Get('refresh')
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies[TOKEN.REFRESH.TYPE] as string;
+    const tokens = await this.authService.refresh(refreshToken);
+
+    if (!this.configService.DOMAIN.success) {
+      const message = this.configService.DOMAIN.error;
+
+      const title = 'Domain Error';
+
+      console.error(title, message);
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+
+    res.cookie(TOKEN.ACCESS.TYPE, tokens.accessToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: TOKEN.ACCESS.EXPIRATION_MS,
+      domain: this.configService.DOMAIN.data,
+    });
+
+    res.cookie(TOKEN.REFRESH.TYPE, tokens.refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: TOKEN.REFRESH.EXPIRATION_MS,
+      domain: this.configService.DOMAIN.data,
+    });
+
+    return { message: 'success' };
+  }
 }
