@@ -9,11 +9,20 @@ import { AppConfigModule } from './core/app-config/app-config.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { validateConfig } from './common/utils';
 
 @Module({
   imports: [
     RoomsModule,
-    ConfigModule.forRoot({ isGlobal: false }),
+    ConfigModule.forRoot({
+      isGlobal: false,
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      validate(config) {
+        validateConfig(config);
+
+        return config;
+      },
+    }),
     AppConfigModule,
     DatabaseModule,
     MailerModule,
