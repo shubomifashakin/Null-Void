@@ -23,3 +23,8 @@ export const TOKEN = {
     EXPIRATION_MS: DAYS_14_MS,
   },
 } as const;
+
+export const MESSAGES = {
+  UNAUTHORIZED: 'Unauthorized',
+  INTERNAL_SERVER_ERROR: 'Internal Server Error',
+};

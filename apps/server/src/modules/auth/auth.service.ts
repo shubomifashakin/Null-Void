@@ -6,11 +6,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 
+import { v4 as uuid } from 'uuid';
+
+import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
-import { RedisService } from '../../core/redis/redis.service';
 
-import { MINUTES_1 } from '../../common/constants';
+import { MESSAGES, MINUTES_1, TOKEN } from '../../common/constants';
 
 @Injectable()
 export class AuthService {
@@ -35,12 +37,12 @@ export class AuthService {
 
     if (!success) {
       console.error(error);
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!this.configService.BASE_URL.success) {
       console.error(this.configService.BASE_URL.error);
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     const redirect_uri =
@@ -63,7 +65,7 @@ export class AuthService {
     if (!result.success) {
       console.error('Failed to store state in cache:', result.error);
 
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     const url = `https://accounts.google.com/o/oauth2/v2/auth?${searchParams.toString()}`;
@@ -74,7 +76,7 @@ export class AuthService {
   async callback(state: string, code: string) {
     if (!state || !code) {
       console.error('Invalid state or code');
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     const { success, data, error } = await this.redisService.getFromCache(
@@ -83,12 +85,12 @@ export class AuthService {
 
     if (!success) {
       console.error(error);
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!data) {
       console.error('Invalid state');
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
     if (
@@ -102,7 +104,7 @@ export class AuthService {
           this.configService.BASE_URL.error,
       );
 
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     const body = {
@@ -136,23 +138,86 @@ export class AuthService {
           this.configService.BASE_URL.error,
       );
 
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
-    const userInfo = this.jwtService.decode<{
+    const decodedInfo = this.jwtService.decode<{
       email: string;
       sub: string;
       name: string;
       picture?: string;
       iss: string;
       auth_time: string;
-    }>(res.id_token, {
-      complete: true,
+    }>(res.id_token);
+
+    let userInfo = await this.databaseService.users.findUnique({
+      where: {
+        email: decodedInfo.email,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
     });
 
-    console.log(userInfo);
+    if (!userInfo) {
+      userInfo = await this.databaseService.users.create({
+        data: {
+          name: decodedInfo.name,
+          email: decodedInfo.email,
+          picture: decodedInfo.picture,
+          accounts: {
+            create: {
+              provider: 'google',
+              provider_id: decodedInfo.sub,
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+    }
 
-    return userInfo;
+    const accessTokenId = uuid();
+    const refreshTokenId = uuid();
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          userId: userInfo.id,
+          email: userInfo.email,
+        },
+        {
+          jwtid: accessTokenId,
+          expiresIn: TOKEN.ACCESS.EXPIRATION,
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          userId: userInfo.id,
+          email: userInfo.email,
+        },
+        {
+          jwtid: refreshTokenId,
+          expiresIn: TOKEN.REFRESH.EXPIRATION,
+        },
+      ),
+    ]);
+
+    await this.databaseService.refreshTokens.create({
+      data: {
+        token_id: refreshTokenId,
+        user_id: userInfo.id,
+        expires_at: new Date(Date.now() + TOKEN.REFRESH.EXPIRATION_MS),
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async logout() {

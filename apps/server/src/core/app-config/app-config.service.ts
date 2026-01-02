@@ -162,6 +162,27 @@ export class AppConfigService {
     }
   }
 
+  get FRONTEND_URL(): FnResult<string> {
+    try {
+      const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
+      return { success: true, data: frontendUrl.trim(), error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'FRONTEND_URL is not defined in .env',
+      };
+    }
+  }
+
   get SERVICE_NAME(): FnResult<string> {
     try {
       const serviceName = this.config.getOrThrow<string>('SERVICE_NAME');
