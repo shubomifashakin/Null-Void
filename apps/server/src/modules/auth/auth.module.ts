@@ -19,21 +19,11 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
       inject: [AppConfigService],
       imports: [AppConfigModule],
       useFactory: (appConfigService: AppConfigService) => {
-        if (
-          !appConfigService.JWT_SECRET.success ||
-          !appConfigService.BASE_URL.success
-        ) {
-          throw new Error(
-            appConfigService.JWT_SECRET.error ||
-              appConfigService.BASE_URL.error!,
-          );
-        }
-
         return {
-          secret: appConfigService.JWT_SECRET.data,
+          secret: appConfigService.JWT_SECRET.data!,
           signOptions: {
             expiresIn: '300s',
-            issuer: appConfigService.BASE_URL.data,
+            issuer: appConfigService.BASE_URL.data!,
           },
         };
       },
