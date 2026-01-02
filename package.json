@@ -14,5 +14,8 @@
   ],
   "keywords": [],
   "author": "Fashakin Olashubomi",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
 }
