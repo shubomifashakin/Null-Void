@@ -76,7 +76,7 @@ export class AuthController {
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const accessToken = req.cookies[TOKEN.ACCESS.TYPE] as string;
     const refreshToken = req.cookies[TOKEN.REFRESH.TYPE] as string;
-    const message = await this.authService.logout(accessToken, refreshToken);
+    await this.authService.logout(accessToken, refreshToken);
 
     if (!this.configService.DOMAIN.success) {
       const message = this.configService.DOMAIN.error;
@@ -99,7 +99,7 @@ export class AuthController {
       sameSite: 'none',
     });
 
-    return { message };
+    return { message: 'success' };
   }
 
   @Get('refresh')
