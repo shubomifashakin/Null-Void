@@ -12,6 +12,10 @@ export const MINUTES_5 = 5 * 60;
 export const MINUTES_5_MS = MINUTES_5 * 1000;
 export const MINUTES_1 = 1 * 60;
 export const MINUTES_1_MS = MINUTES_1 * 1000;
+export const SECONDS_10 = 10;
+export const SECONDS_10_MS = SECONDS_10 * 1000;
+export const SECONDS_20 = 20;
+export const SECONDS_20_MS = SECONDS_20 * 1000;
 
 export const DEFAULT_JWT_ALG: Algorithm = 'HS256';
 

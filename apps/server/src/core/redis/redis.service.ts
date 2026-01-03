@@ -4,7 +4,7 @@ import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage
 
 import { createClient, RedisClientType } from 'redis';
 
-import { DAYS_1 } from '../../common/constants';
+import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
 import { FnResult } from '../../../types/fnResult';
 import { AppConfigService } from '../app-config/app-config.service';
 
@@ -27,7 +27,7 @@ export class RedisService
     }
 
     this.client = createClient({
-      pingInterval: 10,
+      pingInterval: SECONDS_20_MS,
       url: redisUrl.data,
       name: serviceName.data,
       disableOfflineQueue: true,
