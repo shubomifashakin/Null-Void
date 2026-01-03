@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 
@@ -7,11 +8,14 @@ import { MailerModule } from './core/mailer/mailer.module';
 import { RedisModule } from './core/redis/redis.module';
 import { DatabaseModule } from './core/database/database.module';
 import { AppConfigModule } from './core/app-config/app-config.module';
+import { AppConfigService } from './core/app-config/app-config.service';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+
 import { validateConfig } from './common/utils';
+import { DEFAULT_JWT_ALG } from './common/constants';
 
 @Module({
   imports: [
@@ -105,7 +109,21 @@ import { validateConfig } from './common/utils';
       },
       assignResponse: false,
     }),
-
+    JwtModule.registerAsync({
+      global: true,
+      inject: [AppConfigService],
+      imports: [AppConfigModule],
+      useFactory: (appConfigService: AppConfigService) => {
+        return {
+          secret: appConfigService.JWT_SECRET.data!,
+          signOptions: {
+            expiresIn: '5m',
+            algorithm: DEFAULT_JWT_ALG,
+            issuer: appConfigService.BASE_URL.data!,
+          },
+        };
+      },
+    }),
     RoomsModule,
     DatabaseModule,
     MailerModule,
