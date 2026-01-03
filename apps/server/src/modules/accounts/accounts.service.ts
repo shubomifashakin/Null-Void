@@ -117,11 +117,11 @@ export class AccountsService {
 
   async deleteAccount(userId: string) {
     try {
-      (await this.databaseService.users.delete({
+      await this.databaseService.users.delete({
         where: {
           id: userId,
         },
-      })) satisfies CachedUser;
+      });
 
       const cached = await this.redisService.deleteFromCache(
         makeAccountKey(userId),
