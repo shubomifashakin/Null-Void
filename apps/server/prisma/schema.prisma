@@ -34,7 +34,7 @@ model Users {
 model Accounts {
   id String @id @default(uuid())
   user_id String
-  user Users @relation(fields: [user_id], references: [id])
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
   provider Provider
   provider_id String
   created_at DateTime @default(now())
@@ -44,7 +44,7 @@ model Accounts {
 model RefreshTokens {
   id String @id @default(uuid())
   user_id String
-  user Users @relation(fields: [user_id], references: [id])
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
   token_id String @unique
   expires_at DateTime
   created_at DateTime @default(now())

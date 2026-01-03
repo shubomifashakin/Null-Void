@@ -33,4 +33,5 @@ export const TOKEN = {
 export const MESSAGES = {
   UNAUTHORIZED: 'Unauthorized',
   INTERNAL_SERVER_ERROR: 'Internal Server Error',
+  NOT_FOUND: 'Not Exist',
 };

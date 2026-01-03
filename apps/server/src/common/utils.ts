@@ -8,6 +8,10 @@ export function makeOauthStateKey(token: string): string {
   return `oauth_state:${token}`;
 }
 
+export function makeAccountKey(userId: string): string {
+  return `account:${userId}`;
+}
+
 class EnvConfig {
   @IsString()
   @IsNotEmpty()
