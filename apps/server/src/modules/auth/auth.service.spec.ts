@@ -264,6 +264,66 @@ describe('AuthService', () => {
       expect(result).toBeDefined();
       expect(result).toEqual({ message: 'success' });
     });
+
+    it('should refresh the tokens', async () => {
+      mockJwtService.decode.mockReturnValueOnce({
+        jti: 'test-refresh-tji',
+      });
+
+      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+        user: {
+          id: 'test-user-id',
+          email: 'test-email@email.com',
+        },
+        expires_at: new Date(Date.now() * 10),
+      });
+
+      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('test-access-token')
+        .mockResolvedValueOnce('test-refresh-token');
+
+      mockDatabaseService.refreshTokens.create.mockResolvedValue(null);
+
+      const result = await service.refresh('test-refresh-token');
+
+      expect(mockJwtService.decode).toHaveBeenCalledTimes(1);
+      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+
+      expect(
+        mockDatabaseService.refreshTokens.findUnique,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
+        {
+          where: {
+            token_id: 'test-refresh-tji',
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+            expires_at: true,
+          },
+        },
+      );
+
+      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledWith({
+        where: {
+          token_id: 'test-refresh-tji',
+        },
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toEqual({
+        accessToken: 'test-access-token',
+        refreshToken: 'test-refresh-token',
+      });
+    });
   });
 
   describe('Unsuccessful Tests', () => {
@@ -287,6 +347,52 @@ describe('AuthService', () => {
       await expect(service.callback('test-state', 'test-code')).rejects.toThrow(
         UnauthorizedException,
       );
+    });
+
+    it('should not refresh the tokens because of invalid refresh token', async () => {
+      mockJwtService.decode.mockReturnValueOnce({
+        jti_invalid: 'test-refresh-tji',
+      });
+
+      await expect(service.refresh('test-refresh-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should not refresh the tokens because refresh token did not exist in db', async () => {
+      mockJwtService.decode.mockReturnValueOnce({
+        jti: 'test-refresh-tji',
+      });
+
+      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+
+      await expect(service.refresh('test-refresh-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should not refresh the tokens because refresh token has expired', async () => {
+      mockJwtService.decode.mockReturnValueOnce({
+        jti: 'test-refresh-tji',
+      });
+
+      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+        user: {
+          id: 'test-user-id',
+          email: 'test-email@email.com',
+        },
+        expires_at: new Date(1000),
+      });
+
+      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+
+      await expect(service.refresh('test-refresh-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+
+      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalled();
+
+      expect(mockJwtService.signAsync).not.toHaveBeenCalled();
     });
   });
 });
