@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 
@@ -20,8 +20,13 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
   app.set('trust proxy', true);
-  app.setGlobalPrefix('/api/v1');
   app.enableShutdownHooks(['SIGINT', 'SIGTERM']);
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+    prefix: 'api/v',
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
