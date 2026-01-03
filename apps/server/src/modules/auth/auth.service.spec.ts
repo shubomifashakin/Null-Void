@@ -10,7 +10,7 @@ import { DatabaseService } from '../../core/database/database.service';
 import { RedisService } from '../../core/redis/redis.service';
 
 import { makeOauthStateKey } from '../../common/utils';
-import { DEFAULT_JWT_ALG, MINUTES_1 } from '../../common/constants';
+import { MINUTES_1 } from '../../common/constants';
 import {
   InternalServerErrorException,
   UnauthorizedException,
@@ -55,25 +55,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService],
-      imports: [
-        AppConfigModule,
-        RedisModule,
-        DatabaseModule,
-        JwtModule.registerAsync({
-          inject: [AppConfigService],
-          imports: [AppConfigModule],
-          useFactory: (appConfigService: AppConfigService) => {
-            return {
-              secret: appConfigService.JWT_SECRET.data!,
-              signOptions: {
-                expiresIn: '5m',
-                algorithm: DEFAULT_JWT_ALG,
-                issuer: appConfigService.BASE_URL.data!,
-              },
-            };
-          },
-        }),
-      ],
+      imports: [AppConfigModule, RedisModule, DatabaseModule, JwtModule],
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)

@@ -10,7 +10,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { RedisModule } from '../../core/redis/redis.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
-import { DEFAULT_JWT_ALG, TOKEN } from '../../common/constants';
+import { TOKEN } from '../../common/constants';
 import { DatabaseService } from '../../core/database/database.service';
 import { RedisService } from '../../core/redis/redis.service';
 import {
@@ -74,25 +74,7 @@ describe('AuthController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      imports: [
-        AppConfigModule,
-        RedisModule,
-        DatabaseModule,
-        JwtModule.registerAsync({
-          inject: [AppConfigService],
-          imports: [AppConfigModule],
-          useFactory: (appConfigService: AppConfigService) => {
-            return {
-              secret: appConfigService.JWT_SECRET.data!,
-              signOptions: {
-                expiresIn: '5m',
-                algorithm: DEFAULT_JWT_ALG,
-                issuer: appConfigService.BASE_URL.data!,
-              },
-            };
-          },
-        }),
-      ],
+      imports: [AppConfigModule, RedisModule, DatabaseModule, JwtModule],
       providers: [AuthService],
     })
       .overrideProvider(DatabaseService)
