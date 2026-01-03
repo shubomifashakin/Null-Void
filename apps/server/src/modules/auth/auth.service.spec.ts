@@ -177,6 +177,93 @@ describe('AuthService', () => {
         refreshToken: 'test-refresh-token',
       });
     });
+
+    it('should logout the user', async () => {
+      mockJwtService.decode
+        .mockReturnValueOnce({
+          jti: 'test-access-tji',
+        })
+        .mockReturnValueOnce({
+          jti: 'test-refresh-tji',
+        });
+
+      mockRedisService.setInCache.mockResolvedValue({ success: true });
+
+      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+        token_id: 'test-refresh-tji',
+      });
+
+      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+
+      const result = await service.logout(
+        'test-access-token',
+        'test-refresh-token',
+      );
+
+      expect(mockJwtService.decode).toHaveBeenCalledTimes(2);
+      expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
+      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+
+      expect(
+        mockDatabaseService.refreshTokens.findUnique,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
+        {
+          where: {
+            token_id: 'test-refresh-tji',
+          },
+        },
+      );
+
+      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledWith({
+        where: {
+          token_id: 'test-refresh-tji',
+        },
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toEqual({ message: 'success' });
+    });
+
+    it('should logout the user successfuly if refresh token does not exist in db', async () => {
+      mockJwtService.decode
+        .mockReturnValueOnce({
+          jti: 'test-access-tji',
+        })
+        .mockReturnValueOnce({
+          jti: 'test-refresh-tji',
+        });
+
+      mockRedisService.setInCache.mockResolvedValue({ success: true });
+
+      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+
+      const result = await service.logout(
+        'test-access-token',
+        'test-refresh-token',
+      );
+
+      expect(mockJwtService.decode).toHaveBeenCalledTimes(2);
+      expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
+      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+
+      expect(
+        mockDatabaseService.refreshTokens.findUnique,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
+        {
+          where: {
+            token_id: 'test-refresh-tji',
+          },
+        },
+      );
+
+      expect(mockDatabaseService.refreshTokens.delete).not.toHaveBeenCalled();
+
+      expect(result).toBeDefined();
+      expect(result).toEqual({ message: 'success' });
+    });
   });
 
   describe('Unsuccessful Tests', () => {
