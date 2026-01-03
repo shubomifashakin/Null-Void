@@ -9,7 +9,7 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { RedisService } from '../../core/redis/redis.service';
 
-import { DEFAULT_JWT_ALG } from '../../common/constants';
+import { DEFAULT_JWT_ALG, MINUTES_1 } from '../../common/constants';
 
 const mockDatabaseService = {
   users: {
@@ -30,10 +30,10 @@ const mockRedisService = {
 };
 
 const mockConfigService = {
-  BASE_URL: { status: true, data: 'test-base-url' },
-  JWT_SECRET: { status: true, data: 'test-jwt-secret' },
-  GOOGLE_CLIENT_ID: { status: true, data: 'test-client-id' },
-  GOOGLE_CLIENT_SECRET: { status: true, data: 'test-client-secret' },
+  BASE_URL: { success: true, data: 'test-base-url' },
+  JWT_SECRET: { success: true, data: 'test-jwt-secret' },
+  GOOGLE_CLIENT_ID: { success: true, data: 'test-client-id' },
+  GOOGLE_CLIENT_SECRET: { success: true, data: 'test-client-secret' },
 };
 
 describe('AuthService', () => {
@@ -71,9 +71,28 @@ describe('AuthService', () => {
       .compile();
 
     service = module.get<AuthService>(AuthService);
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('Successful Tests', () => {
+    it('should authorize', async () => {
+      mockRedisService.setInCache.mockResolvedValue({ success: true });
+      const result = await service.authorize();
+
+      expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);
+      expect(mockRedisService.setInCache).toHaveBeenCalledWith(
+        expect.stringContaining('oauth_state'),
+        { timestamp: expect.any(Number) },
+        MINUTES_1,
+      );
+
+      expect(result).toBeDefined();
+      expect(result).toContain('https://accounts.google.com/o/oauth2/v2/auth');
+    });
   });
 });
