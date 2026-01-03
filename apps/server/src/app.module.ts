@@ -8,7 +8,6 @@ import { MailerModule } from './core/mailer/mailer.module';
 import { RedisModule } from './core/redis/redis.module';
 import { DatabaseModule } from './core/database/database.module';
 import { AppConfigModule } from './core/app-config/app-config.module';
-import { AppConfigService } from './core/app-config/app-config.service';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
@@ -109,20 +108,13 @@ import { DEFAULT_JWT_ALG } from './common/constants';
       },
       assignResponse: false,
     }),
-    JwtModule.registerAsync({
+    JwtModule.register({
       global: true,
-      inject: [AppConfigService],
-      imports: [AppConfigModule],
-      useFactory: (appConfigService: AppConfigService) => {
-        return {
-          secret: appConfigService.JWT_SECRET.data!,
-          signOptions: {
-            expiresIn: '5m',
-            algorithm: DEFAULT_JWT_ALG,
-            issuer: appConfigService.BASE_URL.data!,
-          },
-        };
+      signOptions: {
+        expiresIn: '10m',
+        algorithm: DEFAULT_JWT_ALG,
       },
+      secret: process.env.JWT_SECRET!,
     }),
     RoomsModule,
     DatabaseModule,

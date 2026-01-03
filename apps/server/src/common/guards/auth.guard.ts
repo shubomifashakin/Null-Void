@@ -10,16 +10,11 @@ import { JwtService } from '@nestjs/jwt';
 
 import { TOKEN } from '../constants';
 
-import { AppConfigService } from '../../core/app-config/app-config.service';
-
 @Injectable()
 export class AuthGuard implements CanActivate {
   logger = new Logger(AuthGuard.name);
 
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: AppConfigService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(ctx: ExecutionContext) {
     const requestType = ctx.getType();
@@ -27,18 +22,16 @@ export class AuthGuard implements CanActivate {
     if (requestType === 'http') {
       try {
         const request = ctx.switchToHttp().getRequest<Request>();
-        const cookies = request.cookies[TOKEN.ACCESS.TYPE] as
+        const accessToken = request.cookies[TOKEN.ACCESS.TYPE] as
           | string
           | undefined;
 
-        if (!cookies) return false;
+        if (!accessToken) return false;
 
         const claims = await this.jwtService.verifyAsync<{
           userId: string;
           email: string;
-        }>(cookies, {
-          secret: this.configService.JWT_SECRET.data!,
-        });
+        }>(accessToken);
 
         if (!claims) return false;
 
