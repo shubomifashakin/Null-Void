@@ -113,6 +113,10 @@ model Invites {
   room_id String
   room Rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
 
+  expires_at DateTime
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index(name: "invites_email_idx", fields: [email, room_id, status])
 }

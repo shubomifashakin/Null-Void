@@ -8,12 +8,12 @@ import {
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
-import { makeRoomCacheKey } from './utils/fns';
+import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 import { CreateRoomDto } from './dtos/create-room.dto';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 import { InviteUserDto } from './dtos/invite-user.dto';
 
-import { MESSAGES } from '../../common/constants';
+import { DAYS_7_MS, MESSAGES } from '../../common/constants';
 
 import { RedisService } from '../../core/redis/redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
@@ -117,12 +117,22 @@ export class RoomsService {
 
   async inviteUser(inviterId: string, roomId: string, dto: InviteUserDto) {
     return await this.databaseService.$transaction(async (tx) => {
-      const roomInfo = await tx.invites.create({
+      const invitersName = await this.databaseService.users.findUniqueOrThrow({
+        where: {
+          id: inviterId,
+        },
+        select: {
+          name: true,
+        },
+      });
+
+      const inviteInfo = await tx.invites.create({
         data: {
           role: dto.role,
           room_id: roomId,
           email: dto.email,
           inviter_id: inviterId,
+          expires_at: new Date(Date.now() + DAYS_7_MS),
         },
         select: {
           room: {
@@ -130,14 +140,21 @@ export class RoomsService {
               name: true,
             },
           },
+          id: true,
+          expires_at: true,
         },
       });
 
       const { success, error } = await this.mailerService.sendMail({
         receiver: dto.email,
         sender: '', //FIXME: ADD SENDING MAIL
-        subject: `You have been Invited to Join ${roomInfo.room.name}`,
-        html: '', //FIXME: ADD HTML
+        subject: `You have been Invited to Join ${inviteInfo.room.name}`,
+        html: generateInviteMail({
+          inviterName: invitersName.name,
+          roomName: inviteInfo.room.name,
+          inviteLink: `http://localhost:3000/invites/${inviteInfo.id}`, //FIXME: GET FRONTEND URL
+          expiryDate: inviteInfo.expires_at,
+        }),
       });
 
       if (!success) {
