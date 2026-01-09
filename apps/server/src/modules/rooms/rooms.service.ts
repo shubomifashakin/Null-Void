@@ -18,6 +18,7 @@ import { DAYS_7_MS, MESSAGES } from '../../common/constants';
 import { RedisService } from '../../core/redis/redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseService } from '../../core/database/database.service';
+import { AppConfigService } from '../../core/app-config/app-config.service';
 
 @Injectable()
 export class RoomsService {
@@ -27,6 +28,7 @@ export class RoomsService {
     private readonly redisService: RedisService,
     private readonly mailerService: MailerService,
     private readonly databaseService: DatabaseService,
+    private readonly appConfigService: AppConfigService,
   ) {}
 
   async createRoom(userId: string, createRoomDto: CreateRoomDto) {
@@ -147,8 +149,8 @@ export class RoomsService {
 
       const { success, error } = await this.mailerService.sendMail({
         receiver: dto.email,
-        sender: '', //FIXME: ADD SENDING MAIL
-        subject: `You have been Invited to Join ${inviteInfo.room.name}`,
+        sender: this.appConfigService.MAILER_FROM.data!, //FIXME: ADD SENDING MAIL
+        subject: `You have been invited to join ${inviteInfo.room.name}`,
         html: generateInviteMail({
           inviterName: invitersName.name,
           roomName: inviteInfo.room.name,
