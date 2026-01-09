@@ -16,9 +16,11 @@ import { CreateRoomDto } from './dtos/create-room.dto';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 import { InviteUserDto } from './dtos/invite-user.dto';
 
+import { Roles } from '../../common/decorators/roles.decorators';
+
 import { AuthGuard } from '../../common/guards/auth.guard';
+import { RoomRoleGuard } from '../../common/guards/room-role.guard';
 import { IsMemberGuard } from '../../common/guards/is-member.guard';
-import { Roles } from 'src/common/decorators/roles.decorators';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -31,27 +33,24 @@ export class RoomsController {
     return this.roomsService.createRoom(req.user.id, dto);
   }
 
-  //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
   @Roles('ADMIN')
-  @UseGuards(IsMemberGuard)
+  @UseGuards(IsMemberGuard, RoomRoleGuard)
   @HttpCode(200)
   @Patch(':roomId')
   updateRoom(@Param('roomId') id: string, @Body() dto: UpdateRoomDto) {
     return this.roomsService.updateRoom(id, dto);
   }
 
-  //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
   @Roles('ADMIN')
-  @UseGuards(IsMemberGuard)
+  @UseGuards(IsMemberGuard, RoomRoleGuard)
   @HttpCode(200)
   @Delete(':roomId')
   deleteRoom(@Param('roomId') id: string) {
     return this.roomsService.deleteRoom(id);
   }
 
-  //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
   @Roles('ADMIN')
-  @UseGuards(IsMemberGuard)
+  @UseGuards(IsMemberGuard, RoomRoleGuard)
   @HttpCode(200)
   @Post(':roomId/invites')
   inviteUser(
@@ -62,9 +61,8 @@ export class RoomsController {
     return this.roomsService.inviteUser(req.user.id, id, dto);
   }
 
-  //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
   @Roles('ADMIN')
-  @UseGuards(IsMemberGuard)
+  @UseGuards(IsMemberGuard, RoomRoleGuard)
   @HttpCode(200)
   @Delete(':roomId/invites/:inviteId')
   revokeInvite(

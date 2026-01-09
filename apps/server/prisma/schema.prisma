@@ -94,6 +94,8 @@ model RoomMembers {
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@unique([room_id, user_id])
 }
 
 model Invites {
