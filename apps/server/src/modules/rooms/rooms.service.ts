@@ -169,14 +169,20 @@ export class RoomsService {
 
   async inviteUser(inviterId: string, roomId: string, dto: InviteUserDto) {
     return await this.databaseService.$transaction(async (tx) => {
-      const invitersName = await this.databaseService.users.findUniqueOrThrow({
+      const invitersInfo = await this.databaseService.users.findUniqueOrThrow({
         where: {
           id: inviterId,
         },
         select: {
           name: true,
+          email: true,
         },
       });
+
+      //prevent from inviting self
+      if (invitersInfo.email === dto.email) {
+        throw new BadRequestException('You cannot invite yourself');
+      }
 
       const inviteInfo = await tx.invites.create({
         data: {
@@ -202,7 +208,7 @@ export class RoomsService {
         sender: this.appConfigService.MAILER_FROM.data!, //FIXME: ADD SENDING MAIL
         subject: `You have been invited to join ${inviteInfo.room.name}`,
         html: generateInviteMail({
-          inviterName: invitersName.name,
+          inviterName: invitersInfo.name,
           roomName: inviteInfo.room.name,
           inviteLink: `http://localhost:3000/invites/${inviteInfo.id}`, //FIXME: GET FRONTEND URL
           expiryDate: inviteInfo.expires_at,
