@@ -228,7 +228,7 @@ export class RoomsService {
   async getInvites(roomId: string, cursor?: string) {
     const limit = 10;
 
-    const rooms = await this.databaseService.invite.findMany({
+    const invites = await this.databaseService.invite.findMany({
       where: {
         room_id: roomId,
       },
@@ -249,9 +249,9 @@ export class RoomsService {
       },
     });
 
-    const data = rooms.slice(0, limit);
+    const data = invites.slice(0, limit);
 
-    const hasNextPage = rooms.length > limit;
+    const hasNextPage = invites.length > limit;
     const next = data.length > 0 ? data[data.length - 1].id : null;
 
     const transformed = data.map((data) => {
