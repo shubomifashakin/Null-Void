@@ -69,7 +69,7 @@ model Rooms {
   id String @id @default(uuid())
 
   name String @db.VarChar(20)
-  description String? @db.VarChar(100)
+  description String @db.VarChar(100)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
