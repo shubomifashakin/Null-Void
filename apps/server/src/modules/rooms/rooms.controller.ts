@@ -56,6 +56,13 @@ export class RoomsController {
     return this.roomsService.deleteRoom(id);
   }
 
+  @UseGuards(IsMemberGuard)
+  @HttpCode(200)
+  @Get(':roomId/invites')
+  getInvites(@Req() req: Request, @Param('roomId') id: string) {
+    return this.roomsService.getInvites(req.user.id, id);
+  }
+
   @Roles('ADMIN')
   @UseGuards(IsMemberGuard, RoomRoleGuard)
   @HttpCode(200)

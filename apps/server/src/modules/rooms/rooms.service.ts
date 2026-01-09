@@ -219,6 +219,55 @@ export class RoomsService {
     });
   }
 
+  async getInvites(roomId: string, cursor?: string) {
+    const limit = 10;
+
+    const rooms = await this.databaseService.invites.findMany({
+      where: {
+        room_id: roomId,
+      },
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: {
+        created_at: 'desc',
+      },
+      select: {
+        id: true,
+        role: true,
+        created_at: true,
+        email: true,
+        status: true,
+        expires_at: true,
+        inviter_id: true,
+        inviter: { select: { name: true } },
+      },
+    });
+
+    const data = rooms.slice(0, limit);
+
+    const hasNextPage = rooms.length > limit;
+    const next = data.length > 0 ? data[data.length - 1].id : null;
+
+    const transformed = data.map((data) => {
+      return {
+        id: data.id,
+        role: data.role,
+        email: data.email,
+        status: data.status,
+        expiresAt: data.expires_at,
+        invitersName: data.inviter.name,
+        invitersId: data.inviter_id,
+        createdAt: data.created_at,
+      };
+    });
+
+    return {
+      data: transformed,
+      cursor: hasNextPage ? next : null,
+      hasNextPage,
+    };
+  }
+
   async revokeInvite(roomId: string, inviteId: string) {
     const inviteStatus = await this.databaseService.invites.findUniqueOrThrow({
       where: {
