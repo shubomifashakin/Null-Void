@@ -9,6 +9,8 @@ import {
   Post,
   Req,
   UseGuards,
+  Get,
+  Query,
 } from '@nestjs/common';
 
 import { RoomsService } from './rooms.service';
@@ -31,6 +33,11 @@ export class RoomsController {
   @Post()
   createRoom(@Req() req: Request, @Body() dto: CreateRoomDto) {
     return this.roomsService.createRoom(req.user.id, dto);
+  }
+
+  @Get()
+  getRooms(@Req() req: Request, @Query('cursor') cursor?: string) {
+    return this.roomsService.getRooms(req.user.id, cursor);
   }
 
   @Roles('ADMIN')

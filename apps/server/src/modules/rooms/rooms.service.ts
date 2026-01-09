@@ -65,6 +65,56 @@ export class RoomsService {
     return { id: room.id };
   }
 
+  async getRooms(userId: string, cursor?: string) {
+    const limit = 10;
+
+    const rooms = await this.databaseService.roomMembers.findMany({
+      where: {
+        user_id: userId,
+      },
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: {
+        created_at: 'desc',
+      },
+      select: {
+        id: true,
+        role: true,
+        created_at: true,
+        room: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            created_at: true,
+          },
+        },
+      },
+    });
+
+    const data = rooms.slice(0, limit);
+
+    const hasNextPage = rooms.length > limit;
+    const next = data.length > 0 ? data[data.length - 1].id : null;
+
+    const transformed = data.map((data) => {
+      return {
+        role: data.role,
+        id: data.room.id,
+        name: data.room.name,
+        joinedAt: data.created_at,
+        createdAt: data.room.created_at,
+        description: data.room.description,
+      };
+    });
+
+    return {
+      data: transformed,
+      cursor: next,
+      hasNextPage,
+    };
+  }
+
   async updateRoom(roomId: string, dto: UpdateRoomDto) {
     try {
       const room = await this.databaseService.rooms.update({
