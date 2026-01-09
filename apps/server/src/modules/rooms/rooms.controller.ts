@@ -18,6 +18,7 @@ import { InviteUserDto } from './dtos/invite-user.dto';
 
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { IsMemberGuard } from '../../common/guards/is-member.guard';
+import { Roles } from 'src/common/decorators/roles.decorators';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -31,6 +32,7 @@ export class RoomsController {
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @Roles('ADMIN')
   @UseGuards(IsMemberGuard)
   @HttpCode(200)
   @Patch(':roomId')
@@ -39,6 +41,7 @@ export class RoomsController {
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @Roles('ADMIN')
   @UseGuards(IsMemberGuard)
   @HttpCode(200)
   @Delete(':roomId')
@@ -47,6 +50,7 @@ export class RoomsController {
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @Roles('ADMIN')
   @UseGuards(IsMemberGuard)
   @HttpCode(200)
   @Post(':roomId/invites')
@@ -59,6 +63,7 @@ export class RoomsController {
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @Roles('ADMIN')
   @UseGuards(IsMemberGuard)
   @HttpCode(200)
   @Delete(':roomId/invites/:inviteId')
