@@ -7,6 +7,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
 
+import { PrismaKnownErrorFilter } from './common/filters/prisma-known-error.filter';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
@@ -35,6 +37,8 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  app.useGlobalFilters(new PrismaKnownErrorFilter());
 
   await app.listen(process.env.PORT!);
 }

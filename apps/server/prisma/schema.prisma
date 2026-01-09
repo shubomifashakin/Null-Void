@@ -18,6 +18,18 @@ enum Provider {
   google
 }
 
+enum Roles {
+  ADMIN
+  VIEWER
+  EDITOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model Users {
   id String @id @default(uuid())
   email String @unique
@@ -26,9 +38,11 @@ model Users {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  rooms Rooms[]
   accounts Accounts[]
+  members RoomMembers[]
   refresh_tokens RefreshTokens[]
-  
+  invites Invites[]
 }
 
 model Accounts {
@@ -47,6 +61,56 @@ model RefreshTokens {
   user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
   token_id String @unique
   expires_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Rooms {
+  id String @id @default(uuid())
+
+  name String @db.VarChar(20)
+  description String? @db.VarChar(100)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  owner_id String?
+  owner Users? @relation(fields: [owner_id], references: [id], onDelete: SetNull)
+
+  members RoomMembers[]
+  invites Invites[]
+}
+
+model RoomMembers {
+  id String @id @default(uuid())
+
+  role Roles
+
+  room_id String
+  room Rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  user_id String
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Invites {
+  id String @id @default(uuid())
+
+  status InviteStatus @default(PENDING) 
+
+  email String 
+  
+  inviter_id String
+  inviter Users @relation(fields: [inviter_id], references: [id], onDelete: Cascade)
+
+  role Roles
+
+  room_id String
+  room Rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
