@@ -17,6 +17,7 @@ import { UpdateRoomDto } from './dtos/update-room.dto';
 import { InviteUserDto } from './dtos/invite-user.dto';
 
 import { AuthGuard } from '../../common/guards/auth.guard';
+import { IsMemberGuard } from '../../common/guards/is-member.guard';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -30,35 +31,39 @@ export class RoomsController {
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @UseGuards(IsMemberGuard)
   @HttpCode(200)
-  @Patch(':id')
-  updateRoom(@Param('id') id: string, @Body() dto: UpdateRoomDto) {
+  @Patch(':roomId')
+  updateRoom(@Param('roomId') id: string, @Body() dto: UpdateRoomDto) {
     return this.roomsService.updateRoom(id, dto);
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @UseGuards(IsMemberGuard)
   @HttpCode(200)
-  @Delete(':id')
-  deleteRoom(@Param('id') id: string) {
+  @Delete(':roomId')
+  deleteRoom(@Param('roomId') id: string) {
     return this.roomsService.deleteRoom(id);
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @UseGuards(IsMemberGuard)
   @HttpCode(200)
-  @Post(':id/invites')
+  @Post(':roomId/invites')
   inviteUser(
     @Req() req: Request,
-    @Param('id') id: string,
+    @Param('roomId') id: string,
     @Body() dto: InviteUserDto,
   ) {
     return this.roomsService.inviteUser(req.user.id, id, dto);
   }
 
   //FIXME: NEEDS AN IS MEMBER GUARD or IS ADMIN GUARD
+  @UseGuards(IsMemberGuard)
   @HttpCode(200)
-  @Delete(':id/invites/:inviteId')
+  @Delete(':roomId/invites/:inviteId')
   revokeInvite(
-    @Param('id') roomId: string,
+    @Param('roomId') roomId: string,
     @Param('inviteId') inviteId: string,
   ) {
     return this.roomsService.revokeInvite(roomId, inviteId);
