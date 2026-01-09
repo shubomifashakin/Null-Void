@@ -29,7 +29,7 @@ export class RoomRoleGuard implements CanActivate {
 
     if (!roleMetadata || !roleMetadata.length) return true;
 
-    const usersRole = await this.databaseService.roomMembers.findUnique({
+    const usersRole = await this.databaseService.roomMember.findUnique({
       where: {
         room_id_user_id: {
           user_id: userId,

@@ -30,7 +30,7 @@ enum InviteStatus {
   REJECTED
 }
 
-model Users {
+model User {
   id String @id @default(uuid())
   email String @unique
   name String
@@ -38,34 +38,34 @@ model Users {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  rooms Rooms[]
+  room Room[]
   accounts Accounts[]
-  members RoomMembers[]
-  refresh_tokens RefreshTokens[]
-  invites Invites[]
+  members RoomMember[]
+  refresh_tokens RefreshToken[]
+  invites Invite[]
 }
 
 model Accounts {
   id String @id @default(uuid())
   user_id String
-  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   provider Provider
   provider_id String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
 
-model RefreshTokens {
+model RefreshToken {
   id String @id @default(uuid())
   user_id String
-  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   token_id String @unique
   expires_at DateTime
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
 
-model Rooms {
+model Room {
   id String @id @default(uuid())
 
   name String @db.VarChar(20)
@@ -75,22 +75,22 @@ model Rooms {
   updated_at DateTime @updatedAt
 
   owner_id String?
-  owner Users? @relation(fields: [owner_id], references: [id], onDelete: SetNull)
+  owner User? @relation(fields: [owner_id], references: [id], onDelete: SetNull)
 
-  members RoomMembers[]
-  invites Invites[]
+  members RoomMember[]
+  invites Invite[]
 }
 
-model RoomMembers {
+model RoomMember {
   id String @id @default(uuid())
 
   role Roles
 
   room_id String
-  room Rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
 
   user_id String
-  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -98,7 +98,7 @@ model RoomMembers {
   @@unique([room_id, user_id])
 }
 
-model Invites {
+model Invite {
   id String @id @default(uuid())
 
   status InviteStatus @default(PENDING) 
@@ -106,12 +106,12 @@ model Invites {
   email String 
   
   inviter_id String
-  inviter Users @relation(fields: [inviter_id], references: [id], onDelete: Cascade)
+  inviter User @relation(fields: [inviter_id], references: [id], onDelete: Cascade)
 
   role Roles
 
   room_id String
-  room Rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
 
   expires_at DateTime
 

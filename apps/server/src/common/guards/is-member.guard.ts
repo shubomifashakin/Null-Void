@@ -17,7 +17,7 @@ export class IsMemberGuard implements CanActivate {
 
       if (!roomId) return false;
 
-      const isMember = await this.databaseService.roomMembers.findUnique({
+      const isMember = await this.databaseService.roomMember.findUnique({
         where: {
           room_id_user_id: {
             user_id: userId,

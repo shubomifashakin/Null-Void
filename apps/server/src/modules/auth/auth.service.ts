@@ -67,7 +67,7 @@ export class AuthService {
         ),
       ]);
 
-      await this.databaseService.refreshTokens.create({
+      await this.databaseService.refreshToken.create({
         data: {
           token_id: refreshTokenId,
           user_id: userInfo.id,
@@ -226,7 +226,7 @@ export class AuthService {
       auth_time: string;
     }>(res.id_token);
 
-    let userInfo = await this.databaseService.users.findUnique({
+    let userInfo = await this.databaseService.user.findUnique({
       where: {
         email: decodedInfo.email,
       },
@@ -237,7 +237,7 @@ export class AuthService {
     });
 
     if (!userInfo) {
-      userInfo = await this.databaseService.users.create({
+      userInfo = await this.databaseService.user.create({
         data: {
           name: decodedInfo.name,
           email: decodedInfo.email,
@@ -296,7 +296,7 @@ export class AuthService {
       return { message: 'success' };
     }
 
-    const refreshExists = await this.databaseService.refreshTokens.findUnique({
+    const refreshExists = await this.databaseService.refreshToken.findUnique({
       where: {
         token_id: refreshTokenId,
       },
@@ -306,7 +306,7 @@ export class AuthService {
       return { message: 'success' };
     }
 
-    await this.databaseService.refreshTokens.delete({
+    await this.databaseService.refreshToken.delete({
       where: {
         token_id: refreshTokenId,
       },
@@ -324,7 +324,7 @@ export class AuthService {
       throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
-    const refreshExists = await this.databaseService.refreshTokens.findUnique({
+    const refreshExists = await this.databaseService.refreshToken.findUnique({
       where: {
         token_id: refreshTokenId,
       },
@@ -343,7 +343,7 @@ export class AuthService {
       throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
-    await this.databaseService.refreshTokens.delete({
+    await this.databaseService.refreshToken.delete({
       where: {
         token_id: refreshTokenId,
       },

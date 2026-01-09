@@ -32,7 +32,7 @@ export class RoomsService {
   ) {}
 
   async createRoom(userId: string, createRoomDto: CreateRoomDto) {
-    const room = await this.databaseService.rooms.create({
+    const room = await this.databaseService.room.create({
       data: {
         owner_id: userId,
         name: createRoomDto.name,
@@ -68,7 +68,7 @@ export class RoomsService {
   async getRooms(userId: string, cursor?: string) {
     const limit = 10;
 
-    const rooms = await this.databaseService.roomMembers.findMany({
+    const rooms = await this.databaseService.roomMember.findMany({
       where: {
         user_id: userId,
       },
@@ -117,7 +117,7 @@ export class RoomsService {
 
   async updateRoom(roomId: string, dto: UpdateRoomDto) {
     try {
-      const room = await this.databaseService.rooms.update({
+      const room = await this.databaseService.room.update({
         where: {
           id: roomId,
         },
@@ -158,7 +158,7 @@ export class RoomsService {
   }
 
   async deleteRoom(roomId: string) {
-    await this.databaseService.rooms.delete({
+    await this.databaseService.room.delete({
       where: {
         id: roomId,
       },
@@ -169,7 +169,7 @@ export class RoomsService {
 
   async inviteUser(inviterId: string, roomId: string, dto: InviteUserDto) {
     return await this.databaseService.$transaction(async (tx) => {
-      const invitersInfo = await this.databaseService.users.findUniqueOrThrow({
+      const invitersInfo = await this.databaseService.user.findUniqueOrThrow({
         where: {
           id: inviterId,
         },
@@ -184,7 +184,7 @@ export class RoomsService {
         throw new BadRequestException('You cannot invite yourself');
       }
 
-      const inviteInfo = await tx.invites.create({
+      const inviteInfo = await tx.invite.create({
         data: {
           role: dto.role,
           room_id: roomId,
@@ -228,7 +228,7 @@ export class RoomsService {
   async getInvites(roomId: string, cursor?: string) {
     const limit = 10;
 
-    const rooms = await this.databaseService.invites.findMany({
+    const rooms = await this.databaseService.invite.findMany({
       where: {
         room_id: roomId,
       },
@@ -275,7 +275,7 @@ export class RoomsService {
   }
 
   async revokeInvite(roomId: string, inviteId: string) {
-    const inviteStatus = await this.databaseService.invites.findUniqueOrThrow({
+    const inviteStatus = await this.databaseService.invite.findUniqueOrThrow({
       where: {
         id: inviteId,
         room_id: roomId,
@@ -291,7 +291,7 @@ export class RoomsService {
       );
     }
 
-    await this.databaseService.invites.delete({
+    await this.databaseService.invite.delete({
       where: { id: inviteId, room_id: roomId },
     });
 
