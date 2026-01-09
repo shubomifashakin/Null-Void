@@ -50,6 +50,28 @@ export class AppConfigService {
     }
   }
 
+  get MAILER_FROM(): FnResult<string> {
+    try {
+      const mailerFrom = this.config.getOrThrow<string>('MAILER_FROM');
+
+      return { success: true, data: mailerFrom, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: 'MAILER_FROM is not defined in .env',
+      };
+    }
+  }
+
   get RESEND_API_KEY(): FnResult<string> {
     try {
       const resendApiKey = this.config.getOrThrow<string>('RESEND_API_KEY');

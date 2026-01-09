@@ -18,7 +18,7 @@ export class RoomRoleGuard implements CanActivate {
     const userId = request.user?.id;
     const roomId = request.params.roomId;
 
-    const roleMetadata = this.reflector.getAllAndOverride<string>(ROLE_KEY, [
+    const roleMetadata = this.reflector.getAllAndOverride<string[]>(ROLE_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -27,7 +27,7 @@ export class RoomRoleGuard implements CanActivate {
       return false;
     }
 
-    if (!roleMetadata) return true;
+    if (!roleMetadata || !roleMetadata.length) return true;
 
     const usersRole = await this.databaseService.roomMembers.findUnique({
       where: {
@@ -41,7 +41,7 @@ export class RoomRoleGuard implements CanActivate {
       },
     });
 
-    if (!usersRole || usersRole.role !== roleMetadata) {
+    if (!usersRole || !roleMetadata.includes(usersRole.role)) {
       return false;
     }
 
