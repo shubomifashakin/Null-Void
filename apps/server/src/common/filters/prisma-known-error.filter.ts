@@ -1,6 +1,7 @@
 import {
   NotFoundException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 import { ExceptionFilter, Catch } from '@nestjs/common';
 
@@ -16,6 +17,15 @@ export class PrismaKnownErrorFilter implements ExceptionFilter {
           : 'Record';
 
       throw new NotFoundException(`${modelName} does not exist`);
+    }
+
+    if (exception.code === 'P2002') {
+      const modelName =
+        typeof exception?.meta?.modelName === 'string'
+          ? exception.meta.modelName
+          : 'Record';
+
+      throw new ConflictException(`${modelName} already exists`);
     }
 
     throw new InternalServerErrorException('Internal server error');
