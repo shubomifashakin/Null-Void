@@ -110,7 +110,7 @@ export class RoomsService {
 
     return {
       data: transformed,
-      cursor: next,
+      cursor: hasNextPage ? next : null,
       hasNextPage,
     };
   }
