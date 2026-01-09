@@ -3,10 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
-
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 import { CreateRoomDto } from './dtos/create-room.dto';
@@ -116,45 +113,33 @@ export class RoomsService {
   }
 
   async updateRoom(roomId: string, dto: UpdateRoomDto) {
-    try {
-      const room = await this.databaseService.room.update({
-        where: {
-          id: roomId,
-        },
-        data: {
-          name: dto?.name,
-          description: dto?.description,
-        },
-        select: {
-          id: true,
-          name: true,
-          owner_id: true,
-          created_at: true,
-          description: true,
-        },
-      });
+    const room = await this.databaseService.room.update({
+      where: {
+        id: roomId,
+      },
+      data: {
+        name: dto?.name,
+        description: dto?.description,
+      },
+      select: {
+        id: true,
+        name: true,
+        owner_id: true,
+        created_at: true,
+        description: true,
+      },
+    });
 
-      const { success, error } = await this.redisService.setInCache(
-        makeRoomCacheKey(room.id),
-        room,
-      );
+    const { success, error } = await this.redisService.setInCache(
+      makeRoomCacheKey(room.id),
+      room,
+    );
 
-      if (!success) {
-        this.logger.error(error);
-      }
-
-      return { message: 'success' };
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Room ${MESSAGES.NOT_FOUND}`);
-        }
-      }
-
+    if (!success) {
       this.logger.error(error);
-
-      throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
+
+    return { message: 'success' };
   }
 
   async deleteRoom(roomId: string) {
