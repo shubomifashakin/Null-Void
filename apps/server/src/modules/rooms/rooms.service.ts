@@ -270,6 +270,7 @@ export class RoomsService {
       },
     });
 
+    //prevent from deleting an invite that has been replied by the invitee
     if (inviteStatus.status !== 'PENDING') {
       throw new BadRequestException(
         `Invite has already been ${inviteStatus.status.toLowerCase()}`,
