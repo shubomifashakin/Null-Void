@@ -37,7 +37,6 @@ export class AuthGuard implements CanActivate {
         const claims = await this.jwtService.verifyAsync<{
           jti: string;
           userId: string;
-          email: string;
         }>(accessToken);
 
         if (!claims) return false;
@@ -55,7 +54,7 @@ export class AuthGuard implements CanActivate {
 
         if (blacklisted.data) return false;
 
-        request.user = { id: claims.userId, email: claims.email };
+        request.user = { id: claims.userId };
 
         return true;
       } catch (error) {

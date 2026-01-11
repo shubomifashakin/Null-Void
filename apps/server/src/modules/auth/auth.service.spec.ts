@@ -280,7 +280,8 @@ describe('AuthService', () => {
           user: {
             select: {
               id: true,
-              email: true,
+              name: true,
+              picture: true,
             },
           },
           expires_at: true,
