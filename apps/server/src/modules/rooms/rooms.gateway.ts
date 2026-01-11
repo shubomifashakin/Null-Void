@@ -10,6 +10,8 @@ import {
 
 import { Server, Socket } from 'socket.io';
 
+import { RoomsEventsService } from './rooms-events.service';
+
 @WebSocketGateway({
   namespace: 'rooms',
   pingTimeout: 15000,
@@ -23,8 +25,8 @@ import { Server, Socket } from 'socket.io';
   maxHttpBufferSize: 5e8,
 })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  //FIXME: IMPORT REDIS SERVICE
-  constructor() {}
+  constructor(private readonly roomsEventsService: RoomsEventsService) {}
+
   @WebSocketServer() server: Server;
 
   @SubscribeMessage('draw')

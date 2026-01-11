@@ -7,6 +7,7 @@ import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsController } from './rooms.controller';
+import { RoomsEventsService } from './rooms-events.service';
 
 import { RedisModule } from '../../core/redis/redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
@@ -88,7 +89,7 @@ describe('RoomsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RoomsService, RoomsGateway],
+      providers: [RoomsService, RoomsGateway, RoomsEventsService],
       controllers: [RoomsController],
       imports: [
         RedisModule,

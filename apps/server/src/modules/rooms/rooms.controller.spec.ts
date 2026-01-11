@@ -1,11 +1,14 @@
 import { Request } from 'express';
 
+import { JwtModule } from '@nestjs/jwt';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsController } from './rooms.controller';
+import { RoomsEventsService } from './rooms-events.service';
+
 import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 
 import { RedisModule } from '../../core/redis/redis.module';
@@ -19,7 +22,6 @@ import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
-import { JwtModule } from '@nestjs/jwt';
 
 const mockDatabaseService = {
   user: {
@@ -97,7 +99,7 @@ describe('RoomsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomsController],
-      providers: [RoomsService, RoomsGateway],
+      providers: [RoomsService, RoomsGateway, RoomsEventsService],
       imports: [
         DatabaseModule,
         RedisModule,
