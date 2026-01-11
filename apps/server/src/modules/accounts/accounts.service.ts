@@ -1,11 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { UpdateAccountDto } from './dtos/update-account.dto';
 
@@ -31,19 +24,6 @@ export class AccountsService {
     private readonly redisService: RedisService,
     private readonly databaseService: DatabaseService,
   ) {}
-
-  private handleDatabaseError(error: any): never {
-    if (
-      error instanceof PrismaClientKnownRequestError &&
-      error.code === 'P2025'
-    ) {
-      throw new NotFoundException(`User ${MESSAGES.NOT_FOUND}`);
-    }
-
-    this.logger.error(error);
-
-    throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
-  }
 
   async getAccount(userId: string) {
     const { success, data, error } =
@@ -85,55 +65,47 @@ export class AccountsService {
   }
 
   async updateAccount(userId: string, body: UpdateAccountDto) {
-    try {
-      const user = (await this.databaseService.user.update({
-        where: {
-          id: userId,
-        },
-        data: { name: body.name.trim() },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          picture: true,
-          created_at: true,
-        },
-      })) satisfies CachedUser;
+    const user = (await this.databaseService.user.update({
+      where: {
+        id: userId,
+      },
+      data: { name: body.name.trim() },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        picture: true,
+        created_at: true,
+      },
+    })) satisfies CachedUser;
 
-      const cached = await this.redisService.setInCache(
-        makeAccountKey(userId),
-        user,
-      );
+    const cached = await this.redisService.setInCache(
+      makeAccountKey(userId),
+      user,
+    );
 
-      if (!cached.success) {
-        this.logger.error(cached.error);
-      }
-
-      return { message: 'success' };
-    } catch (error) {
-      this.handleDatabaseError(error);
+    if (!cached.success) {
+      this.logger.error(cached.error);
     }
+
+    return { message: 'success' };
   }
 
   async deleteAccount(userId: string) {
-    try {
-      await this.databaseService.user.delete({
-        where: {
-          id: userId,
-        },
-      });
+    await this.databaseService.user.delete({
+      where: {
+        id: userId,
+      },
+    });
 
-      const cached = await this.redisService.deleteFromCache(
-        makeAccountKey(userId),
-      );
+    const cached = await this.redisService.deleteFromCache(
+      makeAccountKey(userId),
+    );
 
-      if (!cached.success) {
-        this.logger.error(cached.error);
-      }
-
-      return { message: 'success' };
-    } catch (error) {
-      this.handleDatabaseError(error);
+    if (!cached.success) {
+      this.logger.error(cached.error);
     }
+
+    return { message: 'success' };
   }
 }

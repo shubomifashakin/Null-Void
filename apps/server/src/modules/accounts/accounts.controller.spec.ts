@@ -194,7 +194,7 @@ describe('AccountsController', () => {
         controller.updateAccount(mockRequest, {
           name: 'test-name',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(PrismaClientKnownRequestError);
     });
 
     it('should not delete the account because the account was not found', async () => {
@@ -207,7 +207,7 @@ describe('AccountsController', () => {
 
       await expect(
         controller.deleteAccount(mockRequest, mockResponse),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(PrismaClientKnownRequestError);
     });
   });
 });

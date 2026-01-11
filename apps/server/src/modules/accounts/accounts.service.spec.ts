@@ -183,7 +183,7 @@ describe('AccountsService', () => {
         service.updateAccount('test-user-id', {
           name: 'test-name',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(PrismaClientKnownRequestError);
     });
 
     it('should not delete the account because the account was not found', async () => {
@@ -195,7 +195,7 @@ describe('AccountsService', () => {
       );
 
       await expect(service.deleteAccount('test-user-id')).rejects.toThrow(
-        NotFoundException,
+        PrismaClientKnownRequestError,
       );
     });
   });
