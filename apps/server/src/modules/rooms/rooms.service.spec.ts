@@ -2,7 +2,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { makeRoomCacheKey } from './utils/fns';
+import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
@@ -11,6 +11,7 @@ import { RoomsController } from './rooms.controller';
 import { RedisModule } from '../../core/redis/redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
 import { RedisService } from '../../core/redis/redis.service';
+import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseModule } from '../../core/database/database.module';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
@@ -24,6 +25,7 @@ const mockDatabaseService = {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    findUniqueOrThrow: jest.fn(),
   },
   room: {
     create: jest.fn(),
@@ -36,12 +38,26 @@ const mockDatabaseService = {
     delete: jest.fn(),
     findMany: jest.fn(),
   },
-  $transaction: jest.fn(),
+  $transaction: jest.fn().mockImplementation((fn) => {
+    const tx = {
+      ...mockDatabaseService,
+      invite: {
+        ...mockDatabaseService.invite,
+      },
+    };
+
+    return fn(tx);
+  }),
   invite: {
     findUniqueOrThrow: jest.fn(),
     delete: jest.fn(),
     findMany: jest.fn(),
+    create: jest.fn(),
   },
+};
+
+const mockMailerService = {
+  sendMail: jest.fn(),
 };
 
 const mockRedisService = {
@@ -54,6 +70,7 @@ const mockConfigService = {
   BASE_URL: { success: true, data: 'test-base-url' },
   JWT_SECRET: { success: true, data: 'test-jwt-secret' },
   RESEND_API_KEY: { success: true, data: 'test-resend-api-key' },
+  MAILER_FROM: { success: true, data: 'test-mailer-from' },
 };
 
 const mockLogger = {
@@ -85,6 +102,8 @@ describe('RoomsService', () => {
       .useValue(mockRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)
+      .overrideProvider(MailerService)
+      .useValue(mockMailerService)
       .compile();
 
     module.useLogger(mockLogger);
@@ -240,7 +259,72 @@ describe('RoomsService', () => {
     expect(result).toEqual({ message: 'success' });
   });
 
-  //FIXME: ADD INVITE USER TEST
+  it('should invite the user', async () => {
+    const invitersInfo = {
+      name: 'test-name',
+      email: 'test-email@test.com',
+    };
+    mockDatabaseService.user.findUniqueOrThrow.mockResolvedValue(invitersInfo);
+
+    const inviteInfo = {
+      id: 'test-invite-id',
+      room: { name: 'test-room-name' },
+      expires_at: new Date(),
+    };
+
+    mockDatabaseService.invite.create.mockResolvedValue(inviteInfo);
+
+    mockMailerService.sendMail.mockResolvedValue({
+      success: true,
+      error: null,
+    });
+
+    const inviteeEmail = 'invited-user@test.com';
+    const result = await service.inviteUser('test-user-id', 'test-room-id', {
+      email: inviteeEmail,
+      role: 'VIEWER',
+    });
+
+    expect(result).toEqual({ message: 'success' });
+    expect(mockDatabaseService.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.user.findUniqueOrThrow).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.invite.create).toHaveBeenCalledTimes(1);
+    expect(mockMailerService.sendMail).toHaveBeenCalledTimes(1);
+    expect(mockMailerService.sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receiver: inviteeEmail,
+        sender: 'test-mailer-from',
+        subject: `You have been invited to join ${inviteInfo.room.name}`,
+        html: generateInviteMail({
+          inviterName: invitersInfo.name,
+          roomName: inviteInfo.room.name,
+          inviteLink: `http://localhost:3000/invites/${inviteInfo.id}`, //FIXME: USE FRONTEND URL
+          expiryDate: inviteInfo.expires_at,
+        }),
+      }),
+    );
+  });
+
+  it('should not invite self', async () => {
+    const invitersInfo = {
+      name: 'test-name',
+      email: 'test-email@test.com',
+    };
+
+    mockDatabaseService.user.findUniqueOrThrow.mockResolvedValue(invitersInfo);
+
+    await expect(
+      service.inviteUser('test-user-id', 'test-room-id', {
+        email: invitersInfo.email,
+        role: 'VIEWER',
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(mockDatabaseService.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.user.findUniqueOrThrow).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.invite.create).not.toHaveBeenCalled();
+    expect(mockMailerService.sendMail).not.toHaveBeenCalled();
+  });
 
   it('should get invites for a room and return the paginated result', async () => {
     const createdAt = new Date(100);
