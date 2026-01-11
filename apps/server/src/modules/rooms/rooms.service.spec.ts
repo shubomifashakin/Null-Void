@@ -71,6 +71,8 @@ const mockConfigService = {
   JWT_SECRET: { success: true, data: 'test-jwt-secret' },
   RESEND_API_KEY: { success: true, data: 'test-resend-api-key' },
   MAILER_FROM: { success: true, data: 'test-mailer-from' },
+  FRONTEND_URL: { success: true, data: 'test-frontend-url' },
+  DOMAIN: { success: true, data: 'test-domain' },
 };
 
 const mockLogger = {
@@ -298,7 +300,7 @@ describe('RoomsService', () => {
         html: generateInviteMail({
           inviterName: invitersInfo.name,
           roomName: inviteInfo.room.name,
-          inviteLink: `http://localhost:3000/invites/${inviteInfo.id}`, //FIXME: USE FRONTEND URL
+          inviteLink: `${mockConfigService.FRONTEND_URL.data}/invites/${inviteInfo.id}`,
           expiryDate: inviteInfo.expires_at,
         }),
       }),

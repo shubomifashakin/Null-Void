@@ -203,7 +203,7 @@ export class RoomsService {
         html: generateInviteMail({
           inviterName: invitersInfo.name,
           roomName: inviteInfo.room.name,
-          inviteLink: `http://localhost:3000/invites/${inviteInfo.id}`, //FIXME: GET FRONTEND URL
+          inviteLink: `${this.appConfigService.FRONTEND_URL.data!}/invites/${inviteInfo.id}`,
           expiryDate: inviteInfo.expires_at,
         }),
       });
