@@ -149,6 +149,14 @@ export class RoomsService {
       },
     });
 
+    const { success, error } = await this.redisService.deleteFromCache(
+      makeRoomCacheKey(roomId),
+    );
+
+    if (!success) {
+      this.logger.error(error);
+    }
+
     return { message: 'success' };
   }
 
