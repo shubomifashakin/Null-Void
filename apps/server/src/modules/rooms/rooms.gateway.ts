@@ -53,6 +53,9 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //FIXME: REMOVE CLIENT from room tracking
   }
 
+  @SubscribeMessage('mousemove')
+  handleMouseMoveEvent() {}
+
   handleConnection(client: Socket): void {
     console.log('Client connected:', client.id);
     console.log('Client data:', client.data);
