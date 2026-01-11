@@ -34,11 +34,11 @@ const mockRequest = {
 } as unknown as jest.Mocked<Request>;
 
 const mockDatabaseService = {
-  users: {
+  user: {
     findUnique: jest.fn(),
     create: jest.fn(),
   },
-  refreshTokens: {
+  refreshToken: {
     findUnique: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),
@@ -134,7 +134,7 @@ describe('AuthController', () => {
         auth_time: 'test-auth-time',
       });
 
-      mockDatabaseService.users.findUnique.mockResolvedValue({
+      mockDatabaseService.user.findUnique.mockResolvedValue({
         id: 'test-user-id',
         email: 'test-email@email.com',
       });
@@ -143,7 +143,7 @@ describe('AuthController', () => {
         .mockResolvedValueOnce('test-access-token')
         .mockResolvedValueOnce('test-refresh-token');
 
-      mockDatabaseService.refreshTokens.create.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.create.mockResolvedValue(null);
 
       await controller.callback(mockResponse, 'test-state', 'test-code');
 
@@ -165,11 +165,11 @@ describe('AuthController', () => {
 
       mockRedisService.setInCache.mockResolvedValue({ success: true });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         token_id: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       const result = await controller.logout(mockRequest, mockResponse);
 
@@ -191,7 +191,7 @@ describe('AuthController', () => {
 
       mockRedisService.setInCache.mockResolvedValue({ success: true });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue(null);
 
       const result = await controller.logout(mockRequest, mockResponse);
 
@@ -207,7 +207,7 @@ describe('AuthController', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         user: {
           id: 'test-user-id',
           email: 'test-email@email.com',
@@ -215,13 +215,13 @@ describe('AuthController', () => {
         expires_at: new Date(Date.now() * 10),
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       mockJwtService.signAsync
         .mockResolvedValueOnce('test-access-token')
         .mockResolvedValueOnce('test-refresh-token');
 
-      mockDatabaseService.refreshTokens.create.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.create.mockResolvedValue(null);
 
       const result = await controller.refresh(mockRequest, mockResponse);
 
@@ -272,7 +272,7 @@ describe('AuthController', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue(null);
 
       await expect(
         controller.refresh(mockRequest, mockResponse),
@@ -284,7 +284,7 @@ describe('AuthController', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         user: {
           id: 'test-user-id',
           email: 'test-email@email.com',
@@ -292,7 +292,7 @@ describe('AuthController', () => {
         expires_at: new Date(1000),
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       await expect(
         controller.refresh(mockRequest, mockResponse),

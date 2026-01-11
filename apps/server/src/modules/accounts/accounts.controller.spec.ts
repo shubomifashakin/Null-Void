@@ -26,7 +26,7 @@ const mockRequest = {
 } as unknown as Request;
 
 const mockDatabaseService = {
-  users: {
+  user: {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -96,7 +96,7 @@ describe('AccountsController', () => {
         created_at: new Date(),
       };
 
-      mockDatabaseService.users.findUnique.mockResolvedValue(user);
+      mockDatabaseService.user.findUnique.mockResolvedValue(user);
 
       mockRedisService.setInCache.mockResolvedValue({
         success: true,
@@ -127,7 +127,7 @@ describe('AccountsController', () => {
       expect(result).toBeDefined();
       expect(result).toEqual(user);
 
-      expect(mockDatabaseService.users.findUnique).not.toHaveBeenCalled();
+      expect(mockDatabaseService.user.findUnique).not.toHaveBeenCalled();
     });
 
     it('should update the account', async () => {
@@ -139,7 +139,7 @@ describe('AccountsController', () => {
         created_at: new Date(),
       };
 
-      mockDatabaseService.users.update.mockResolvedValue(user);
+      mockDatabaseService.user.update.mockResolvedValue(user);
 
       mockRedisService.setInCache.mockResolvedValue({
         success: true,
@@ -154,7 +154,7 @@ describe('AccountsController', () => {
     });
 
     it('should delete the account', async () => {
-      mockDatabaseService.users.delete.mockResolvedValue(null);
+      mockDatabaseService.user.delete.mockResolvedValue(null);
 
       mockRedisService.deleteFromCache.mockResolvedValue({
         success: true,
@@ -175,7 +175,7 @@ describe('AccountsController', () => {
         data: null,
       });
 
-      mockDatabaseService.users.findUnique.mockResolvedValue(null);
+      mockDatabaseService.user.findUnique.mockResolvedValue(null);
 
       await expect(controller.getAccount(mockRequest)).rejects.toThrow(
         NotFoundException,
@@ -183,7 +183,7 @@ describe('AccountsController', () => {
     });
 
     it('should not update the account because the account was not found', async () => {
-      mockDatabaseService.users.update.mockRejectedValue(
+      mockDatabaseService.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Invalid', {
           code: 'P2025',
           clientVersion: '7.2',
@@ -198,7 +198,7 @@ describe('AccountsController', () => {
     });
 
     it('should not delete the account because the account was not found', async () => {
-      mockDatabaseService.users.delete.mockRejectedValue(
+      mockDatabaseService.user.delete.mockRejectedValue(
         new PrismaClientKnownRequestError('Invalid', {
           code: 'P2025',
           clientVersion: '7.2',

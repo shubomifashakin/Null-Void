@@ -55,7 +55,7 @@ export class AccountsService {
       this.logger.error(error);
     }
 
-    const user = (await this.databaseService.users.findUnique({
+    const user = (await this.databaseService.user.findUnique({
       where: {
         id: userId,
       },
@@ -86,7 +86,7 @@ export class AccountsService {
 
   async updateAccount(userId: string, body: UpdateAccountDto) {
     try {
-      const user = (await this.databaseService.users.update({
+      const user = (await this.databaseService.user.update({
         where: {
           id: userId,
         },
@@ -117,7 +117,7 @@ export class AccountsService {
 
   async deleteAccount(userId: string) {
     try {
-      await this.databaseService.users.delete({
+      await this.databaseService.user.delete({
         where: {
           id: userId,
         },

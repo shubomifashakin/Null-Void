@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Resend } from 'resend';
+import { Attachment, Resend } from 'resend';
 
 import { AppConfigService } from '../app-config/app-config.service';
+
+import { FnResult } from 'types/fnResult';
 
 @Injectable()
 export class MailerService extends Resend {
@@ -11,5 +13,41 @@ export class MailerService extends Resend {
       throw new Error(error);
     }
     super(data);
+  }
+
+  async sendMail<T>({
+    receiver,
+    sender,
+    attachments,
+    subject,
+    html,
+  }: {
+    receiver: string;
+    sender: string;
+    html: string;
+    subject: string;
+    attachments?: Attachment[];
+  }): Promise<FnResult<T>> {
+    const { error } = await this.emails.send({
+      from: sender,
+      to: receiver,
+      attachments: attachments,
+      html,
+      subject,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        data: null,
+        error: `${error.name}: ${error.message}`,
+      };
+    }
+
+    return {
+      error: null,
+      success: true,
+      data: null as T,
+    };
   }
 }

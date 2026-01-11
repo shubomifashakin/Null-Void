@@ -17,11 +17,11 @@ import {
 } from '@nestjs/common';
 
 const mockDatabaseService = {
-  users: {
+  user: {
     findUnique: jest.fn(),
     create: jest.fn(),
   },
-  refreshTokens: {
+  refreshToken: {
     findUnique: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),
@@ -120,7 +120,7 @@ describe('AuthService', () => {
         auth_time: 'test-auth-time',
       });
 
-      mockDatabaseService.users.findUnique.mockResolvedValue({
+      mockDatabaseService.user.findUnique.mockResolvedValue({
         id: 'test-user-id',
         email: 'test-email@email.com',
       });
@@ -129,7 +129,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce('test-access-token')
         .mockResolvedValueOnce('test-refresh-token');
 
-      mockDatabaseService.refreshTokens.create.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.create.mockResolvedValue(null);
 
       const result = await service.callback('test-state', 'test-code');
 
@@ -145,7 +145,7 @@ describe('AuthService', () => {
 
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-id-token');
 
-      expect(mockDatabaseService.refreshTokens.create).toHaveBeenCalledWith({
+      expect(mockDatabaseService.refreshToken.create).toHaveBeenCalledWith({
         data: {
           token_id: expect.any(String),
           user_id: 'test-user-id',
@@ -171,11 +171,11 @@ describe('AuthService', () => {
 
       mockRedisService.setInCache.mockResolvedValue({ success: true });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         token_id: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       const result = await service.logout(
         'test-access-token',
@@ -186,19 +186,17 @@ describe('AuthService', () => {
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
 
-      expect(
-        mockDatabaseService.refreshTokens.findUnique,
-      ).toHaveBeenCalledTimes(1);
-      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
-        {
-          where: {
-            token_id: 'test-refresh-tji',
-          },
-        },
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
+        1,
       );
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledWith({
+        where: {
+          token_id: 'test-refresh-tji',
+        },
+      });
 
-      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledTimes(1);
-      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledWith({
+      expect(mockDatabaseService.refreshToken.delete).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshToken.delete).toHaveBeenCalledWith({
         where: {
           token_id: 'test-refresh-tji',
         },
@@ -219,7 +217,7 @@ describe('AuthService', () => {
 
       mockRedisService.setInCache.mockResolvedValue({ success: true });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue(null);
 
       const result = await service.logout(
         'test-access-token',
@@ -230,18 +228,16 @@ describe('AuthService', () => {
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
 
-      expect(
-        mockDatabaseService.refreshTokens.findUnique,
-      ).toHaveBeenCalledTimes(1);
-      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
-        {
-          where: {
-            token_id: 'test-refresh-tji',
-          },
-        },
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
+        1,
       );
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledWith({
+        where: {
+          token_id: 'test-refresh-tji',
+        },
+      });
 
-      expect(mockDatabaseService.refreshTokens.delete).not.toHaveBeenCalled();
+      expect(mockDatabaseService.refreshToken.delete).not.toHaveBeenCalled();
 
       expect(result).toBeDefined();
       expect(result).toEqual({ message: 'success' });
@@ -252,7 +248,7 @@ describe('AuthService', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         user: {
           id: 'test-user-id',
           email: 'test-email@email.com',
@@ -260,41 +256,39 @@ describe('AuthService', () => {
         expires_at: new Date(Date.now() * 10),
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       mockJwtService.signAsync
         .mockResolvedValueOnce('test-access-token')
         .mockResolvedValueOnce('test-refresh-token');
 
-      mockDatabaseService.refreshTokens.create.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.create.mockResolvedValue(null);
 
       const result = await service.refresh('test-refresh-token');
 
       expect(mockJwtService.decode).toHaveBeenCalledTimes(1);
       expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
 
-      expect(
-        mockDatabaseService.refreshTokens.findUnique,
-      ).toHaveBeenCalledTimes(1);
-      expect(mockDatabaseService.refreshTokens.findUnique).toHaveBeenCalledWith(
-        {
-          where: {
-            token_id: 'test-refresh-tji',
-          },
-          select: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-              },
-            },
-            expires_at: true,
-          },
-        },
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
+        1,
       );
+      expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledWith({
+        where: {
+          token_id: 'test-refresh-tji',
+        },
+        select: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+          expires_at: true,
+        },
+      });
 
-      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledTimes(1);
-      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalledWith({
+      expect(mockDatabaseService.refreshToken.delete).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseService.refreshToken.delete).toHaveBeenCalledWith({
         where: {
           token_id: 'test-refresh-tji',
         },
@@ -346,7 +340,7 @@ describe('AuthService', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue(null);
 
       await expect(service.refresh('test-refresh-token')).rejects.toThrow(
         UnauthorizedException,
@@ -358,7 +352,7 @@ describe('AuthService', () => {
         jti: 'test-refresh-tji',
       });
 
-      mockDatabaseService.refreshTokens.findUnique.mockResolvedValue({
+      mockDatabaseService.refreshToken.findUnique.mockResolvedValue({
         user: {
           id: 'test-user-id',
           email: 'test-email@email.com',
@@ -366,13 +360,13 @@ describe('AuthService', () => {
         expires_at: new Date(1000),
       });
 
-      mockDatabaseService.refreshTokens.delete.mockResolvedValue(null);
+      mockDatabaseService.refreshToken.delete.mockResolvedValue(null);
 
       await expect(service.refresh('test-refresh-token')).rejects.toThrow(
         UnauthorizedException,
       );
 
-      expect(mockDatabaseService.refreshTokens.delete).toHaveBeenCalled();
+      expect(mockDatabaseService.refreshToken.delete).toHaveBeenCalled();
 
       expect(mockJwtService.signAsync).not.toHaveBeenCalled();
     });
