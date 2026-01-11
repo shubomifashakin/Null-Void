@@ -6,15 +6,21 @@ import { Socket, Server } from 'socket.io';
 
 import { FnResult } from '../../../types/fnResult';
 
+import { DatabaseService } from '../../core/database/database.service';
+
 @Injectable()
 export class RoomsEventsService {
   private readonly logger = new Logger(RoomsEventsService.name);
-  constructor(private readonly jwtService: JwtService) {}
+
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
   async handleConnection(client: Socket, server: Server) {
     try {
-      console.log('Client connected:', client.id);
-      console.log('Client data:', client.data);
+      const roomId = client.handshake.query?.roomId as string;
+      if (!roomId) return client.disconnect(true);
 
       const cookies = client.handshake.headers.cookie;
 
@@ -29,6 +35,14 @@ export class RoomsEventsService {
 
       if (!success || !userInfo) return client.disconnect(true);
 
+      const roomExists = await this.databaseService.roomMember.findUnique({
+        where: {
+          room_id_user_id: { room_id: roomId, user_id: userInfo.userId },
+        },
+      });
+
+      if (!roomExists) return client.disconnect(true);
+
       const connectionTime = client.handshake.issued;
 
       client.data = {
@@ -38,14 +52,20 @@ export class RoomsEventsService {
         joinedAt: new Date(connectionTime),
       };
 
+      await client.join(roomId);
+
+      this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
+
       // FIXME: Add client to cross server room tracking
 
       //FIXME: Broadcast that a new user joined the room
-      server.emit('user_joined', {
+      server.to(roomId).emit('user_joined', {
         name: userInfo.name,
         userId: userInfo.userId,
         picture: userInfo.picture,
       });
+
+      //FIXME: SEND THE CURRENT STATE OF THE ROOM TO THE NEWLY CONNECTED CLIENT
     } catch (error) {
       this.logger.error('Error handling connection:', error);
 
