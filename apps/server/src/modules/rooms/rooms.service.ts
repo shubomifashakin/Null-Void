@@ -162,7 +162,7 @@ export class RoomsService {
 
   async inviteUser(inviterId: string, roomId: string, dto: InviteUserDto) {
     return await this.databaseService.$transaction(async (tx) => {
-      const invitersInfo = await this.databaseService.user.findUniqueOrThrow({
+      const invitersInfo = await tx.user.findUniqueOrThrow({
         where: {
           id: inviterId,
         },
