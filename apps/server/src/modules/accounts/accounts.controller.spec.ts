@@ -150,7 +150,7 @@ describe('AccountsController', () => {
       });
 
       expect(result).toBeDefined();
-      expect(result).toEqual(user);
+      expect(result).toEqual({ message: 'success' });
     });
 
     it('should delete the account', async () => {

@@ -109,7 +109,7 @@ export class AccountsService {
         this.logger.error(cached.error);
       }
 
-      return user;
+      return { message: 'success' };
     } catch (error) {
       this.handleDatabaseError(error);
     }
