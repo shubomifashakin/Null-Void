@@ -53,6 +53,8 @@ model Accounts {
   provider_id String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index(name: "accounts_user_id_idx", fields: [user_id])
 }
 
 model RefreshToken {
