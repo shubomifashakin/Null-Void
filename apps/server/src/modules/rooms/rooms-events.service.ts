@@ -4,6 +4,8 @@ import { Injectable } from '@nestjs/common';
 
 import { Socket, Server } from 'socket.io';
 
+import { WS_EVENTS } from './utils/constants';
+
 import { FnResult } from '../../../types/fnResult';
 
 import { DatabaseService } from '../../core/database/database.service';
@@ -78,7 +80,7 @@ export class RoomsEventsService {
       // FIXME: Add client to cross server room tracking
 
       //FIXME: Broadcast that a new user joined the room
-      server.to(roomId).emit('user_joined', {
+      server.to(roomId).emit(WS_EVENTS.USER_JOINED, {
         name: roomExists.user.name,
         role: roomExists.role,
         userId: userInfo.userId,
