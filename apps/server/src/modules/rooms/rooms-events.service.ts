@@ -137,7 +137,7 @@ export class RoomsEventsService {
         description: roomExists.room.description,
       });
 
-      //send the users room info to themself
+      //send the users own info in the room tot the user
       client.emit(WS_EVENTS.USER_INFO, {
         name: roomExists.user.name,
         role: roomExists.role,
