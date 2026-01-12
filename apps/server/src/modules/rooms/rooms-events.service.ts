@@ -110,8 +110,6 @@ export class RoomsEventsService {
 
       this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
 
-      //FIXME: WOULD EMITTING TO ALL CLIENTS ALSO EMIT TO THE CLIENT THAT SENT THE MESSAGE?
-      //FIXME: brdcast that a new user joined the room to all previously connected clients
       client.to(roomId).emit(WS_EVENTS.USER_JOINED, {
         name: roomExists.user.name,
         role: roomExists.role,
@@ -119,7 +117,6 @@ export class RoomsEventsService {
         picture: roomExists.user.picture,
       });
 
-      //FIXME: Send the list of all users in the room to the newly connected client
       client.emit(WS_EVENTS.USER_LIST, allUsersInTheRooms.data);
 
       //FIXME: SEND THE CURRENT STATE OF THE ROOM TO THE NEWLY CONNECTED CLIENT
