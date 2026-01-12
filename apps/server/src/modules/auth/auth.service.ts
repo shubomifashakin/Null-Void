@@ -36,8 +36,6 @@ export class AuthService {
 
   private async generateToken(userInfo: {
     id: string;
-    name: string;
-    picture: string | null;
   }): Promise<FnResult<{ accessToken: string; refreshToken: string }>> {
     try {
       const accessTokenId = uuid();
@@ -47,8 +45,6 @@ export class AuthService {
         this.jwtService.signAsync(
           {
             userId: userInfo.id,
-            name: userInfo.name,
-            picture: userInfo.picture,
           },
           {
             algorithm: DEFAULT_JWT_ALG,
@@ -233,8 +229,6 @@ export class AuthService {
       },
       select: {
         id: true,
-        picture: true,
-        name: true,
       },
     });
 
@@ -335,8 +329,6 @@ export class AuthService {
         user: {
           select: {
             id: true,
-            name: true,
-            picture: true,
           },
         },
         expires_at: true,
@@ -363,8 +355,6 @@ export class AuthService {
       success: tokenSuccess,
     } = await this.generateToken({
       id: refreshExists.user.id,
-      name: refreshExists.user.name,
-      picture: refreshExists.user.picture,
     });
 
     if (!tokenSuccess) {
