@@ -17,9 +17,6 @@ import { RoomsEventsService } from './rooms-events.service';
   namespace: 'rooms',
   pingTimeout: 15000,
   pingInterval: 30000,
-  cors: {
-    origin: '*',
-  },
   perMessageDeflate: true,
   connectTimeout: 10000,
   upgradeTimeout: 10000,
