@@ -10,6 +10,7 @@ import { WS_EVENTS } from './utils/constants';
 import {
   makeRoomCanvasStateCacheKey,
   makeRoomsUsersCacheKey,
+  makeRoomUsersIdCacheKey,
 } from './utils/fns';
 
 import { FnResult } from '../../../types/fnResult';
@@ -267,10 +268,11 @@ export class RoomsEventsService {
     userInfo: UserData,
   ) {
     const roomKey = makeRoomsUsersCacheKey(roomId);
+    const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userInfo.userId);
 
     const result = await this.redisService.hSetInCache(
       roomKey,
-      userInfo.userId,
+      roomUserIdKey,
       userInfo,
     );
 

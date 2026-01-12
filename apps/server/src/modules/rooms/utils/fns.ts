@@ -95,6 +95,12 @@ export function makeRoomsUsersCacheKey(roomId: string): string {
   return `room:${roomId}:users`;
 }
 
+export function makeRoomUsersIdCacheKey(
+  roomId: string,
+  userId: string,
+): string {
+  return `room:${roomId}:users:${userId}`;
+}
 export function makeRoomCanvasStateCacheKey(roomId: string): string {
   return `room:${roomId}:canvas:state`;
 }
