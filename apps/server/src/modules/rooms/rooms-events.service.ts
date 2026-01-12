@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
-import { Socket, Server } from 'socket.io';
+import { Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
 
@@ -15,7 +15,6 @@ import {
 import { FnResult } from '../../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
-import { DAYS_1 } from '../../common/constants';
 import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 
@@ -37,7 +36,7 @@ export class RoomsEventsService {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async handleConnection(client: Socket, server: Server) {
+  async handleConnection(client: Socket) {
     try {
       const roomId = client.handshake.query?.roomId as string;
       if (!roomId) return client.disconnect(true);
@@ -64,6 +63,12 @@ export class RoomsEventsService {
             select: {
               name: true,
               picture: true,
+            },
+          },
+          room: {
+            select: {
+              name: true,
+              description: true,
             },
           },
           role: true,
@@ -114,6 +119,12 @@ export class RoomsEventsService {
 
       await client.join(roomId);
 
+      //send the room info to the user
+      client.emit(WS_EVENTS.ROOM_INFO, {
+        name: roomExists.room.name,
+        description: roomExists.room.description,
+      });
+
       this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
 
       //inform previous users that a new user joined
@@ -137,9 +148,6 @@ export class RoomsEventsService {
 
       //send the canvas state to the newly connected client
       client.emit(WS_EVENTS.CANVAS_STATE, canvasState.data);
-
-      //the room information
-      //send the users own info to themselves
     } catch (error) {
       this.logger.error('Error handling connection:', error);
 

@@ -6,4 +6,5 @@ export const WS_EVENTS = {
   USER_REMOVE: 'user:remove',
   USER_LIST: 'user:list',
   CANVAS_STATE: 'canvas:state',
+  ROOM_INFO: 'room:info',
 } as const;

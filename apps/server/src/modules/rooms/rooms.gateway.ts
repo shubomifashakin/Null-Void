@@ -60,7 +60,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleMouseMoveEvent() {}
 
   async handleConnection(client: Socket) {
-    return this.roomsEventsService.handleConnection(client, this.server);
+    return this.roomsEventsService.handleConnection(client);
   }
 
   handleDisconnect(client: Socket): void {
