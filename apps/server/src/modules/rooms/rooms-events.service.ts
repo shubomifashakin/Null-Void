@@ -18,7 +18,7 @@ import { Roles } from '../../../generated/prisma/enums';
 import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 
-interface SocketData {
+interface UserData {
   userId: string;
   role: Roles;
   name: string;
@@ -91,11 +91,11 @@ export class RoomsEventsService {
         name: roomExists.user.name,
         picture: roomExists.user.picture,
         joinedAt: new Date(connectionTime),
-      } satisfies SocketData;
+      } satisfies UserData;
 
       const userAddedToGlobalTracking = await this.addUserToGlobalRoomTracking(
         roomId,
-        client.data as SocketData,
+        client.data as UserData,
       );
 
       if (!userAddedToGlobalTracking.success) {
@@ -246,7 +246,7 @@ export class RoomsEventsService {
 
   private async addUserToGlobalRoomTracking(
     roomId: string,
-    userInfo: SocketData,
+    userInfo: UserData,
   ) {
     const roomKey = makeRoomsUsersCacheKey(roomId);
 
@@ -259,11 +259,19 @@ export class RoomsEventsService {
     return result;
   }
 
-  private async getAllUsersInRoom(roomId: string) {
+  private async getAllUsersInRoom(
+    roomId: string,
+  ): Promise<FnResult<UserData[]>> {
     const roomKey = makeRoomsUsersCacheKey(roomId);
 
-    const users = await this.redisService.hGetAllFromCache<SocketData>(roomKey);
+    const users = await this.redisService.hGetAllFromCache<UserData>(roomKey);
 
-    return users;
+    if (!users.success) {
+      return { data: null, error: users.error, success: false };
+    }
+
+    const usersInRoom = Object.values(users.data);
+
+    return { data: usersInRoom, error: null, success: true };
   }
 }
