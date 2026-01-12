@@ -61,7 +61,13 @@ export class RoomsEventsService {
         },
       });
 
-      if (!roomExists) return client.disconnect(true);
+      if (!roomExists) {
+        this.logger.warn(
+          `User ${userInfo.userId} tried to join room ${roomId} but is not a member`,
+        );
+
+        return client.disconnect(true);
+      }
 
       const connectionTime = client.handshake.issued;
 
