@@ -50,8 +50,18 @@ export class RoomsEventsService {
 
       if (!accessToken) return client.disconnect(true);
 
-      const { data: userInfo, success } =
-        await this.extractUserInfoFromAccessToken(accessToken);
+      const {
+        data: userInfo,
+        success,
+        error: accessTokenError,
+      } = await this.extractUserInfoFromAccessToken(accessToken);
+
+      if (!success) {
+        this.logger.debug({
+          error: accessTokenError,
+          message: 'Failed to extract user info from access token',
+        });
+      }
 
       if (!success || !userInfo) return client.disconnect(true);
 
@@ -77,9 +87,9 @@ export class RoomsEventsService {
       });
 
       if (!roomExists) {
-        this.logger.warn(
-          `User ${userInfo.userId} tried to join room ${roomId} but is not a member`,
-        );
+        this.logger.warn({
+          message: `User ${userInfo.userId} tried to join room ${roomId} but is not a member`,
+        });
 
         return client.disconnect(true);
       }
@@ -100,10 +110,10 @@ export class RoomsEventsService {
       );
 
       if (!userAddedToGlobalTracking.success) {
-        this.logger.error(
-          `Failed to add user ${userInfo.userId} to global room tracking`,
-          { error: userAddedToGlobalTracking.error },
-        );
+        this.logger.error({
+          message: `Failed to add user ${userInfo.userId} to global room tracking`,
+          error: userAddedToGlobalTracking.error,
+        });
 
         return client.disconnect(true);
       }
@@ -111,7 +121,8 @@ export class RoomsEventsService {
       const allUsersInTheRooms = await this.getAllUsersInRoom(roomId);
 
       if (!allUsersInTheRooms.success) {
-        this.logger.error(`Failed to get users in room ${roomId}`, {
+        this.logger.error({
+          message: `Failed to get users in room ${roomId}`,
           error: allUsersInTheRooms.error,
         });
 
@@ -134,7 +145,9 @@ export class RoomsEventsService {
         picture: roomExists.user.picture,
       });
 
-      this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
+      this.logger.log({
+        message: `User ${userInfo.userId} joined room ${roomId}`,
+      });
 
       //inform previous users that a new user joined
       client.to(roomId).emit(WS_EVENTS.USER_JOINED, {
@@ -152,7 +165,10 @@ export class RoomsEventsService {
       const canvasState = await this.getCanvasState(roomId);
 
       if (!canvasState.success) {
-        this.logger.error(canvasState.error);
+        this.logger.error({
+          message: `Failed to get canvas state for room ${roomId}`,
+          error: canvasState.error,
+        });
 
         return client.disconnect(true);
       }
@@ -162,7 +178,10 @@ export class RoomsEventsService {
         canvasState: canvasState.data,
       });
     } catch (error) {
-      this.logger.error('Error handling connection:', error);
+      this.logger.error({
+        message: 'Error handling connection',
+        error,
+      });
 
       return client.disconnect(true);
     }
@@ -173,7 +192,7 @@ export class RoomsEventsService {
     roomId: string,
   ): Promise<FnResult<Record<string, JsonValue>>> {
     try {
-      const canvasState = await this.redisService.getFromCache<
+      const canvasState = await this.redisService.hGetAllFromCache<
         Record<string, JsonValue>
       >(makeRoomCanvasStateCacheKey(roomId));
 
@@ -196,7 +215,7 @@ export class RoomsEventsService {
       });
 
       if (!roomDrawings.length) {
-        this.logger.warn(`No drawings found for room ${roomId}`);
+        this.logger.warn({ message: `No drawings found for room ${roomId}` });
 
         return { success: true, data: {}, error: null };
       }
@@ -257,7 +276,9 @@ export class RoomsEventsService {
 
       return { success: true, data: userInfo, error: null };
     } catch (error) {
-      this.logger.warn('Error extracting user info from access token:', error);
+      if (error instanceof Error) {
+        return { success: false, data: null, error: error.message };
+      }
 
       return { success: false, data: null, error: 'Invalid access token' };
     }
