@@ -5,11 +5,13 @@ import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 
 import { WS_EVENTS } from './utils/constants';
+import { makeRoomsUsersCacheKey } from './utils/fns';
 
 import { FnResult } from '../../../types/fnResult';
-
-import { DatabaseService } from '../../core/database/database.service';
 import { Roles } from '../../../generated/prisma/enums';
+
+import { RedisService } from '../../core/redis/redis.service';
+import { DatabaseService } from '../../core/database/database.service';
 
 interface SocketData {
   userId: string;
@@ -25,6 +27,7 @@ export class RoomsEventsService {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
     private readonly databaseService: DatabaseService,
   ) {}
 
@@ -79,22 +82,47 @@ export class RoomsEventsService {
         joinedAt: new Date(connectionTime),
       } satisfies SocketData;
 
+      const userAddedToGlobalTracking = await this.addUserToGlobalRoomTracking(
+        roomId,
+        client.data as SocketData,
+      );
+
+      if (!userAddedToGlobalTracking.success) {
+        this.logger.error(
+          `Failed to add user ${userInfo.userId} to global room tracking`,
+          { error: userAddedToGlobalTracking.error },
+        );
+
+        return client.disconnect(true);
+      }
+
+      const allUsersInTheRooms = await this.getAllUsersInRoom(roomId);
+
+      if (!allUsersInTheRooms.success) {
+        this.logger.error(`Failed to get users in room ${roomId}`, {
+          error: allUsersInTheRooms.error,
+        });
+
+        return client.disconnect(true);
+      }
+
       await client.join(roomId);
 
       this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
 
-      // FIXME: Add client to cross server room tracking
-
-      //FIXME: Broadcast that a new user joined the room
-      server.to(roomId).emit(WS_EVENTS.USER_JOINED, {
+      //FIXME: WOULD EMITTING TO ALL CLIENTS ALSO EMIT TO THE CLIENT THAT SENT THE MESSAGE?
+      //FIXME: brdcast that a new user joined the room to all previously connected clients
+      client.to(roomId).emit(WS_EVENTS.USER_JOINED, {
         name: roomExists.user.name,
         role: roomExists.role,
         userId: userInfo.userId,
         picture: roomExists.user.picture,
       });
 
+      //FIXME: Send the list of all users in the room to the newly connected client
+      client.emit(WS_EVENTS.USER_LIST, allUsersInTheRooms.data);
+
       //FIXME: SEND THE CURRENT STATE OF THE ROOM TO THE NEWLY CONNECTED CLIENT
-      //the total users conneced (prticupants)
       // the current drawing state
       //the room information
       //send the users own info to themselves
@@ -136,5 +164,28 @@ export class RoomsEventsService {
 
       return { success: false, data: null, error: 'Invalid access token' };
     }
+  }
+
+  private async addUserToGlobalRoomTracking(
+    roomId: string,
+    userInfo: SocketData,
+  ) {
+    const roomKey = makeRoomsUsersCacheKey(roomId);
+
+    const result = await this.redisService.hSetInCache(
+      roomKey,
+      userInfo.userId,
+      userInfo,
+    );
+
+    return result;
+  }
+
+  private async getAllUsersInRoom(roomId: string) {
+    const roomKey = makeRoomsUsersCacheKey(roomId);
+
+    const users = await this.redisService.hGetAllFromCache<SocketData>(roomKey);
+
+    return users;
   }
 }

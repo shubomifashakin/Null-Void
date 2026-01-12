@@ -90,3 +90,7 @@ export function generateInviteMail({
 </body>
 </html>`;
 }
+
+export function makeRoomsUsersCacheKey(roomId: string): string {
+  return `room:${roomId}:users`;
+}

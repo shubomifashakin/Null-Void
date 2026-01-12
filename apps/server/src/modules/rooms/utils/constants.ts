@@ -4,4 +4,5 @@ export const WS_EVENTS = {
   USER_DRAW: 'user:draw',
   USER_MOVE: 'user:move',
   USER_REMOVE: 'user:remove',
+  USER_LIST: 'user:list',
 } as const;
