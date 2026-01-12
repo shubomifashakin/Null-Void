@@ -188,13 +188,53 @@ export class RoomsEventsService {
       client.emit(WS_EVENTS.CANVAS_STATE, {
         canvasState: canvasState.data,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling connection',
         error,
       });
 
       return client.disconnect(true);
+    }
+  }
+
+  async handleDisconnect(client: Socket) {
+    try {
+      const roomId = client.handshake.query?.roomId as string;
+      const clientInfo = client.data as UserData;
+
+      const { success, error } = await this.removeUserFromGlobalRoomTracking(
+        roomId,
+        clientInfo.userId,
+      );
+
+      if (!success) {
+        this.logger.error({
+          message: `Failed to remove user ${clientInfo.userId} from global room tracking for room ${roomId}`,
+          error,
+        });
+      }
+
+      //send a message to other connected users that the user left
+      client.to(roomId).emit(WS_EVENTS.USER_LEFT, {
+        userId: clientInfo.userId,
+      });
+
+      this.logger.log({
+        message: `User ${clientInfo.userId} left room ${roomId}`,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error({
+          message: 'Error handling disconnection',
+          error: error.message,
+        });
+      }
+
+      this.logger.error({
+        message: 'Error handling disconnection',
+        error,
+      });
     }
   }
 
@@ -309,6 +349,21 @@ export class RoomsEventsService {
     );
 
     return result;
+  }
+
+  private async removeUserFromGlobalRoomTracking(
+    roomId: string,
+    userId: string,
+  ) {
+    const roomKey = makeRoomsUsersCacheKey(roomId);
+    const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
+
+    const { success, error } = await this.redisService.hDeleteFromCache(
+      roomKey,
+      roomUserIdKey,
+    );
+
+    return { success, error };
   }
 
   private async getAllUsersInRoom(

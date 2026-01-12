@@ -247,6 +247,28 @@ export class RedisService
     }
   }
 
+  async hDeleteFromCache(key: string, field: string): Promise<FnResult<null>> {
+    try {
+      await this.client.hDel(key, field);
+
+      return { success: true, data: null, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: `Failed to delete ${key} from cache`,
+      };
+    }
+  }
+
   async hGetAllFromCache<T>(key: string): Promise<FnResult<Record<string, T>>> {
     try {
       const data = await this.client.hGetAll(key);

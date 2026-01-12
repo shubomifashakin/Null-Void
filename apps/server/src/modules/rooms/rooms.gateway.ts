@@ -56,16 +56,11 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(WS_EVENTS.USER_MOVE)
   handleMouseMoveEvent() {}
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     return this.roomsEventsService.handleConnection(client);
   }
 
-  handleDisconnect(client: Socket): void {
-    console.log('Client disconnected:', client.id);
-
-    //FIXME: REMOVE CLIENT from room tracking
-
-    //FIXME: Broadcast that user left the room
-    this.server.emit(WS_EVENTS.USER_LEFT, { userId: client.id });
+  handleDisconnect(client: Socket) {
+    return this.roomsEventsService.handleDisconnect(client);
   }
 }
