@@ -42,9 +42,9 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //FIXME: ADD TO QUEUE so it can be saved to database
   }
 
-  @SubscribeMessage(WS_EVENTS.USER_LEFT)
-  handleLeaveEvent(): void {
-    //FIXME: REMOVE CLIENT from room tracking
+  @SubscribeMessage(WS_EVENTS.ROOM_LEAVE)
+  handleLeaveEvent(client: Socket) {
+    return client.disconnect(true);
   }
 
   @SubscribeMessage(WS_EVENTS.USER_REMOVE)
