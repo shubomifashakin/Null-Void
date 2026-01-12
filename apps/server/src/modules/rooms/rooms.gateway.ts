@@ -20,7 +20,7 @@ import { RoomsEventsService } from './rooms-events.service';
   perMessageDeflate: true,
   connectTimeout: 10000,
   upgradeTimeout: 10000,
-  maxHttpBufferSize: 5e8,
+  maxHttpBufferSize: 1e6,
 })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly roomsEventsService: RoomsEventsService) {}
