@@ -203,6 +203,8 @@ export class RoomsEventsService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
+      if (!roomId || !clientInfo.userId) return;
+
       const { success, error } = await this.removeUserFromGlobalRoomTracking(
         roomId,
         clientInfo.userId,
