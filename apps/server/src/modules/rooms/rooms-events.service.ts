@@ -2,6 +2,8 @@ import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
+import { isUUID } from 'class-validator';
+
 import { Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
@@ -41,6 +43,15 @@ export class RoomsEventsService {
     try {
       const roomId = client.handshake.query?.roomId as string;
       if (!roomId) return client.disconnect(true);
+
+      const validatedRoomId = isUUID(roomId, 4);
+      if (!validatedRoomId) {
+        this.logger.warn({
+          message: `User tried joining room ${roomId} with an invalid roomId`,
+        });
+
+        return client.disconnect(true);
+      }
 
       const cookies = client.handshake.headers.cookie;
 
