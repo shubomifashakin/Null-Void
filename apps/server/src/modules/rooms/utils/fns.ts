@@ -94,3 +94,7 @@ export function generateInviteMail({
 export function makeRoomsUsersCacheKey(roomId: string): string {
   return `room:${roomId}:users`;
 }
+
+export function makeRoomCanvasStateCacheKey(roomId: string): string {
+  return `room:${roomId}:canvas:state`;
+}

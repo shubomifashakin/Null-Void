@@ -191,6 +191,33 @@ export class RedisService
     }
   }
 
+  async hSetObjInCache(
+    key: string,
+    obj: Record<string, any>,
+  ): Promise<FnResult<null>> {
+    try {
+      await this.client.hSet(key, obj);
+
+      await this.client.expire(key, DAYS_1);
+
+      return { success: true, data: null, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: `Failed to set ${key} in cache`,
+      };
+    }
+  }
+
   async hGetFromCache<T>(
     key: string,
     field: string,

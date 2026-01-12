@@ -4,12 +4,18 @@ import { Injectable } from '@nestjs/common';
 
 import { Socket, Server } from 'socket.io';
 
+import { JsonValue } from '@prisma/client/runtime/client';
+
 import { WS_EVENTS } from './utils/constants';
-import { makeRoomsUsersCacheKey } from './utils/fns';
+import {
+  makeRoomCanvasStateCacheKey,
+  makeRoomsUsersCacheKey,
+} from './utils/fns';
 
 import { FnResult } from '../../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
+import { DAYS_1 } from '../../common/constants';
 import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 
@@ -110,6 +116,7 @@ export class RoomsEventsService {
 
       this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
 
+      //inform previous users that a new user joined
       client.to(roomId).emit(WS_EVENTS.USER_JOINED, {
         name: roomExists.user.name,
         role: roomExists.role,
@@ -117,16 +124,82 @@ export class RoomsEventsService {
         picture: roomExists.user.picture,
       });
 
+      //send the previous users in the room to the newly connected client
       client.emit(WS_EVENTS.USER_LIST, allUsersInTheRooms.data);
 
-      //FIXME: SEND THE CURRENT STATE OF THE ROOM TO THE NEWLY CONNECTED CLIENT
-      // the current drawing state
+      const canvasState = await this.getCanvasState(roomId);
+
+      if (!canvasState.success) {
+        this.logger.error(canvasState.error);
+
+        return client.disconnect(true);
+      }
+
+      //send the canvas state to the newly connected client
+      client.emit(WS_EVENTS.CANVAS_STATE, canvasState.data);
+
       //the room information
       //send the users own info to themselves
     } catch (error) {
       this.logger.error('Error handling connection:', error);
 
       return client.disconnect(true);
+    }
+  }
+
+  //FIXME: PAGINATE THE FETCHING OF DRAWINGS
+  private async getCanvasState(
+    roomId: string,
+  ): Promise<FnResult<Record<string, JsonValue>>> {
+    try {
+      const canvasState = await this.redisService.getFromCache<
+        Record<string, JsonValue>
+      >(makeRoomCanvasStateCacheKey(roomId));
+
+      if (!canvasState.success) {
+        return { success: false, data: null, error: canvasState.error };
+      }
+
+      if (canvasState.data) {
+        return { success: true, data: canvasState.data, error: null };
+      }
+
+      const roomDrawings = await this.databaseService.drawings.findMany({
+        where: {
+          room_id: roomId,
+        },
+        select: {
+          id: true,
+          payload: true,
+        },
+      });
+
+      const drawings: Record<string, JsonValue> = {};
+
+      for (const drawing of roomDrawings) {
+        drawings[drawing.id] = drawing.payload;
+      }
+
+      const cached = await this.redisService.hSetObjInCache(
+        makeRoomCanvasStateCacheKey(roomId),
+        drawings,
+      );
+
+      if (!cached.success) {
+        return { success: false, data: null, error: cached.error };
+      }
+
+      return { success: true, data: drawings, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { success: false, data: null, error: error.message };
+      }
+
+      return {
+        data: null,
+        success: false,
+        error: `Failed to get canvas state for room ${roomId}`,
+      };
     }
   }
 
