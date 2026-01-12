@@ -7,6 +7,15 @@ import { Socket, Server } from 'socket.io';
 import { FnResult } from '../../../types/fnResult';
 
 import { DatabaseService } from '../../core/database/database.service';
+import { Roles } from '../../../generated/prisma/enums';
+
+interface SocketData {
+  userId: string;
+  role: Roles;
+  name: string;
+  picture: string | null;
+  joinedAt: Date;
+}
 
 @Injectable()
 export class RoomsEventsService {
@@ -39,6 +48,15 @@ export class RoomsEventsService {
         where: {
           room_id_user_id: { room_id: roomId, user_id: userInfo.userId },
         },
+        select: {
+          user: {
+            select: {
+              name: true,
+              picture: true,
+            },
+          },
+          role: true,
+        },
       });
 
       if (!roomExists) return client.disconnect(true);
@@ -46,11 +64,12 @@ export class RoomsEventsService {
       const connectionTime = client.handshake.issued;
 
       client.data = {
-        name: userInfo.name,
         userId: userInfo.userId,
-        picture: userInfo.picture,
+        role: roomExists.role,
+        name: roomExists.user.name,
+        picture: roomExists.user.picture,
         joinedAt: new Date(connectionTime),
-      };
+      } satisfies SocketData;
 
       await client.join(roomId);
 
@@ -60,12 +79,17 @@ export class RoomsEventsService {
 
       //FIXME: Broadcast that a new user joined the room
       server.to(roomId).emit('user_joined', {
-        name: userInfo.name,
+        name: roomExists.user.name,
+        role: roomExists.role,
         userId: userInfo.userId,
-        picture: userInfo.picture,
+        picture: roomExists.user.picture,
       });
 
       //FIXME: SEND THE CURRENT STATE OF THE ROOM TO THE NEWLY CONNECTED CLIENT
+      //the total users conneced (prticupants)
+      // the current drawing state
+      //the room information
+      //send the users own info to themselves
     } catch (error) {
       this.logger.error('Error handling connection:', error);
 
@@ -92,14 +116,10 @@ export class RoomsEventsService {
 
   private async extractUserInfoFromAccessToken(
     token: string,
-  ): Promise<
-    FnResult<{ name: string; userId: string; picture: string | null }>
-  > {
+  ): Promise<FnResult<{ userId: string }>> {
     try {
       const userInfo = await this.jwtService.verifyAsync<{
-        name: string;
         userId: string;
-        picture: string | null;
       }>(token);
 
       return { success: true, data: userInfo, error: null };
