@@ -115,6 +115,17 @@ export class RoomsEventsService {
         joinedAt: new Date(connectionTime),
       } satisfies UserData;
 
+      const allUsersInTheRoom = await this.getAllUsersInRoom(roomId);
+
+      if (!allUsersInTheRoom.success) {
+        this.logger.error({
+          message: `Failed to get users in room ${roomId}`,
+          error: allUsersInTheRoom.error,
+        });
+
+        return client.disconnect(true);
+      }
+
       const userAddedToGlobalTracking = await this.addUserToGlobalRoomTracking(
         roomId,
         client.data as UserData,
@@ -124,17 +135,6 @@ export class RoomsEventsService {
         this.logger.error({
           message: `Failed to add user ${userInfo.userId} to global room tracking`,
           error: userAddedToGlobalTracking.error,
-        });
-
-        return client.disconnect(true);
-      }
-
-      const allUsersInTheRooms = await this.getAllUsersInRoom(roomId);
-
-      if (!allUsersInTheRooms.success) {
-        this.logger.error({
-          message: `Failed to get users in room ${roomId}`,
-          error: allUsersInTheRooms.error,
         });
 
         return client.disconnect(true);
@@ -170,7 +170,7 @@ export class RoomsEventsService {
 
       //send the previous users in the room to the newly connected client
       client.emit(WS_EVENTS.USER_LIST, {
-        users: allUsersInTheRooms.data,
+        users: allUsersInTheRoom.data,
       });
 
       const canvasState = await this.getCanvasState(roomId);
