@@ -136,7 +136,9 @@ export class RoomsEventsService {
       });
 
       //send the previous users in the room to the newly connected client
-      client.emit(WS_EVENTS.USER_LIST, allUsersInTheRooms.data);
+      client.emit(WS_EVENTS.USER_LIST, {
+        users: allUsersInTheRooms.data,
+      });
 
       const canvasState = await this.getCanvasState(roomId);
 
@@ -147,7 +149,9 @@ export class RoomsEventsService {
       }
 
       //send the canvas state to the newly connected client
-      client.emit(WS_EVENTS.CANVAS_STATE, canvasState.data);
+      client.emit(WS_EVENTS.CANVAS_STATE, {
+        canvasState: canvasState.data,
+      });
     } catch (error) {
       this.logger.error('Error handling connection:', error);
 
@@ -181,6 +185,12 @@ export class RoomsEventsService {
           payload: true,
         },
       });
+
+      if (!roomDrawings.length) {
+        this.logger.warn(`No drawings found for room ${roomId}`);
+
+        return { success: true, data: {}, error: null };
+      }
 
       const drawings: Record<string, JsonValue> = {};
 
