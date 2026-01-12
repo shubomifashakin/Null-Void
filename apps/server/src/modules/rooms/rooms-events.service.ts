@@ -125,6 +125,14 @@ export class RoomsEventsService {
         description: roomExists.room.description,
       });
 
+      //send the users room info to themself
+      client.emit(WS_EVENTS.USER_INFO, {
+        name: roomExists.user.name,
+        role: roomExists.role,
+        userId: userInfo.userId,
+        picture: roomExists.user.picture,
+      });
+
       this.logger.log(`User ${userInfo.userId} joined room ${roomId}`);
 
       //inform previous users that a new user joined
