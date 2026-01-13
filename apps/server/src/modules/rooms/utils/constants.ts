@@ -4,6 +4,7 @@ export const WS_EVENTS = {
   USER_DRAW: 'user:draw',
   USER_MOVE: 'user:move',
   USER_REMOVE: 'user:remove',
+  USER_DISCONNECTED: 'user:disconnected',
   USER_LIST: 'user:list',
   CANVAS_STATE: 'canvas:state',
   ROOM_INFO: 'room:info',

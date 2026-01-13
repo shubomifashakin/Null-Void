@@ -48,7 +48,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(WS_EVENTS.ROOM_LEAVE)
   handleLeaveEvent(client: Socket) {
-    return client.disconnect(true);
+    return this.roomsEventsService.handleLeave(client);
   }
 
   @UseGuards(RoomRoleGuard)

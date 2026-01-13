@@ -218,8 +218,8 @@ export class RoomsEventsService {
         });
       }
 
-      //send a message to other connected users that the user left
-      client.to(roomId).emit(WS_EVENTS.USER_LEFT, {
+      //send a message to other connected users that the user disconnected
+      client.to(roomId).emit(WS_EVENTS.USER_DISCONNECTED, {
         userId: clientInfo.userId,
       });
 
@@ -228,7 +228,7 @@ export class RoomsEventsService {
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        this.logger.error({
+        return this.logger.error({
           message: 'Error handling disconnection',
           error: error.message,
         });
@@ -244,10 +244,19 @@ export class RoomsEventsService {
   //FIXME: RATE LIMIT THIS
   async handleRemove(server: Server, client: Socket, userId: string) {
     const roomId = client.handshake.query?.roomId as string;
+    const clientInfo = client.data as UserData;
 
     try {
-      if (!roomId) {
-        return this.logger.warn('Room ID is missing in handshake query');
+      if (!roomId || !clientInfo.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
+
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
       }
 
       const userToRemoveExistsInRoom =
@@ -313,6 +322,75 @@ export class RoomsEventsService {
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to remove user',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  async handleLeave(client: Socket) {
+    try {
+      const roomId = client.handshake.query?.roomId as string;
+
+      const clientInfo = client.data as UserData;
+
+      if (!roomId || !clientInfo.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
+
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
+      }
+
+      const roomMember = await this.databaseService.roomMember.findUnique({
+        where: {
+          room_id_user_id: {
+            room_id: roomId,
+            user_id: clientInfo.userId,
+          },
+        },
+      });
+
+      if (!roomMember) {
+        this.logger.warn({
+          message: `User:${clientInfo.userId} was in room:${roomId} but was not found in room members, disconnecting`,
+        });
+
+        return client.disconnect(true);
+      }
+
+      await this.databaseService.roomMember.delete({
+        where: {
+          room_id_user_id: {
+            room_id: roomId,
+            user_id: clientInfo.userId,
+          },
+        },
+      });
+
+      client.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
+        message: `${clientInfo.name} left`,
+      });
+
+      client.disconnect(true);
+    } catch (error: unknown) {
+      client.emit(WS_EVENTS.ROOM_ERROR, {
+        message: 'Failed to handle leave event',
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
+      if (error instanceof Error) {
+        return this.logger.error({
+          message: 'Failed to handle leave event',
+          error: error.message,
+        });
+      }
+
+      this.logger.error({
+        message: 'Failed to handle leave event',
+        error,
       });
     }
   }
