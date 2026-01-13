@@ -10,6 +10,7 @@ import { ROLE_KEY } from '../decorators/roles.decorators';
 
 import { Roles } from '../../../generated/prisma/enums';
 import { DatabaseService } from '../../core/database/database.service';
+import { WS_ERROR_CODES, WS_EVENTS } from 'src/modules/rooms/utils/constants';
 
 @Injectable()
 export class RoomRoleGuard implements CanActivate {
@@ -67,8 +68,14 @@ export class RoomRoleGuard implements CanActivate {
 
       if (!roleMetadata || !roleMetadata.length) return true;
 
-      if (!userInfo?.role || !roleMetadata.includes(userInfo.role))
+      if (!userInfo?.role || !roleMetadata.includes(userInfo.role)) {
+        client.emit(WS_EVENTS.ROOM_ERROR, {
+          message: 'Unauthorized',
+          code: WS_ERROR_CODES.FORBIDDEN,
+        });
+
         return false;
+      }
 
       return true;
     }

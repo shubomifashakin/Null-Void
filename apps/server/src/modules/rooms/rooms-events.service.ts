@@ -8,7 +8,7 @@ import { Server, Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
 
-import { WS_EVENTS } from './utils/constants';
+import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
 import {
   makeRoomCanvasStateCacheKey,
   makeRoomsUsersCacheKey,
@@ -258,6 +258,7 @@ export class RoomsEventsService {
       if (!userToRemoveExistsInRoom) {
         return client.emit(WS_EVENTS.ROOM_ERROR, {
           message: 'User does not exist in this room',
+          code: WS_ERROR_CODES.NOT_FOUND,
         });
       }
 
@@ -311,6 +312,7 @@ export class RoomsEventsService {
 
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to remove user',
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
   }

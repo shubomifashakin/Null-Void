@@ -11,5 +11,10 @@ export const WS_EVENTS = {
   USER_INFO: 'user:info',
   ROOM_NOTIFICATION: 'room:notification',
   ROOM_ERROR: 'room:error',
-  ROOM_FORBIDDEN: 'room:forbidden',
+} as const;
+
+export const WS_ERROR_CODES = {
+  FORBIDDEN: 'Forbidden',
+  NOT_FOUND: 'Not Found',
+  INTERNAL_SERVER_ERROR: 'Internal Server Error',
 } as const;
