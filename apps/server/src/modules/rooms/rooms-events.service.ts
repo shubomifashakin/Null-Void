@@ -46,11 +46,11 @@ export class RoomsEventsService {
       const roomId = client.handshake.query?.roomId as string;
       if (!roomId) return client.disconnect(true);
 
-      const validatedRoomId = isUUID(roomId, 4);
+      const isValidRoomId = isUUID(roomId, 4);
 
-      if (!validatedRoomId) {
+      if (!isValidRoomId) {
         this.logger.warn({
-          message: `User tried joining room ${roomId} with an invalid roomId`,
+          message: `User tried joining invalid room:${roomId}`,
         });
 
         return client.disconnect(true);
@@ -79,7 +79,7 @@ export class RoomsEventsService {
 
       if (!success || !userInfo) return client.disconnect(true);
 
-      const roomExists = await this.databaseService.roomMember.findUnique({
+      const userIsMember = await this.databaseService.roomMember.findUnique({
         where: {
           room_id_user_id: { room_id: roomId, user_id: userInfo.userId },
         },
@@ -100,7 +100,7 @@ export class RoomsEventsService {
         },
       });
 
-      if (!roomExists) {
+      if (!userIsMember) {
         this.logger.warn({
           message: `User ${userInfo.userId} tried to join room ${roomId} but is not a member`,
         });
@@ -112,32 +112,33 @@ export class RoomsEventsService {
 
       client.data = {
         userId: userInfo.userId,
-        role: roomExists.role,
-        name: roomExists.user.name,
-        picture: roomExists.user.picture,
+        role: userIsMember.role,
+        name: userIsMember.user.name,
+        picture: userIsMember.user.picture,
         joinedAt: new Date(connectionTime),
       } satisfies UserData;
 
-      const allUsersInTheRoom = await this.getAllUsersInRoom(roomId);
+      const usersCurrentlyInRoom = await this.getAllUsersInRoom(roomId);
 
-      if (!allUsersInTheRoom.success) {
+      if (!usersCurrentlyInRoom.success) {
         this.logger.error({
           message: `Failed to get users in room ${roomId}`,
-          error: allUsersInTheRoom.error,
+          error: usersCurrentlyInRoom.error,
         });
 
         return client.disconnect(true);
       }
 
-      const userAddedToGlobalTracking = await this.addUserToGlobalRoomTracking(
-        roomId,
-        client.data as UserData,
-      );
+      const addedUserToCurrentlyActiveUsers =
+        await this.addUserToCurrentlyActiveUsersList(
+          roomId,
+          client.data as UserData,
+        );
 
-      if (!userAddedToGlobalTracking.success) {
+      if (!addedUserToCurrentlyActiveUsers.success) {
         this.logger.error({
-          message: `Failed to add user ${userInfo.userId} to global room tracking`,
-          error: userAddedToGlobalTracking.error,
+          message: `Failed to add user ${userInfo.userId} to currently active users list`,
+          error: addedUserToCurrentlyActiveUsers.error,
         });
 
         return client.disconnect(true);
@@ -147,16 +148,16 @@ export class RoomsEventsService {
 
       //send the room info to the user
       client.emit(WS_EVENTS.ROOM_INFO, {
-        name: roomExists.room.name,
-        description: roomExists.room.description,
+        name: userIsMember.room.name,
+        description: userIsMember.room.description,
       });
 
       //send the users own info in the room tot the user
       client.emit(WS_EVENTS.USER_INFO, {
-        name: roomExists.user.name,
-        role: roomExists.role,
+        name: userIsMember.user.name,
+        role: userIsMember.role,
         userId: userInfo.userId,
-        picture: roomExists.user.picture,
+        picture: userIsMember.user.picture,
       });
 
       this.logger.log({
@@ -165,15 +166,15 @@ export class RoomsEventsService {
 
       //inform previous users that a new user joined
       client.to(roomId).emit(WS_EVENTS.USER_JOINED, {
-        name: roomExists.user.name,
-        role: roomExists.role,
+        name: userIsMember.user.name,
+        role: userIsMember.role,
         userId: userInfo.userId,
-        picture: roomExists.user.picture,
+        picture: userIsMember.user.picture,
       });
 
       //send the previous users in the room to the newly connected client
       client.emit(WS_EVENTS.USER_LIST, {
-        users: allUsersInTheRoom.data,
+        users: usersCurrentlyInRoom.data,
       });
 
       const canvasState = await this.getCanvasState(roomId);
@@ -187,7 +188,7 @@ export class RoomsEventsService {
         return client.disconnect(true);
       }
 
-      //send the canvas state to the newly connected client
+      //send the current canvas state to the newly connected client
       client.emit(WS_EVENTS.CANVAS_STATE, {
         canvasState: canvasState.data,
       });
@@ -208,14 +209,14 @@ export class RoomsEventsService {
 
       if (!roomId || !clientInfo.userId) return;
 
-      const { success, error } = await this.removeUserFromGlobalRoomTracking(
+      const { success, error } = await this.removeUserFromCurrentlyActiveList(
         roomId,
         clientInfo.userId,
       );
 
       if (!success) {
         this.logger.error({
-          message: `Failed to remove user ${clientInfo.userId} from global room tracking for room ${roomId}`,
+          message: `Failed to remove user ${clientInfo.userId} from currently active list for room ${roomId}`,
           error,
         });
       }
@@ -223,10 +224,6 @@ export class RoomsEventsService {
       //send a message to other connected users that the user disconnected
       client.to(roomId).emit(WS_EVENTS.USER_DISCONNECTED, {
         userId: clientInfo.userId,
-      });
-
-      this.logger.debug({
-        message: `User ${clientInfo.userId} left room ${roomId}`,
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -249,7 +246,7 @@ export class RoomsEventsService {
     const clientInfo = client.data as UserData;
 
     try {
-      if (!roomId || !clientInfo.userId) {
+      if (!roomId || !clientInfo?.userId) {
         const errorMessage = !roomId
           ? 'Room ID not found in handshake query'
           : 'User ID not found in client data';
@@ -283,18 +280,18 @@ export class RoomsEventsService {
           },
         });
 
-        const { success, error } = await this.removeUserFromGlobalRoomTracking(
+        const { success, error } = await this.removeUserFromCurrentlyActiveList(
           roomId,
           userId,
         );
 
         if (!success) {
           this.logger.error({
-            message: `Failed to remove user ${userId} from global room tracking for room ${roomId}`,
+            message: `Failed to remove user:${userId} from currently active list for room:${roomId}`,
             error,
           });
 
-          throw new Error('Failed to remove user from global room tracking');
+          throw new Error(error);
         }
       });
 
@@ -312,12 +309,14 @@ export class RoomsEventsService {
       socketOfUserToBeRemoved.disconnect(true);
 
       //inform everyone that the user was removed
-      server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
-        message: `${usersInfo.name} was removed`,
-      });
+      if (usersInfo?.name) {
+        server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
+          message: `${usersInfo.name} was removed`,
+        });
+      }
     } catch (error: unknown) {
       this.logger.error({
-        message: `Error removing user ${userId} from room ${roomId}`,
+        message: `Failed to remove user:${userId} from room:${roomId}`,
         error,
       });
 
@@ -357,7 +356,7 @@ export class RoomsEventsService {
 
       if (!roomMember) {
         this.logger.warn({
-          message: `User:${clientInfo.userId} was in room:${roomId} but was not found in room members, disconnecting`,
+          message: `User:${clientInfo.userId} was in room:${roomId} but was not a room member`,
         });
 
         return client.disconnect(true);
@@ -379,19 +378,19 @@ export class RoomsEventsService {
       client.disconnect(true);
     } catch (error: unknown) {
       client.emit(WS_EVENTS.ROOM_ERROR, {
-        message: 'Failed to handle leave event',
+        message: 'Failed to leave room',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
 
       if (error instanceof Error) {
         return this.logger.error({
-          message: 'Failed to handle leave event',
+          message: 'Failed to leave room',
           error: error.message,
         });
       }
 
       this.logger.error({
-        message: 'Failed to handle leave event',
+        message: 'Failed to leave room',
         error,
       });
     }
@@ -518,7 +517,7 @@ export class RoomsEventsService {
     }
   }
 
-  private async addUserToGlobalRoomTracking(
+  private async addUserToCurrentlyActiveUsersList(
     roomId: string,
     userInfo: UserData,
   ) {
@@ -534,19 +533,23 @@ export class RoomsEventsService {
     return result;
   }
 
-  private async removeUserFromGlobalRoomTracking(
+  private async removeUserFromCurrentlyActiveList(
     roomId: string,
     userId: string,
-  ) {
+  ): Promise<FnResult<null>> {
     const roomKey = makeRoomsUsersCacheKey(roomId);
     const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
 
-    const { success, error } = await this.redisService.hDeleteFromCache(
+    const { success, error, data } = await this.redisService.hDeleteFromCache(
       roomKey,
       roomUserIdKey,
     );
 
-    return { success, error };
+    if (success) {
+      return { success: true, error: null, data };
+    }
+
+    return { success, error, data };
   }
 
   private async getAllUsersInRoom(
