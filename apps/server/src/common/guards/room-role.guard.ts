@@ -10,7 +10,7 @@ import { ROLE_KEY } from '../decorators/roles.decorators';
 
 import { Roles } from '../../../generated/prisma/enums';
 import { DatabaseService } from '../../core/database/database.service';
-import { WS_ERROR_CODES, WS_EVENTS } from 'src/modules/rooms/utils/constants';
+import { WS_ERROR_CODES, WS_EVENTS } from '../../modules/rooms/utils/constants';
 
 @Injectable()
 export class RoomRoleGuard implements CanActivate {
