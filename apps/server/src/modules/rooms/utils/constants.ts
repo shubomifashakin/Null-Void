@@ -9,4 +9,5 @@ export const WS_EVENTS = {
   ROOM_INFO: 'room:info',
   ROOM_LEAVE: 'room:leave',
   USER_INFO: 'user:info',
+  ROOM_NOTIFICATION: 'room:notification',
 } as const;

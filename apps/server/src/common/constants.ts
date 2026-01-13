@@ -1,3 +1,4 @@
+import { Roles } from '../../generated/prisma/enums';
 import { Algorithm } from 'jsonwebtoken';
 
 export const DAYS_1 = 60 * 60 * 24;
@@ -39,3 +40,11 @@ export const MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Internal Server Error',
   NOT_FOUND: 'does not Exist',
 };
+
+export interface UserData {
+  userId: string;
+  role: Roles;
+  name: string;
+  picture: string | null;
+  joinedAt: Date;
+}

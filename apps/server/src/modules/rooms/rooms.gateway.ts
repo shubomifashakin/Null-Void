@@ -1,3 +1,4 @@
+import { ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -12,6 +13,9 @@ import { Server, Socket } from 'socket.io';
 
 import { WS_EVENTS } from './utils/constants';
 import { RoomsEventsService } from './rooms-events.service';
+
+import { Roles } from '../../common/decorators/roles.decorators';
+import { RoomRoleGuard } from '../../common/guards/room-role.guard';
 
 @WebSocketGateway({
   namespace: 'rooms',
@@ -47,10 +51,14 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return client.disconnect(true);
   }
 
+  @UseGuards(RoomRoleGuard)
+  @Roles('ADMIN')
   @SubscribeMessage(WS_EVENTS.USER_REMOVE)
-  handleRemoveEvent(): void {
-    // FIXME: IMPLEMENT
-    //FIXME: REMOVE CLIENT from room tracking
+  handleRemoveEvent(
+    @MessageBody('userId', new ParseUUIDPipe({ version: '4' })) data: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    return this.roomsEventsService.handleRemove(this.server, client, data);
   }
 
   @SubscribeMessage(WS_EVENTS.USER_MOVE)

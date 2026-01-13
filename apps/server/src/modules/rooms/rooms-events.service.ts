@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { isUUID } from 'class-validator';
 
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
 
@@ -240,6 +240,85 @@ export class RoomsEventsService {
     }
   }
 
+  //FIXME: RATE LIMIT THIS
+  async handleRemove(server: Server, client: Socket, userId: string) {
+    const roomId = client.handshake.query?.roomId as string;
+
+    try {
+      if (!roomId) return;
+
+      const userToRemoveExistsInRoom =
+        await this.databaseService.roomMember.findUnique({
+          where: { room_id_user_id: { room_id: roomId, user_id: userId } },
+        });
+
+      if (!userToRemoveExistsInRoom) {
+        //FIXME: Closes the connection
+        return client.emit('error', {
+          message: 'User does not exist in this room',
+        });
+      }
+
+      await this.databaseService.$transaction(async (tx) => {
+        await tx.roomMember.delete({
+          where: {
+            room_id_user_id: {
+              room_id: roomId,
+              user_id: userId,
+            },
+          },
+        });
+
+        const { success, error } = await this.removeUserFromGlobalRoomTracking(
+          roomId,
+          userId,
+        );
+
+        if (!success) {
+          this.logger.error({
+            message: `Failed to remove user ${userId} from global room tracking for room ${roomId}`,
+            error,
+          });
+
+          throw new Error('Failed to remove user from global room tracking');
+        }
+
+        const userToRemovesSocket = await this.getUserSocket(
+          server,
+          userId,
+          roomId,
+        );
+
+        if (!userToRemovesSocket || !userToRemovesSocket.data) return;
+
+        const usersInfo = userToRemovesSocket.data as UserData;
+
+        //disconnect that user, triggers disconnect block
+        userToRemovesSocket.disconnect(true);
+
+        //send a notification to the person who removed the user
+        client.emit(WS_EVENTS.ROOM_NOTIFICATION, {
+          message: `${usersInfo.name} was removed`,
+        });
+
+        //send a notification to the room that the user was removed
+        client.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
+          message: `${usersInfo.name} was removed`,
+        });
+      });
+    } catch (error: unknown) {
+      this.logger.error({
+        message: `Error removing user ${userId} from room ${roomId}`,
+        error,
+      });
+
+      //FIXME: closes the connection when emitted
+      client.emit('error', {
+        message: 'User was not removed',
+      });
+    }
+  }
+
   //FIXME: PAGINATE THE FETCHING OF DRAWINGS
   private async getCanvasState(
     roomId: string,
@@ -382,5 +461,15 @@ export class RoomsEventsService {
     const usersInRoom = Object.values(users.data);
 
     return { data: usersInRoom, error: null, success: true };
+  }
+
+  private async getUserSocket(server: Server, userId: string, roomId: string) {
+    const sockets = await server.in(roomId).fetchSockets();
+
+    const usersSocket = sockets.find((socket) => {
+      return (socket.data as UserData)?.userId === userId;
+    });
+
+    return usersSocket;
   }
 }
