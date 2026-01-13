@@ -222,7 +222,7 @@ export class RoomsEventsService {
         userId: clientInfo.userId,
       });
 
-      this.logger.log({
+      this.logger.debug({
         message: `User ${clientInfo.userId} left room ${roomId}`,
       });
     } catch (error: unknown) {
