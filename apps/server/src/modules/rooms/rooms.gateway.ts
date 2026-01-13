@@ -1,4 +1,9 @@
-import { ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import {
+  ParseFloatPipe,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -62,7 +67,14 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(WS_EVENTS.USER_MOVE)
-  handleMouseMoveEvent() {}
+  handleMouseMoveEvent(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('x', ParseFloatPipe) x: number,
+    @MessageBody('y', ParseFloatPipe) y: number,
+    @MessageBody('timestamp', ParseIntPipe) timestamp: number,
+  ) {
+    return this.roomsEventsService.handleUserMove(client, { x, y, timestamp });
+  }
 
   handleConnection(client: Socket) {
     return this.roomsEventsService.handleConnection(client);

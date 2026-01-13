@@ -8,6 +8,8 @@ import { Server, Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
 
+import { MouseMoveDto } from './dtos/mouse-move.dto';
+
 import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
 import {
   makeRoomCanvasStateCacheKey,
@@ -393,6 +395,30 @@ export class RoomsEventsService {
         error,
       });
     }
+  }
+
+  handleUserMove(client: Socket, dto: MouseMoveDto) {
+    const clientInfo = client.data as UserData;
+    const roomId = client.handshake.query.roomId as string;
+
+    if (!roomId || !clientInfo?.userId) {
+      const errorMessage = !roomId
+        ? 'Room ID not found in handshake query'
+        : 'User ID not found in client data';
+
+      this.logger.warn({
+        message: errorMessage,
+      });
+
+      return client.disconnect(true);
+    }
+
+    client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
+      x: dto.x,
+      y: dto.y,
+      timestamp: dto.timestamp,
+      userId: clientInfo.userId,
+    });
   }
 
   //FIXME: PAGINATE THE FETCHING OF DRAWINGS
