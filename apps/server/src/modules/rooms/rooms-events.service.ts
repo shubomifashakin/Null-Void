@@ -41,6 +41,28 @@ export class RoomsEventsService {
     private readonly databaseService: DatabaseService,
   ) {}
 
+  async handleDraw(client: Socket, data: string) {
+    const roomId = client.handshake.query?.roomId as string;
+    const clientInfo = client.data as UserData;
+
+    if (!roomId || !clientInfo?.userId) {
+      const errorMessage = !roomId
+        ? 'Room ID not found in handshake query'
+        : 'User ID not found in client data';
+
+      this.logger.warn({
+        message: errorMessage,
+      });
+
+      return client.disconnect(true);
+    }
+
+    //validate the draw payload
+    //append the new draw payload to the existing ones in cache
+    //queue the payload so it can be persisted to the database later
+    //broadcast the payload to other connected clients
+  }
+
   async handleConnection(client: Socket) {
     try {
       const roomId = client.handshake.query?.roomId as string;

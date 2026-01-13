@@ -41,14 +41,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: string,
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Client:', client.id, 'sent data:', data);
-
-    //send to eevryone connected on this server
-    client.broadcast.emit(WS_EVENTS.USER_DRAW, data);
-
-    //FIXME: Publish to Redis for other servers
-
-    //FIXME: ADD TO QUEUE so it can be saved to database
+    return this.roomsEventsService.handleDraw(client, data);
   }
 
   @SubscribeMessage(WS_EVENTS.ROOM_LEAVE)
