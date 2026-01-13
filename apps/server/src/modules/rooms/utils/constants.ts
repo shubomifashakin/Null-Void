@@ -10,4 +10,6 @@ export const WS_EVENTS = {
   ROOM_LEAVE: 'room:leave',
   USER_INFO: 'user:info',
   ROOM_NOTIFICATION: 'room:notification',
+  ROOM_ERROR: 'room:error',
+  ROOM_FORBIDDEN: 'room:forbidden',
 } as const;

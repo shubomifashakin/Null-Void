@@ -45,6 +45,7 @@ export class RoomsEventsService {
       if (!roomId) return client.disconnect(true);
 
       const validatedRoomId = isUUID(roomId, 4);
+
       if (!validatedRoomId) {
         this.logger.warn({
           message: `User tried joining room ${roomId} with an invalid roomId`,
@@ -245,7 +246,9 @@ export class RoomsEventsService {
     const roomId = client.handshake.query?.roomId as string;
 
     try {
-      if (!roomId) return;
+      if (!roomId) {
+        return this.logger.warn('Room ID is missing in handshake query');
+      }
 
       const userToRemoveExistsInRoom =
         await this.databaseService.roomMember.findUnique({
@@ -253,8 +256,7 @@ export class RoomsEventsService {
         });
 
       if (!userToRemoveExistsInRoom) {
-        //FIXME: Closes the connection
-        return client.emit('error', {
+        return client.emit(WS_EVENTS.ROOM_ERROR, {
           message: 'User does not exist in this room',
         });
       }
@@ -282,29 +284,24 @@ export class RoomsEventsService {
 
           throw new Error('Failed to remove user from global room tracking');
         }
+      });
 
-        const userToRemovesSocket = await this.getUserSocket(
-          server,
-          userId,
-          roomId,
-        );
+      const socketOfUserToBeRemoved = await this.getUserSocket(
+        server,
+        userId,
+        roomId,
+      );
 
-        if (!userToRemovesSocket || !userToRemovesSocket.data) return;
+      if (!socketOfUserToBeRemoved || !socketOfUserToBeRemoved.data) return;
 
-        const usersInfo = userToRemovesSocket.data as UserData;
+      const usersInfo = socketOfUserToBeRemoved.data as UserData;
 
-        //disconnect that user, triggers disconnect block
-        userToRemovesSocket.disconnect(true);
+      //disconnect that user, triggers disconnect block
+      socketOfUserToBeRemoved.disconnect(true);
 
-        //send a notification to the person who removed the user
-        client.emit(WS_EVENTS.ROOM_NOTIFICATION, {
-          message: `${usersInfo.name} was removed`,
-        });
-
-        //send a notification to the room that the user was removed
-        client.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
-          message: `${usersInfo.name} was removed`,
-        });
+      //inform everyone that the user was removed
+      server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
+        message: `${usersInfo.name} was removed`,
       });
     } catch (error: unknown) {
       this.logger.error({
@@ -312,9 +309,8 @@ export class RoomsEventsService {
         error,
       });
 
-      //FIXME: closes the connection when emitted
-      client.emit('error', {
-        message: 'User was not removed',
+      client.emit(WS_EVENTS.ROOM_ERROR, {
+        message: 'Failed to remove user',
       });
     }
   }
