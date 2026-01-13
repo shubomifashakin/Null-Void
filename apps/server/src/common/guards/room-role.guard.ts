@@ -5,7 +5,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 
 import { Socket } from 'socket.io';
 
-import { UserData } from '../constants';
+import { MESSAGES, UserData } from '../constants';
 import { ROLE_KEY } from '../decorators/roles.decorators';
 
 import { Roles } from '../../../generated/prisma/enums';
@@ -70,7 +70,7 @@ export class RoomRoleGuard implements CanActivate {
 
       if (!userInfo?.role || !roleMetadata.includes(userInfo.role)) {
         client.emit(WS_EVENTS.ROOM_ERROR, {
-          message: 'Unauthorized',
+          message: MESSAGES.UNAUTHORIZED,
           code: WS_ERROR_CODES.FORBIDDEN,
         });
 
