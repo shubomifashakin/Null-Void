@@ -21,6 +21,12 @@ import { RoomsEventsService } from './rooms-events.service';
 
 import { Roles } from '../../common/decorators/roles.decorators';
 import { RoomRoleGuard } from '../../common/guards/room-role.guard';
+import {
+  CircleEventDto,
+  LineEventDto,
+  PolygonEventDto,
+} from './dtos/draw-event.dto';
+import { DrawEventValidationPipe } from './pipes/draw-event-validation.pipe';
 
 @WebSocketGateway({
   namespace: 'rooms',
@@ -38,7 +44,8 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(WS_EVENTS.USER_DRAW)
   handleDrawEvent(
-    @MessageBody() data: string,
+    @MessageBody(DrawEventValidationPipe)
+    data: LineEventDto | PolygonEventDto | CircleEventDto,
     @ConnectedSocket() client: Socket,
   ) {
     return this.roomsEventsService.handleDraw(client, data);

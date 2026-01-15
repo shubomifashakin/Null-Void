@@ -8,12 +8,24 @@ import { Server, Socket } from 'socket.io';
 
 import { JsonValue } from '@prisma/client/runtime/client';
 
+import {
+  CircleEventDto,
+  LineEventDto,
+  PolygonEventDto,
+} from './dtos/draw-event.dto';
 import { MouseMoveDto } from './dtos/mouse-move.dto';
 
-import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
+import {
+  MAX_NUMBER_OF_DRAW_EVENTS,
+  WS_ERROR_CODES,
+  WS_EVENTS,
+} from './utils/constants';
 import {
   makeRoomCanvasStateCacheKey,
+  makeRoomDrawEventsCacheKey,
+  makeRoomSnapshotCacheKey,
   makeRoomsUsersCacheKey,
+  makeRoomTimestampedSnapshotCacheKey,
   makeRoomUsersIdCacheKey,
 } from './utils/fns';
 
@@ -41,26 +53,116 @@ export class RoomsEventsService {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async handleDraw(client: Socket, data: string) {
-    const roomId = client.handshake.query?.roomId as string;
-    const clientInfo = client.data as UserData;
+  async handleDraw(
+    client: Socket,
+    data: PolygonEventDto | LineEventDto | CircleEventDto,
+  ) {
+    try {
+      const roomId = client.handshake.query?.roomId as string;
+      const clientInfo = client.data as UserData;
 
-    if (!roomId || !clientInfo?.userId) {
-      const errorMessage = !roomId
-        ? 'Room ID not found in handshake query'
-        : 'User ID not found in client data';
+      if (!roomId || !clientInfo?.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
 
-      this.logger.warn({
-        message: errorMessage,
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
+      }
+
+      const appendedToDrawEventList = await this.redisService.hSetInCache(
+        makeRoomDrawEventsCacheKey(roomId),
+        data.id,
+        data,
+      );
+
+      //if failed to append to draw events list, send undo event back
+      if (!appendedToDrawEventList.success) {
+        this.logger.error({
+          message: `Failed to append draw event to draw events list for room ${roomId}`,
+          error: appendedToDrawEventList.error,
+        });
+
+        return client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
+          code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          id: data.id,
+        });
+      }
+
+      client.to(roomId).emit(WS_EVENTS.USER_DRAW, {
+        data,
       });
 
-      return client.disconnect(true);
-    }
+      //get the current length of pending draw events
+      const totalNumberOfDrawEvents = await this.redisService.hLenFromCache(
+        makeRoomDrawEventsCacheKey(roomId),
+      );
 
-    //validate the draw payload
-    //append the new draw payload to the existing ones in cache
-    //queue the payload so it can be persisted to the database later
-    //broadcast the payload to other connected clients
+      if (!totalNumberOfDrawEvents.success) {
+        return this.logger.error({
+          message: `Failed to get total number of draw events for room ${roomId}`,
+          error: totalNumberOfDrawEvents.error,
+        });
+      }
+
+      if (totalNumberOfDrawEvents.data < MAX_NUMBER_OF_DRAW_EVENTS) return;
+
+      //get all pending draw events
+      const allCurrentlyPendingDrawEvents =
+        await this.redisService.hGetAllFromCache(
+          makeRoomDrawEventsCacheKey(roomId),
+        );
+
+      if (!allCurrentlyPendingDrawEvents.success) {
+        return this.logger.error({
+          message: `Failed to get all currently pending draw events for room ${roomId}`,
+          error: allCurrentlyPendingDrawEvents.error,
+        });
+      }
+
+      //FIXME: convert all the pending events to binary
+
+      //FIXME: store the binary in cache as a snapshot
+      const snapshotCreated = await this.redisService.hSetInCache(
+        makeRoomSnapshotCacheKey(roomId),
+        makeRoomTimestampedSnapshotCacheKey(roomId),
+        '', //FIXME: SHOULD BE THE BINARY DATA
+      );
+
+      if (!snapshotCreated.success) {
+        return this.logger.error({
+          message: `Failed to create snapshot for room ${roomId}`,
+          error: snapshotCreated.error,
+        });
+      }
+
+      const deletedPendingEventsFromCache =
+        await this.redisService.deleteFromCache(
+          makeRoomDrawEventsCacheKey(roomId),
+        );
+
+      if (!deletedPendingEventsFromCache.success) {
+        this.logger.error({
+          message: `Failed to delete pending draw events from cache for room ${roomId}`,
+          error: deletedPendingEventsFromCache.error,
+        });
+      }
+
+      //FIXME: send all the snapshot keys available to the queue so it can be picked up by the worker and persisted in database (should be idempotent)
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Failed to handle draw event',
+        error,
+      });
+
+      client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        id: data.id,
+      });
+    }
   }
 
   async handleConnection(client: Socket) {
@@ -140,7 +242,8 @@ export class RoomsEventsService {
         joinedAt: new Date(connectionTime),
       } satisfies UserData;
 
-      const usersCurrentlyInRoom = await this.getAllUsersInRoom(roomId);
+      const usersCurrentlyInRoom =
+        await this.getAllCurrentlyActiveUsersInRoom(roomId);
 
       if (!usersCurrentlyInRoom.success) {
         this.logger.error({
@@ -574,7 +677,7 @@ export class RoomsEventsService {
     return { success, error, data };
   }
 
-  private async getAllUsersInRoom(
+  private async getAllCurrentlyActiveUsersInRoom(
     roomId: string,
   ): Promise<FnResult<UserData[]>> {
     const roomKey = makeRoomsUsersCacheKey(roomId);

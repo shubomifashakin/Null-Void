@@ -12,6 +12,7 @@ export const WS_EVENTS = {
   USER_INFO: 'user:info',
   ROOM_NOTIFICATION: 'room:notification',
   ROOM_ERROR: 'room:error',
+  ROOM_UNDO_DRAW: 'room:undo:draw',
 } as const;
 
 export const WS_ERROR_CODES = {
@@ -25,3 +26,5 @@ export const WS_ERROR_CODES = {
   NOT_IMPLEMENTED: 501,
   SERVICE_UNAVAILABLE: 503,
 } as const;
+
+export const MAX_NUMBER_OF_DRAW_EVENTS = 10;

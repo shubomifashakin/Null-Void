@@ -296,6 +296,28 @@ export class RedisService
     }
   }
 
+  async hLenFromCache(key: string): Promise<FnResult<number>> {
+    try {
+      const data = await this.client.hLen(key);
+
+      return { success: true, data, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: `Failed to get length of ${key} from cache`,
+      };
+    }
+  }
+
   async deleteFromCache(key: string): Promise<FnResult<null>> {
     try {
       await this.client.del(key);

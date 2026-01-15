@@ -101,6 +101,19 @@ export function makeRoomUsersIdCacheKey(
 ): string {
   return `room:${roomId}:users:${userId}`;
 }
+
 export function makeRoomCanvasStateCacheKey(roomId: string): string {
   return `room:${roomId}:canvas:state`;
+}
+
+export function makeRoomSnapshotCacheKey(roomId: string) {
+  return `room:${roomId}:snapshots`;
+}
+
+export function makeRoomTimestampedSnapshotCacheKey(roomId: string): string {
+  return `room:${roomId}:snapshots:${Date.now()}`;
+}
+
+export function makeRoomDrawEventsCacheKey(roomId: string): string {
+  return `room:${roomId}:draw_events`;
 }
