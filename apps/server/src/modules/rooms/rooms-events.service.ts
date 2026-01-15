@@ -21,6 +21,7 @@ import {
   WS_EVENTS,
 } from './utils/constants';
 import {
+  convertToBinary,
   makeRoomCanvasStateCacheKey,
   makeRoomDrawEventsCacheKey,
   makeRoomSnapshotCacheKey,
@@ -123,13 +124,24 @@ export class RoomsEventsService {
         });
       }
 
-      //FIXME: convert all the pending events to binary
+      //FIXME: VERIFY THAT JSON WAS CORRECTLY ENCODED TO BINARY
+      const convertedToBinary = await convertToBinary(
+        'proto/draw_event.proto',
+        'DrawEvent',
+        allCurrentlyPendingDrawEvents.data,
+      );
 
-      //FIXME: store the binary in cache as a snapshot
-      const snapshotCreated = await this.redisService.hSetInCache(
+      if (!convertedToBinary.success) {
+        return this.logger.error({
+          message: `Failed to convert draw events to binary for room ${roomId}`,
+          error: convertedToBinary.error,
+        });
+      }
+
+      const snapshotCreated = await this.redisService.hSetInCacheNoStringify(
         makeRoomSnapshotCacheKey(roomId),
         makeRoomTimestampedSnapshotCacheKey(roomId),
-        '', //FIXME: SHOULD BE THE BINARY DATA
+        convertedToBinary.data,
       );
 
       if (!snapshotCreated.success) {

@@ -191,6 +191,33 @@ export class RedisService
     }
   }
 
+  async hSetInCacheNoStringify(
+    key: string,
+    field: string,
+    value: any,
+  ): Promise<FnResult<null>> {
+    try {
+      await this.client.hSet(key, field, value);
+      await this.client.expire(key, DAYS_1);
+
+      return { success: true, data: null, error: null };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: `Failed to set ${key} in cache`,
+      };
+    }
+  }
+
   async hSetObjInCache(
     key: string,
     obj: Record<string, any>,
@@ -228,6 +255,35 @@ export class RedisService
       return {
         success: true,
         data: data ? (JSON.parse(data) as T) : null,
+        error: null,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          success: false,
+          data: null,
+          error: `${error.name}: ${error.message}`,
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: `Failed to get ${key} from cache`,
+      };
+    }
+  }
+
+  async hGetFromCacheNoParse<T>(
+    key: string,
+    field: string,
+  ): Promise<FnResult<T | null>> {
+    try {
+      const data = await this.client.hGet(key, field);
+
+      return {
+        success: true,
+        data: data ? (data as T) : null,
         error: null,
       };
     } catch (error) {

@@ -1,3 +1,6 @@
+import protobuf from 'protobufjs';
+import { FnResult } from '../../../../types/fnResult';
+
 export function makeRoomCacheKey(roomId: string): string {
   return `room:${roomId}`;
 }
@@ -116,4 +119,45 @@ export function makeRoomTimestampedSnapshotCacheKey(roomId: string): string {
 
 export function makeRoomDrawEventsCacheKey(roomId: string): string {
   return `room:${roomId}:draw_events`;
+}
+
+export async function convertToBinary(
+  protoFile: string,
+  messageType: string,
+  payload: object,
+): Promise<FnResult<Buffer>> {
+  try {
+    const loadedProto = await protobuf.load(protoFile);
+    const drawEventType = loadedProto.lookupType(messageType);
+
+    const isInvalid = drawEventType.verify(payload);
+
+    if (isInvalid) {
+      return { success: false, data: null, error: isInvalid };
+    }
+
+    const message = drawEventType.create(payload);
+
+    const encoded = drawEventType.encode(message).finish();
+
+    return { success: true, data: Buffer.from(encoded), error: null };
+  } catch (error) {
+    if (error instanceof protobuf.util.ProtocolError) {
+      return { success: false, data: null, error: error.message };
+    }
+
+    if (error instanceof Error) {
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: false,
+      data: null,
+      error: 'Failed to convert message to binary',
+    };
+  }
 }

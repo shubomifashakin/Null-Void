@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package draw;
+
+message Point {
+  double x = 1;
+  double y = 2;
+}
+
+message FillStyle {
+  string color = 1;
+  double opacity = 2;
+}
+
+message DrawEventBase {
+  string id = 1;
+  string color = 2;
+  int32 thickness = 3;
+  int64 timestamp = 4;
+}
+
+message LineEvent {
+  DrawEventBase base = 1;
+  Point from = 2;
+  Point to = 3;
+  optional FillStyle fill_style = 4;
+}
+
+message CircleEvent {
+  DrawEventBase base = 1;
+  double radius = 2;
+  Point center = 3;
+  optional FillStyle fill_style = 4;
+}
+
+message PolygonEvent {
+  DrawEventBase base = 1;
+  repeated Point points = 2;
+  optional FillStyle fill_style = 3;
+}
+
+message DrawEvent {
+  oneof event {
+    LineEvent line = 1;
+    CircleEvent circle = 2;
+    PolygonEvent polygon = 3;
+  }
+}
