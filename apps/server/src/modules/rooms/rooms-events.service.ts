@@ -6,7 +6,10 @@ import { isUUID } from 'class-validator';
 
 import { Server, Socket } from 'socket.io';
 
-import { JsonValue } from '@prisma/client/runtime/client';
+import {
+  JsonValue,
+  PrismaClientKnownRequestError,
+} from '@prisma/client/runtime/client';
 
 import {
   CircleEventDto,
@@ -109,6 +112,7 @@ export class RoomsEventsService {
         });
       }
 
+      //if the total pending draw events is less than the max number of draw events, do not snapshot
       if (totalNumberOfDrawEvents.data < MAX_NUMBER_OF_DRAW_EVENTS) return;
 
       //get all pending draw events
@@ -485,31 +489,28 @@ export class RoomsEventsService {
         return client.disconnect(true);
       }
 
-      const roomMember = await this.databaseService.roomMember.findUnique({
-        where: {
-          room_id_user_id: {
-            room_id: roomId,
-            user_id: clientInfo.userId,
+      await this.databaseService.roomMember
+        .delete({
+          where: {
+            room_id_user_id: {
+              room_id: roomId,
+              user_id: clientInfo.userId,
+            },
           },
-        },
-      });
+        })
+        .catch((error) => {
+          if (error instanceof PrismaClientKnownRequestError) {
+            if (error.code === 'P2025') {
+              this.logger.warn({
+                message: `User:${clientInfo.userId} was in room:${roomId} but was not a room member`,
+              });
 
-      if (!roomMember) {
-        this.logger.warn({
-          message: `User:${clientInfo.userId} was in room:${roomId} but was not a room member`,
+              return client.disconnect(true);
+            }
+          }
+
+          throw error;
         });
-
-        return client.disconnect(true);
-      }
-
-      await this.databaseService.roomMember.delete({
-        where: {
-          room_id_user_id: {
-            room_id: roomId,
-            user_id: clientInfo.userId,
-          },
-        },
-      });
 
       client.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
         message: `${clientInfo.name} left`,
