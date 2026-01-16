@@ -57,6 +57,7 @@ export class RoomsEventsService {
     private readonly databaseService: DatabaseService,
   ) {}
 
+  //FIXME: FIX POTENTIAL EDGE CASE WHERE SNAPSHOT MIGHT NOT BE TRIGGERED IF A ROOM RECEIVES LESS THAN MAX DRAW EVENTS
   async handleDraw(
     client: Socket,
     data: PolygonEventDto | LineEventDto | CircleEventDto,
