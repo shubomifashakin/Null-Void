@@ -161,3 +161,36 @@ export async function convertToBinary(
     };
   }
 }
+
+export async function decodeFromBinary(
+  protoFile: string,
+  messageType: string,
+  payload: Buffer,
+): Promise<FnResult<object>> {
+  try {
+    const loadedProto = await protobuf.load(protoFile);
+    const drawEventType = loadedProto.lookupType(messageType);
+
+    const decoded = drawEventType.decode(payload);
+
+    return { success: true, data: decoded, error: null };
+  } catch (error) {
+    if (error instanceof protobuf.util.ProtocolError) {
+      return { success: false, data: null, error: error.message };
+    }
+
+    if (error instanceof Error) {
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: false,
+      data: null,
+      error: 'Failed to decode message from binary',
+    };
+  }
+}

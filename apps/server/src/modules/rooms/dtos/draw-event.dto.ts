@@ -25,8 +25,8 @@ export interface FillStyle {
 
 interface DrawEventBase {
   type: 'line' | 'circle' | 'polygon';
-  color: string;
-  thickness: number;
+  strokeColor: string;
+  strokeWidth: number;
   timestamp: number;
   id: string;
 }
@@ -35,7 +35,6 @@ export interface LineEvent extends DrawEventBase {
   type: 'line';
   from: Points;
   to: Points;
-  fillStyle?: FillStyle;
 }
 
 export interface CircleEvent extends DrawEventBase {
@@ -81,12 +80,12 @@ export class DrawEventBaseDto implements DrawEventBase {
   id: string;
 
   @IsString()
-  color: string;
+  strokeColor: string;
 
   @IsNumber()
   @Min(1)
   @Max(50)
-  thickness: number;
+  strokeWidth: number;
 
   @IsNumber()
   @IsPositive()

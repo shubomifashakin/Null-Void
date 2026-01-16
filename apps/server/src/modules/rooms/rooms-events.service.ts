@@ -113,9 +113,9 @@ export class RoomsEventsService {
 
       //get all pending draw events
       const allCurrentlyPendingDrawEvents =
-        await this.redisService.hGetAllFromCache(
-          makeRoomDrawEventsCacheKey(roomId),
-        );
+        await this.redisService.hGetAllFromCache<
+          LineEventDto | CircleEventDto | PolygonEventDto
+        >(makeRoomDrawEventsCacheKey(roomId));
 
       if (!allCurrentlyPendingDrawEvents.success) {
         return this.logger.error({
@@ -124,11 +124,14 @@ export class RoomsEventsService {
         });
       }
 
-      //FIXME: VERIFY THAT JSON WAS CORRECTLY ENCODED TO BINARY
+      const arrayOfCurrentPendingDrawEvents = Object.values(
+        allCurrentlyPendingDrawEvents.data,
+      );
+
       const convertedToBinary = await convertToBinary(
         'proto/draw_event.proto',
-        'DrawEvent',
-        allCurrentlyPendingDrawEvents.data,
+        'DrawEventList',
+        { events: arrayOfCurrentPendingDrawEvents },
       );
 
       if (!convertedToBinary.success) {
@@ -138,7 +141,7 @@ export class RoomsEventsService {
         });
       }
 
-      const snapshotCreated = await this.redisService.hSetInCacheNoStringify(
+      const snapshotCreated = await this.redisService.hSetInCache(
         makeRoomSnapshotCacheKey(roomId),
         makeRoomTimestampedSnapshotCacheKey(roomId),
         convertedToBinary.data,
