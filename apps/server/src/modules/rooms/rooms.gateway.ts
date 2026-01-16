@@ -1,4 +1,5 @@
 import {
+  ParseBoolPipe,
   ParseFloatPipe,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -72,8 +73,14 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody('x', ParseFloatPipe) x: number,
     @MessageBody('y', ParseFloatPipe) y: number,
     @MessageBody('timestamp', ParseIntPipe) timestamp: number,
+    @MessageBody('isPenDown', ParseBoolPipe) isPenDown: boolean,
   ) {
-    return this.roomsEventsService.handleUserMove(client, { x, y, timestamp });
+    return this.roomsEventsService.handleUserMove(client, {
+      x,
+      y,
+      timestamp,
+      isPenDown,
+    });
   }
 
   handleConnection(client: Socket) {

@@ -1,4 +1,4 @@
-import { IsNumber } from 'class-validator';
+import { IsBoolean, IsNumber } from 'class-validator';
 
 export class MouseMoveDto {
   @IsNumber()
@@ -9,4 +9,7 @@ export class MouseMoveDto {
 
   @IsNumber()
   timestamp: number;
+
+  @IsBoolean()
+  isPenDown: boolean;
 }

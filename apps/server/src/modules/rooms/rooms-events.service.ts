@@ -554,9 +554,7 @@ export class RoomsEventsService {
     }
 
     client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
-      x: dto.x,
-      y: dto.y,
-      timestamp: dto.timestamp,
+      ...dto,
       userId: clientInfo.userId,
     });
   }
