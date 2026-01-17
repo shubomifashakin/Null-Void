@@ -135,5 +135,7 @@ model Snapshots {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  timestamp DateTime
+
   @@index(name: "snapshots_room_id_idx", fields: [room_id])
 }

@@ -77,8 +77,9 @@ export class RoomsEventsService {
         return client.disconnect(true);
       }
 
+      const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
       const appendedToDrawEventList = await this.redisService.hSetInCache(
-        makeRoomDrawEventsCacheKey(roomId),
+        roomDrawEventsCacheKey,
         data.id,
         data,
       );
@@ -102,7 +103,7 @@ export class RoomsEventsService {
 
       //get the current length of pending draw events
       const totalNumberOfDrawEvents = await this.redisService.hLenFromCache(
-        makeRoomDrawEventsCacheKey(roomId),
+        roomDrawEventsCacheKey,
       );
 
       if (!totalNumberOfDrawEvents.success) {
@@ -112,12 +113,12 @@ export class RoomsEventsService {
         });
       }
 
-      //if the total pending draw events is less than the max number of draw events, do not snapshot
+      //if the total pending draw events is less than the max pending draw events allowed, do not snapshot
       if (totalNumberOfDrawEvents.data < MAX_NUMBER_OF_DRAW_EVENTS) return;
 
       //acquire lock on draw events for the room
       const acquiredLock = await this.redisService.setInCache(
-        makeLockKey(makeRoomDrawEventsCacheKey(roomId)),
+        makeLockKey(roomDrawEventsCacheKey),
         'locked',
         15,
         'NX',
@@ -137,21 +138,19 @@ export class RoomsEventsService {
       }
 
       //get all pending draw events
-      const allCurrentlyPendingDrawEvents =
-        await this.redisService.hGetAllFromCache<
-          LineEventDto | CircleEventDto | PolygonEventDto
-        >(makeRoomDrawEventsCacheKey(roomId));
+      const allPendingDrawEvents =
+        await this.redisService.hGetAllFromCache<DrawEvent>(
+          roomDrawEventsCacheKey,
+        );
 
-      if (!allCurrentlyPendingDrawEvents.success) {
+      if (!allPendingDrawEvents.success) {
         return this.logger.error({
           message: `Failed to get all currently pending draw events for room ${roomId}`,
-          error: allCurrentlyPendingDrawEvents.error,
+          error: allPendingDrawEvents.error,
         });
       }
 
-      const arrayOfCurrentPendingDrawEvents = Object.values(
-        allCurrentlyPendingDrawEvents.data,
-      ) as unknown as DrawEvent[];
+      const arrayOfPendingDrawEvents = Object.values(allPendingDrawEvents.data);
 
       const lastCanvasSnapshot = await this.getLatestSnapshot(roomId);
 
@@ -163,12 +162,17 @@ export class RoomsEventsService {
       }
 
       //append to existing canvas snapshot if not empty
-      const allEvents = this.mergeSnapshotsWithPendingEvent(
+      const allEvents = this.mergeSnapshotsWithPendingEvents(
         lastCanvasSnapshot.data,
-        arrayOfCurrentPendingDrawEvents,
+        arrayOfPendingDrawEvents,
       );
 
+      this.logger.debug({
+        message: `Merged ${arrayOfPendingDrawEvents.length} draw events with latest snapshot for room ${roomId}`,
+      });
+
       //convert the snapshot to binary forma
+      //FIXME: NEEDS A TIMESTAMP APPENDED TO IT
       const convertedToBinary = convertToBinary(allEvents);
 
       if (!convertedToBinary.success) {
@@ -192,9 +196,7 @@ export class RoomsEventsService {
       }
 
       const deletedPendingEventsFromCache =
-        await this.redisService.deleteFromCache(
-          makeRoomDrawEventsCacheKey(roomId),
-        );
+        await this.redisService.deleteFromCache(roomDrawEventsCacheKey);
 
       if (!deletedPendingEventsFromCache.success) {
         this.logger.error({
@@ -204,7 +206,7 @@ export class RoomsEventsService {
       }
 
       const unlocked = await this.redisService.deleteFromCache(
-        makeLockKey(makeRoomDrawEventsCacheKey(roomId)),
+        makeLockKey(roomDrawEventsCacheKey),
       );
 
       if (!unlocked.success) {
@@ -377,9 +379,11 @@ export class RoomsEventsService {
       }
 
       //send the current canvas state to the newly connected client
-      client.emit(WS_EVENTS.CANVAS_STATE, {
-        snapshot: snapshot.data,
-      });
+      if (snapshot?.data?.length) {
+        client.emit(WS_EVENTS.CANVAS_STATE, {
+          snapshot: snapshot.data,
+        });
+      }
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling connection',
@@ -625,7 +629,7 @@ export class RoomsEventsService {
           room_id: roomId,
         },
         orderBy: {
-          created_at: 'desc',
+          timestamp: 'desc',
         },
         take: 1,
         select: {
@@ -760,7 +764,7 @@ export class RoomsEventsService {
     return usersSocket;
   }
 
-  private mergeSnapshotsWithPendingEvent(
+  private mergeSnapshotsWithPendingEvents(
     last: DrawEvent[] | null,
     pending: DrawEvent[],
   ) {
