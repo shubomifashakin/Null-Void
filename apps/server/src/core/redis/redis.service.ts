@@ -2,7 +2,7 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 
-import { createClient, RedisClientType } from 'redis';
+import { createClient, RedisClientType, SetOptions } from 'redis';
 
 import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
 import { FnResult } from '../../../types/fnResult';
@@ -114,13 +114,19 @@ export class RedisService
     key: string,
     data: any,
     exp: number = DAYS_1,
-  ): Promise<FnResult<null>> {
+    condition?: SetOptions['condition'],
+  ): Promise<FnResult<boolean>> {
     try {
-      await this.client.set(key, JSON.stringify(data), {
+      const result = await this.client.set(key, JSON.stringify(data), {
         expiration: { type: 'EX', value: exp },
+        condition,
       });
 
-      return { success: true, data: null, error: null };
+      if (result === 'OK') {
+        return { success: true, data: true, error: null };
+      }
+
+      return { success: true, data: false, error: null };
     } catch (error) {
       if (error instanceof Error) {
         return {

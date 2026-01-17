@@ -25,6 +25,7 @@ import {
 } from './utils/constants';
 import {
   convertToBinary,
+  makeLockKey,
   makeRoomCanvasStateCacheKey,
   makeRoomDrawEventsCacheKey,
   makeRoomSnapshotCacheKey,
@@ -57,7 +58,6 @@ export class RoomsEventsService {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  //FIXME: FIX POTENTIAL EDGE CASE WHERE SNAPSHOT MIGHT NOT BE TRIGGERED IF A ROOM RECEIVES LESS THAN MAX DRAW EVENTS
   async handleDraw(
     client: Socket,
     data: PolygonEventDto | LineEventDto | CircleEventDto,
@@ -116,6 +116,27 @@ export class RoomsEventsService {
       //if the total pending draw events is less than the max number of draw events, do not snapshot
       if (totalNumberOfDrawEvents.data < MAX_NUMBER_OF_DRAW_EVENTS) return;
 
+      //acquire lock on draw events for the room
+      const acquiredLock = await this.redisService.setInCache(
+        makeLockKey(makeRoomDrawEventsCacheKey(roomId)),
+        'locked',
+        15,
+        'NX',
+      );
+
+      if (!acquiredLock.success) {
+        return this.logger.error({
+          message: `Failed to acquire lock on draw events for room ${roomId}`,
+          error: acquiredLock.error,
+        });
+      }
+
+      if (!acquiredLock.data) {
+        return this.logger.debug({
+          message: `Lock already acquired for room ${roomId}`,
+        });
+      }
+
       //get all pending draw events
       const allCurrentlyPendingDrawEvents =
         await this.redisService.hGetAllFromCache<
@@ -133,10 +154,8 @@ export class RoomsEventsService {
         allCurrentlyPendingDrawEvents.data,
       );
 
-      const convertedToBinary = await convertToBinary(
-        'proto/draw_event.proto',
-        'DrawEventList',
-        { events: arrayOfCurrentPendingDrawEvents },
+      const convertedToBinary = convertToBinary(
+        arrayOfCurrentPendingDrawEvents,
       );
 
       if (!convertedToBinary.success) {
@@ -168,6 +187,17 @@ export class RoomsEventsService {
         this.logger.error({
           message: `Failed to delete pending draw events from cache for room ${roomId}`,
           error: deletedPendingEventsFromCache.error,
+        });
+      }
+
+      const unlocked = await this.redisService.deleteFromCache(
+        makeLockKey(makeRoomDrawEventsCacheKey(roomId)),
+      );
+
+      if (!unlocked.success) {
+        this.logger.error({
+          message: `Failed to remove lock on draw events for room ${roomId}`,
+          error: unlocked.error,
         });
       }
 

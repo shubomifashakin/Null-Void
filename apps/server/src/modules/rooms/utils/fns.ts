@@ -1,5 +1,10 @@
-import protobuf from 'protobufjs';
+import { DrawEvent, DrawEventList } from '../../../core/protos/draw_event';
 import { FnResult } from '../../../../types/fnResult';
+import {
+  CircleEventDto,
+  LineEventDto,
+  PolygonEventDto,
+} from '../dtos/draw-event.dto';
 
 export function makeRoomCacheKey(roomId: string): string {
   return `room:${roomId}`;
@@ -121,31 +126,22 @@ export function makeRoomDrawEventsCacheKey(roomId: string): string {
   return `room:${roomId}:draw_events`;
 }
 
-export async function convertToBinary(
-  protoFile: string,
-  messageType: string,
-  payload: object,
-): Promise<FnResult<Buffer>> {
+export function makeLockKey(key: string) {
+  return `lock:${key}`;
+}
+
+export function convertToBinary(
+  payload: (LineEventDto | CircleEventDto | PolygonEventDto)[],
+): FnResult<Buffer> {
   try {
-    const loadedProto = await protobuf.load(protoFile);
-    const drawEventType = loadedProto.lookupType(messageType);
+    const messages = DrawEventList.create({
+      events: payload as unknown as DrawEvent[],
+    });
 
-    const isInvalid = drawEventType.verify(payload);
-
-    if (isInvalid) {
-      return { success: false, data: null, error: isInvalid };
-    }
-
-    const message = drawEventType.create(payload);
-
-    const encoded = drawEventType.encode(message).finish();
+    const encoded = DrawEventList.toBinary(messages);
 
     return { success: true, data: Buffer.from(encoded), error: null };
   } catch (error) {
-    if (error instanceof protobuf.util.ProtocolError) {
-      return { success: false, data: null, error: error.message };
-    }
-
     if (error instanceof Error) {
       return {
         success: false,
@@ -162,23 +158,12 @@ export async function convertToBinary(
   }
 }
 
-export async function decodeFromBinary(
-  protoFile: string,
-  messageType: string,
-  payload: Buffer,
-): Promise<FnResult<object>> {
+export function decodeFromBinary(payload: Buffer): FnResult<object> {
   try {
-    const loadedProto = await protobuf.load(protoFile);
-    const drawEventType = loadedProto.lookupType(messageType);
-
-    const decoded = drawEventType.decode(payload);
+    const decoded = DrawEventList.fromBinary(payload);
 
     return { success: true, data: decoded, error: null };
   } catch (error) {
-    if (error instanceof protobuf.util.ProtocolError) {
-      return { success: false, data: null, error: error.message };
-    }
-
     if (error instanceof Error) {
       return {
         success: false,
