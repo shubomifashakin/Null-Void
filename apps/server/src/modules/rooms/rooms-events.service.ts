@@ -6,10 +6,7 @@ import { isUUID } from 'class-validator';
 
 import { Server, Socket } from 'socket.io';
 
-import {
-  JsonValue,
-  PrismaClientKnownRequestError,
-} from '@prisma/client/runtime/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 import {
   CircleEventDto,
@@ -25,20 +22,22 @@ import {
 } from './utils/constants';
 import {
   convertToBinary,
+  decodeFromBinary,
   makeLockKey,
-  makeRoomCanvasStateCacheKey,
   makeRoomDrawEventsCacheKey,
   makeRoomSnapshotCacheKey,
   makeRoomsUsersCacheKey,
-  makeRoomTimestampedSnapshotCacheKey,
   makeRoomUsersIdCacheKey,
 } from './utils/fns';
 
 import { FnResult, makeError } from '../../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
+import { DAYS_1 } from '../../common/constants';
+
 import { RedisService } from '../../core/redis/redis.service';
 import { DatabaseService } from '../../core/database/database.service';
+import { DrawEvent } from '../../core/protos/draw_event';
 
 interface UserData {
   userId: string;
@@ -152,11 +151,25 @@ export class RoomsEventsService {
 
       const arrayOfCurrentPendingDrawEvents = Object.values(
         allCurrentlyPendingDrawEvents.data,
-      );
+      ) as unknown as DrawEvent[];
 
-      const convertedToBinary = convertToBinary(
+      const lastCanvasSnapshot = await this.getLatestSnapshot(roomId);
+
+      if (!lastCanvasSnapshot.success) {
+        return this.logger.error({
+          message: `Failed to get latest snapshot for room ${roomId}`,
+          error: lastCanvasSnapshot.error,
+        });
+      }
+
+      //append to existing canvas snapshot if not empty
+      const allEvents = this.mergeSnapshotsWithPendingEvent(
+        lastCanvasSnapshot.data,
         arrayOfCurrentPendingDrawEvents,
       );
+
+      //convert the snapshot to binary forma
+      const convertedToBinary = convertToBinary(allEvents);
 
       if (!convertedToBinary.success) {
         return this.logger.error({
@@ -165,10 +178,10 @@ export class RoomsEventsService {
         });
       }
 
-      const snapshotCreated = await this.redisService.hSetInCache(
+      const snapshotCreated = await this.redisService.setInCache(
         makeRoomSnapshotCacheKey(roomId),
-        makeRoomTimestampedSnapshotCacheKey(roomId),
         convertedToBinary.data,
+        DAYS_1,
       );
 
       if (!snapshotCreated.success) {
@@ -352,12 +365,12 @@ export class RoomsEventsService {
         users: usersCurrentlyInRoom.data,
       });
 
-      const canvasState = await this.getCanvasState(roomId);
+      const snapshot = await this.getLatestSnapshot(roomId);
 
-      if (!canvasState.success) {
+      if (!snapshot.success) {
         this.logger.error({
-          message: `Failed to get canvas state for room ${roomId}`,
-          error: canvasState.error,
+          message: `Failed to get canvas snapshot for room ${roomId}`,
+          error: snapshot.error,
         });
 
         return client.disconnect(true);
@@ -365,7 +378,7 @@ export class RoomsEventsService {
 
       //send the current canvas state to the newly connected client
       client.emit(WS_EVENTS.CANVAS_STATE, {
-        canvasState: canvasState.data,
+        snapshot: snapshot.data,
       });
     } catch (error: unknown) {
       this.logger.error({
@@ -576,55 +589,76 @@ export class RoomsEventsService {
     });
   }
 
-  //FIXME: PAGINATE THE FETCHING OF DRAWINGS
-  private async getCanvasState(
+  private async getLatestSnapshot(
     roomId: string,
-  ): Promise<FnResult<Record<string, JsonValue>>> {
+  ): Promise<FnResult<DrawEvent[] | null>> {
     try {
-      const canvasState = await this.redisService.hGetAllFromCache<
-        Record<string, JsonValue>
-      >(makeRoomCanvasStateCacheKey(roomId));
+      const { success, error, data } =
+        await this.redisService.getFromCache<Buffer>(
+          makeRoomSnapshotCacheKey(roomId),
+        );
 
-      if (!canvasState.success) {
-        return { success: false, data: null, error: canvasState.error };
+      if (error) {
+        this.logger.error({
+          message: 'Failed to get canvas snapshot from redis',
+          error,
+        });
       }
 
-      if (canvasState.data) {
-        return { success: true, data: canvasState.data, error: null };
+      if (success && data) {
+        const decoded = decodeFromBinary(data);
+
+        if (!decoded.success) {
+          this.logger.error({
+            message: 'Failed to decode canvas snapshot from redis',
+            error: decoded.error,
+          });
+
+          return { success: false, data: null, error: decoded.error };
+        }
+
+        return { success: true, data: decoded.data, error: null };
       }
 
-      const roomDrawings = await this.databaseService.drawings.findMany({
+      const latestSnapshot = await this.databaseService.snapshots.findFirst({
         where: {
           room_id: roomId,
         },
+        orderBy: {
+          created_at: 'desc',
+        },
+        take: 1,
         select: {
-          id: true,
           payload: true,
         },
       });
 
-      if (!roomDrawings.length) {
-        this.logger.warn({ message: `No drawings found for room ${roomId}` });
-
-        return { success: true, data: {}, error: null };
+      if (!latestSnapshot) {
+        return { success: true, data: null, error: null };
       }
 
-      const drawings: Record<string, JsonValue> = {};
-
-      for (const drawing of roomDrawings) {
-        drawings[drawing.id] = drawing.payload;
-      }
-
-      const cached = await this.redisService.hSetObjInCache(
-        makeRoomCanvasStateCacheKey(roomId),
-        drawings,
+      const encoded = convertToBinary(
+        latestSnapshot.payload as unknown as DrawEvent[],
       );
 
-      if (!cached.success) {
-        return { success: false, data: null, error: cached.error };
+      const setSnapshotInCache = await this.redisService.setInCache(
+        makeRoomSnapshotCacheKey(roomId),
+        encoded,
+        DAYS_1,
+      );
+
+      if (setSnapshotInCache.error) {
+        this.logger.error({
+          message: 'Failed to set canvas snapshot in redis',
+          error: setSnapshotInCache.error,
+        });
       }
 
-      return { success: true, data: drawings, error: null };
+      return {
+        success: true,
+        data: latestSnapshot.payload as unknown as DrawEvent[],
+        error: null,
+      };
     } catch (error) {
       return {
         data: null,
@@ -724,5 +758,23 @@ export class RoomsEventsService {
     });
 
     return usersSocket;
+  }
+
+  private mergeSnapshotsWithPendingEvent(
+    last: DrawEvent[] | null,
+    pending: DrawEvent[],
+  ) {
+    const dedupeById = (events: DrawEvent[]) => {
+      const seen = new Set<string>();
+      return events.filter((ev) => {
+        if (seen.has(ev.id)) return false;
+        seen.add(ev.id);
+        return true;
+      });
+    };
+
+    const allEvents = dedupeById([...(last || []), ...pending]);
+
+    return allEvents;
   }
 }

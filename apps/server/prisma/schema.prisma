@@ -43,7 +43,6 @@ model User {
   members RoomMember[]
   refresh_tokens RefreshToken[]
   invites Invite[]
-  drawing_states Drawings[]
 }
 
 model Accounts {
@@ -82,7 +81,7 @@ model Room {
 
   members RoomMember[]
   invites Invite[]
-  drawing_states Drawings[]
+  drawing_states Snapshots[]
 }
 
 model RoomMember {
@@ -125,13 +124,10 @@ model Invite {
   @@index(name: "invites_email_idx", fields: [email, room_id, status])
 }
 
-model Drawings {
+model Snapshots {
   id String @id @default(uuid())
   
   payload Json
-
-  user_id String
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   room_id String
   room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
@@ -139,5 +135,5 @@ model Drawings {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index(name: "drawings_room_id_user_id_idx", fields: [room_id, user_id])
+  @@index(name: "snapshots_room_id_idx", fields: [room_id])
 }

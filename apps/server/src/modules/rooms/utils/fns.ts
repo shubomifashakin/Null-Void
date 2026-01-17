@@ -1,10 +1,5 @@
 import { DrawEvent, DrawEventList } from '../../../core/protos/draw_event';
 import { makeError, FnResult } from '../../../../types/fnResult';
-import {
-  CircleEventDto,
-  LineEventDto,
-  PolygonEventDto,
-} from '../dtos/draw-event.dto';
 
 export function makeRoomCacheKey(roomId: string): string {
   return `room:${roomId}`;
@@ -118,10 +113,6 @@ export function makeRoomSnapshotCacheKey(roomId: string) {
   return `room:${roomId}:snapshots`;
 }
 
-export function makeRoomTimestampedSnapshotCacheKey(roomId: string): string {
-  return `room:${roomId}:snapshots:${Date.now()}`;
-}
-
 export function makeRoomDrawEventsCacheKey(roomId: string): string {
   return `room:${roomId}:draw_events`;
 }
@@ -130,12 +121,10 @@ export function makeLockKey(key: string) {
   return `lock:${key}`;
 }
 
-export function convertToBinary(
-  payload: (LineEventDto | CircleEventDto | PolygonEventDto)[],
-): FnResult<Buffer> {
+export function convertToBinary(payload: DrawEvent[]): FnResult<Buffer> {
   try {
     const messages = DrawEventList.create({
-      events: payload as unknown as DrawEvent[],
+      events: payload,
     });
 
     const encoded = DrawEventList.toBinary(messages);
@@ -150,11 +139,11 @@ export function convertToBinary(
   }
 }
 
-export function decodeFromBinary(payload: Buffer): FnResult<object> {
+export function decodeFromBinary(payload: Buffer): FnResult<DrawEvent[]> {
   try {
     const decoded = DrawEventList.fromBinary(payload);
 
-    return { success: true, data: decoded, error: null };
+    return { success: true, data: decoded.events, error: null };
   } catch (error) {
     return {
       success: false,

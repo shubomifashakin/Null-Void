@@ -155,3 +155,9 @@ export class PolygonEventDto extends DrawEventBaseDto implements PolygonEvent {
   @Type(() => FillStyleDto)
   fillStyle?: FillStyle;
 }
+
+export type DrawEventPayload =
+  | LineEventDto
+  | CircleEventDto
+  | PolygonEventDto
+  | DrawEvent;
