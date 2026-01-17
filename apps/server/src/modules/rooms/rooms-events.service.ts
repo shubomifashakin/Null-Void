@@ -172,7 +172,6 @@ export class RoomsEventsService {
       });
 
       //convert the snapshot to binary forma
-      //FIXME: NEEDS A TIMESTAMP APPENDED TO IT
       const convertedToBinary = convertToBinary(allEvents);
 
       if (!convertedToBinary.success) {
@@ -182,10 +181,9 @@ export class RoomsEventsService {
         });
       }
 
-      const snapshotCreated = await this.redisService.setInCache(
-        makeRoomSnapshotCacheKey(roomId),
+      const snapshotCreated = await this.takeSnapshot(
+        roomId,
         convertedToBinary.data,
-        DAYS_1,
       );
 
       if (!snapshotCreated.success) {
@@ -597,10 +595,10 @@ export class RoomsEventsService {
     roomId: string,
   ): Promise<FnResult<DrawEvent[] | null>> {
     try {
-      const { success, error, data } =
-        await this.redisService.getFromCache<Buffer>(
-          makeRoomSnapshotCacheKey(roomId),
-        );
+      const { success, error, data } = await this.redisService.getFromCache<{
+        snapshot: { type: string; data: number[] };
+        timestamp: number;
+      }>(makeRoomSnapshotCacheKey(roomId));
 
       if (error) {
         this.logger.error({
@@ -610,7 +608,23 @@ export class RoomsEventsService {
       }
 
       if (success && data) {
-        const decoded = decodeFromBinary(data);
+        //this is done because redis stores the bufer as plain obj
+        const snapshotBuffer =
+          data.snapshot &&
+          data.snapshot.type.toLowerCase() === 'buffer' &&
+          Array.isArray(data.snapshot.data)
+            ? Buffer.from(data.snapshot.data)
+            : data.snapshot;
+
+        if (!(snapshotBuffer instanceof Buffer)) {
+          return {
+            success: false,
+            data: null,
+            error: makeError('Snapshot is not a buffer'),
+          };
+        }
+
+        const decoded = decodeFromBinary(snapshotBuffer);
 
         if (!decoded.success) {
           this.logger.error({
@@ -634,6 +648,7 @@ export class RoomsEventsService {
         take: 1,
         select: {
           payload: true,
+          timestamp: true,
         },
       });
 
@@ -645,17 +660,22 @@ export class RoomsEventsService {
         latestSnapshot.payload as unknown as DrawEvent[],
       );
 
-      const setSnapshotInCache = await this.redisService.setInCache(
-        makeRoomSnapshotCacheKey(roomId),
-        encoded,
-        DAYS_1,
-      );
-
-      if (setSnapshotInCache.error) {
+      if (!encoded.success) {
         this.logger.error({
-          message: 'Failed to set canvas snapshot in redis',
-          error: setSnapshotInCache.error,
+          message: 'Failed to encode canvas snapshot',
+          error: encoded.error,
         });
+      }
+
+      if (encoded.success) {
+        const storeSnapshot = await this.takeSnapshot(roomId, encoded.data);
+
+        if (storeSnapshot.error) {
+          this.logger.error({
+            message: 'Failed to store snapshot in redis',
+            error: storeSnapshot.error,
+          });
+        }
       }
 
       return {
@@ -780,5 +800,18 @@ export class RoomsEventsService {
     const allEvents = dedupeById([...(last || []), ...pending]);
 
     return allEvents;
+  }
+
+  private async takeSnapshot(roomId: string, buffer: Buffer) {
+    const done = await this.redisService.setInCache(
+      makeRoomSnapshotCacheKey(roomId),
+      {
+        snapshot: buffer,
+        timestamp: Date.now(),
+      },
+      DAYS_1,
+    );
+
+    return done;
   }
 }
