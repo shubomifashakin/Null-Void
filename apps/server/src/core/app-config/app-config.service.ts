@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FnResult } from 'types/fnResult';
+
+import { FnResult, makeError } from '../../../types/fnResult';
 
 @Injectable()
 export class AppConfigService {
@@ -12,18 +13,10 @@ export class AppConfigService {
 
       return { success: true, data: databaseUrl, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'DATABASE_URL is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -34,18 +27,10 @@ export class AppConfigService {
 
       return { success: true, data: domain, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'DOMAIN is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -56,18 +41,10 @@ export class AppConfigService {
 
       return { success: true, data: mailerFrom, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'MAILER_FROM is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -78,18 +55,10 @@ export class AppConfigService {
 
       return { success: true, data: resendApiKey, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'RESEND_API_KEY is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -100,18 +69,10 @@ export class AppConfigService {
 
       return { success: true, data: clientId, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'GOOGLE_CLIENT_ID is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -124,18 +85,10 @@ export class AppConfigService {
 
       return { success: true, data: clientSecret, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'GOOGLE_CLIENT_SECRET is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -146,18 +99,10 @@ export class AppConfigService {
 
       return { success: true, data: jwtSecret, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'JWT_SECRET is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -168,18 +113,10 @@ export class AppConfigService {
 
       return { success: true, data: baseUrl.trim(), error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'BASE_URL is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -190,18 +127,10 @@ export class AppConfigService {
 
       return { success: true, data: baseUrl.trim(), error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'REDIS_URL is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -211,18 +140,10 @@ export class AppConfigService {
       const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
       return { success: true, data: frontendUrl.trim(), error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'FRONTEND_URL is not defined in .env',
+        error: makeError(error),
       };
     }
   }
@@ -233,18 +154,10 @@ export class AppConfigService {
 
       return { success: true, data: serviceName.trim(), error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: 'SERVICE_NAME is not defined in .env',
+        error: makeError(error),
       };
     }
   }

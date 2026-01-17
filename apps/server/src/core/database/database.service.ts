@@ -10,7 +10,7 @@ export class DatabaseService extends PrismaClient implements OnModuleDestroy {
     const { success, data, error } = appConfigService.DATABASE_URL;
 
     if (!success) {
-      throw new Error(error);
+      throw error;
     }
     super({
       adapter: new PrismaPg({

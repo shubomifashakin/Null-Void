@@ -21,7 +21,7 @@ import {
   MINUTES_1,
   TOKEN,
 } from '../../common/constants';
-import { FnResult } from 'types/fnResult';
+import { FnResult, makeError } from '../../../types/fnResult';
 
 @Injectable()
 export class AuthService {
@@ -78,11 +78,7 @@ export class AuthService {
         error: null,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        return { success: false, error: error.message, data: null };
-      }
-
-      return { success: false, error: 'Failed to generate JWTs', data: null };
+      return { success: false, error: makeError(error), data: null };
     }
   }
 

@@ -34,7 +34,7 @@ import {
   makeRoomUsersIdCacheKey,
 } from './utils/fns';
 
-import { FnResult } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
 import { RedisService } from '../../core/redis/redis.service';
@@ -401,13 +401,6 @@ export class RoomsEventsService {
         userId: clientInfo.userId,
       });
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        return this.logger.error({
-          message: 'Error handling disconnection',
-          error: error.message,
-        });
-      }
-
       this.logger.error({
         message: 'Error handling disconnection',
         error,
@@ -466,7 +459,7 @@ export class RoomsEventsService {
             error,
           });
 
-          throw new Error(error);
+          throw error;
         }
       });
 
@@ -554,13 +547,6 @@ export class RoomsEventsService {
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
 
-      if (error instanceof Error) {
-        return this.logger.error({
-          message: 'Failed to leave room',
-          error: error.message,
-        });
-      }
-
       this.logger.error({
         message: 'Failed to leave room',
         error,
@@ -640,14 +626,10 @@ export class RoomsEventsService {
 
       return { success: true, data: drawings, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return { success: false, data: null, error: error.message };
-      }
-
       return {
         data: null,
         success: false,
-        error: `Failed to get canvas state for room ${roomId}`,
+        error: makeError(error),
       };
     }
   }
@@ -679,11 +661,7 @@ export class RoomsEventsService {
 
       return { success: true, data: userInfo, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return { success: false, data: null, error: error.message };
-      }
-
-      return { success: false, data: null, error: 'Invalid access token' };
+      return { success: false, data: null, error: makeError(error) };
     }
   }
 

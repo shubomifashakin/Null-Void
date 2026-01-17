@@ -5,7 +5,7 @@ import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage
 import { createClient, RedisClientType, SetOptions } from 'redis';
 
 import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
-import { FnResult } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../../types/fnResult';
 import { AppConfigService } from '../app-config/app-config.service';
 
 @Injectable()
@@ -19,11 +19,11 @@ export class RedisService
     const serviceName = configService.SERVICE_NAME;
 
     if (!redisUrl.success) {
-      throw new Error(redisUrl.error);
+      throw redisUrl.error;
     }
 
     if (!serviceName.success) {
-      throw new Error(serviceName.error);
+      throw serviceName.error;
     }
 
     this.client = createClient({
@@ -128,18 +128,10 @@ export class RedisService
 
       return { success: true, data: false, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to set ${key} in cache`,
+        error: makeError(error),
       };
     }
   }
@@ -154,18 +146,10 @@ export class RedisService
         error: null,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to get ${key} from cache`,
+        error: makeError(error),
       };
     }
   }
@@ -181,18 +165,10 @@ export class RedisService
 
       return { success: true, data: null, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to set ${key} in cache`,
+        error: makeError(error),
       };
     }
   }
@@ -208,18 +184,10 @@ export class RedisService
 
       return { success: true, data: null, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to set ${key} in cache`,
+        error: makeError(error),
       };
     }
   }
@@ -237,18 +205,10 @@ export class RedisService
         error: null,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to get ${key} from cache`,
+        error: makeError(error),
       };
     }
   }
@@ -259,18 +219,10 @@ export class RedisService
 
       return { success: true, data: null, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to delete ${key} from cache`,
+        error: makeError(error),
       };
     }
   }
@@ -286,18 +238,10 @@ export class RedisService
 
       return { success: true, data: parsed, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to get ${key} from cache`,
+        error: makeError(error),
       };
     }
   }
@@ -308,18 +252,10 @@ export class RedisService
 
       return { success: true, data, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to get length of ${key} from cache`,
+        error: makeError(error),
       };
     }
   }
@@ -330,18 +266,10 @@ export class RedisService
 
       return { success: true, data: null, error: null };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          success: false,
-          data: null,
-          error: `${error.name}: ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         data: null,
-        error: `Failed to delete ${key} from cache cache`,
+        error: makeError(error),
       };
     }
   }

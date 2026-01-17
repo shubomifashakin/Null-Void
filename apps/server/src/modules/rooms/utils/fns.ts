@@ -1,5 +1,5 @@
 import { DrawEvent, DrawEventList } from '../../../core/protos/draw_event';
-import { FnResult } from '../../../../types/fnResult';
+import { makeError, FnResult } from '../../../../types/fnResult';
 import {
   CircleEventDto,
   LineEventDto,
@@ -142,18 +142,10 @@ export function convertToBinary(
 
     return { success: true, data: Buffer.from(encoded), error: null };
   } catch (error) {
-    if (error instanceof Error) {
-      return {
-        success: false,
-        data: null,
-        error: error.message,
-      };
-    }
-
     return {
       success: false,
       data: null,
-      error: 'Failed to convert message to binary',
+      error: makeError(error),
     };
   }
 }
@@ -164,18 +156,10 @@ export function decodeFromBinary(payload: Buffer): FnResult<object> {
 
     return { success: true, data: decoded, error: null };
   } catch (error) {
-    if (error instanceof Error) {
-      return {
-        success: false,
-        data: null,
-        error: error.message,
-      };
-    }
-
     return {
       success: false,
       data: null,
-      error: 'Failed to decode message from binary',
+      error: makeError(error),
     };
   }
 }

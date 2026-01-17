@@ -10,7 +10,7 @@ export class MailerService extends Resend {
   constructor(private readonly appConfigService: AppConfigService) {
     const { success, data, error } = appConfigService.RESEND_API_KEY;
     if (!success) {
-      throw new Error(error);
+      throw error;
     }
     super(data);
   }
@@ -40,7 +40,7 @@ export class MailerService extends Resend {
       return {
         success: false,
         data: null,
-        error: `${error.name}: ${error.message}`,
+        error,
       };
     }
 
