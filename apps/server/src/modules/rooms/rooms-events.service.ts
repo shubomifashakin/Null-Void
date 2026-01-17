@@ -586,6 +586,16 @@ export class RoomsEventsService {
     });
   }
 
+  private async takeSnapshot(roomId: string, buffer: Buffer) {
+    const done = await this.redisService.setInCacheNoStringify(
+      makeRoomSnapshotCacheKey(roomId),
+      buffer,
+      DAYS_1,
+    );
+
+    return done;
+  }
+
   private async getLatestSnapshot(
     roomId: string,
   ): Promise<FnResult<DrawEvent[] | null>> {
@@ -780,15 +790,5 @@ export class RoomsEventsService {
     const allEvents = dedupeById([...(last || []), ...pending]);
 
     return allEvents;
-  }
-
-  private async takeSnapshot(roomId: string, buffer: Buffer) {
-    const done = await this.redisService.setInCacheNoStringify(
-      makeRoomSnapshotCacheKey(roomId),
-      buffer,
-      DAYS_1,
-    );
-
-    return done;
   }
 }
