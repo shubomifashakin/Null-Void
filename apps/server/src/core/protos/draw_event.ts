@@ -227,6 +227,10 @@ export interface DrawEventList {
      * @generated from protobuf field: repeated draw.DrawEvent events = 1
      */
     events: DrawEvent[];
+    /**
+     * @generated from protobuf field: int64 timestamp = 2
+     */
+    timestamp: bigint;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Point$Type extends MessageType<Point> {
@@ -831,12 +835,14 @@ export const DrawEvent = new DrawEvent$Type();
 class DrawEventList$Type extends MessageType<DrawEventList> {
     constructor() {
         super("draw.DrawEventList", [
-            { no: 1, name: "events", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => DrawEvent }
+            { no: 1, name: "events", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => DrawEvent },
+            { no: 2, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
         ]);
     }
     create(value?: PartialMessage<DrawEventList>): DrawEventList {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.events = [];
+        message.timestamp = 0n;
         if (value !== undefined)
             reflectionMergePartial<DrawEventList>(this, message, value);
         return message;
@@ -848,6 +854,9 @@ class DrawEventList$Type extends MessageType<DrawEventList> {
             switch (fieldNo) {
                 case /* repeated draw.DrawEvent events */ 1:
                     message.events.push(DrawEvent.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* int64 timestamp */ 2:
+                    message.timestamp = reader.int64().toBigInt();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -864,6 +873,9 @@ class DrawEventList$Type extends MessageType<DrawEventList> {
         /* repeated draw.DrawEvent events = 1; */
         for (let i = 0; i < message.events.length; i++)
             DrawEvent.internalBinaryWrite(message.events[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* int64 timestamp = 2; */
+        if (message.timestamp !== 0n)
+            writer.tag(2, WireType.Varint).int64(message.timestamp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

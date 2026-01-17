@@ -2,7 +2,7 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 
-import { createClient, RedisClientType, SetOptions } from 'redis';
+import { createClient, RedisClientType, RESP_TYPES, SetOptions } from 'redis';
 
 import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
 import { FnResult, makeError } from '../../../types/fnResult';
@@ -136,6 +136,38 @@ export class RedisService
     }
   }
 
+  /**
+   *
+   * @param key identifier
+   * @param data data to store
+   * @param exp in seconds
+   */
+  async setInCacheNoStringify(
+    key: string,
+    data: any,
+    exp: number = DAYS_1,
+    condition?: SetOptions['condition'],
+  ): Promise<FnResult<boolean>> {
+    try {
+      const result = await this.client.set(key, data, {
+        expiration: { type: 'EX', value: exp },
+        condition,
+      });
+
+      if (result === 'OK') {
+        return { success: true, data: true, error: null };
+      }
+
+      return { success: true, data: false, error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
   async getFromCache<T>(key: string): Promise<FnResult<T | null>> {
     try {
       const data = await this.client.get(key);
@@ -143,6 +175,28 @@ export class RedisService
       return {
         success: true,
         data: data ? (JSON.parse(data) as T) : null,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
+  async getFromCacheNoParse<T>(key: string): Promise<FnResult<T | null>> {
+    try {
+      const data = await this.client.sendCommand(['GET', key], {
+        typeMapping: {
+          [RESP_TYPES.BLOB_STRING]: Buffer,
+        },
+      });
+
+      return {
+        success: true,
+        data: data ? (data as T) : null,
         error: null,
       };
     } catch (error) {

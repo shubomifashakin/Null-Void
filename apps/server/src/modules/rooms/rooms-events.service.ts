@@ -172,7 +172,7 @@ export class RoomsEventsService {
       });
 
       //convert the snapshot to binary forma
-      const convertedToBinary = convertToBinary(allEvents);
+      const convertedToBinary = convertToBinary(allEvents, Date.now());
 
       if (!convertedToBinary.success) {
         return this.logger.error({
@@ -184,7 +184,6 @@ export class RoomsEventsService {
       const snapshotCreated = await this.takeSnapshot(
         roomId,
         convertedToBinary.data,
-        Date.now(),
       );
 
       if (!snapshotCreated.success) {
@@ -596,10 +595,10 @@ export class RoomsEventsService {
     roomId: string,
   ): Promise<FnResult<DrawEvent[] | null>> {
     try {
-      const { success, error, data } = await this.redisService.getFromCache<{
-        snapshot: { type: string; data: number[] };
-        timestamp: number;
-      }>(makeRoomSnapshotCacheKey(roomId));
+      const { success, error, data } =
+        await this.redisService.getFromCacheNoParse<Buffer>(
+          makeRoomSnapshotCacheKey(roomId),
+        );
 
       if (error) {
         this.logger.error({
@@ -609,23 +608,7 @@ export class RoomsEventsService {
       }
 
       if (success && data) {
-        //this is done because redis stores the bufer as plain obj
-        const snapshotBuffer =
-          data.snapshot &&
-          data.snapshot.type.toLowerCase() === 'buffer' &&
-          Array.isArray(data.snapshot.data)
-            ? Buffer.from(data.snapshot.data)
-            : data.snapshot;
-
-        if (!(snapshotBuffer instanceof Buffer)) {
-          return {
-            success: false,
-            data: null,
-            error: makeError('Snapshot is not a buffer'),
-          };
-        }
-
-        const decoded = decodeFromBinary(snapshotBuffer);
+        const decoded = decodeFromBinary(data);
 
         if (!decoded.success) {
           this.logger.error({
@@ -636,7 +619,7 @@ export class RoomsEventsService {
           return { success: false, data: null, error: decoded.error };
         }
 
-        return { success: true, data: decoded.data, error: null };
+        return { success: true, data: decoded.data.events, error: null };
       }
 
       const latestSnapshot = await this.databaseService.snapshots.findFirst({
@@ -659,6 +642,7 @@ export class RoomsEventsService {
 
       const encoded = convertToBinary(
         latestSnapshot.payload as unknown as DrawEvent[],
+        latestSnapshot.timestamp.getTime(),
       );
 
       if (!encoded.success) {
@@ -669,11 +653,7 @@ export class RoomsEventsService {
       }
 
       if (encoded.success) {
-        const storeSnapshot = await this.takeSnapshot(
-          roomId,
-          encoded.data,
-          latestSnapshot.timestamp.getTime(),
-        );
+        const storeSnapshot = await this.takeSnapshot(roomId, encoded.data);
 
         if (storeSnapshot.error) {
           this.logger.error({
@@ -807,17 +787,10 @@ export class RoomsEventsService {
     return allEvents;
   }
 
-  private async takeSnapshot(
-    roomId: string,
-    buffer: Buffer,
-    timestamp: number,
-  ) {
-    const done = await this.redisService.setInCache(
+  private async takeSnapshot(roomId: string, buffer: Buffer) {
+    const done = await this.redisService.setInCacheNoStringify(
       makeRoomSnapshotCacheKey(roomId),
-      {
-        snapshot: buffer,
-        timestamp,
-      },
+      buffer,
       DAYS_1,
     );
 

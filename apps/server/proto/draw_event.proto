@@ -74,4 +74,5 @@ message DrawEvent{
 
 message DrawEventList {
   repeated DrawEvent events = 1;
+  int64 timestamp = 2;
 }

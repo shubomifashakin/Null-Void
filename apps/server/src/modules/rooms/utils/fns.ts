@@ -121,10 +121,14 @@ export function makeLockKey(key: string) {
   return `lock:${key}`;
 }
 
-export function convertToBinary(payload: DrawEvent[]): FnResult<Buffer> {
+export function convertToBinary(
+  payload: DrawEvent[],
+  timestamp: number,
+): FnResult<Buffer> {
   try {
     const messages = DrawEventList.create({
       events: payload,
+      timestamp: BigInt(timestamp),
     });
 
     const encoded = DrawEventList.toBinary(messages);
@@ -139,11 +143,11 @@ export function convertToBinary(payload: DrawEvent[]): FnResult<Buffer> {
   }
 }
 
-export function decodeFromBinary(payload: Buffer): FnResult<DrawEvent[]> {
+export function decodeFromBinary(payload: Buffer): FnResult<DrawEventList> {
   try {
     const decoded = DrawEventList.fromBinary(payload);
 
-    return { success: true, data: decoded.events, error: null };
+    return { success: true, data: decoded, error: null };
   } catch (error) {
     return {
       success: false,
