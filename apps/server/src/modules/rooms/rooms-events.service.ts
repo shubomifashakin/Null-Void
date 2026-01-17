@@ -220,11 +220,6 @@ export class RoomsEventsService {
         message: 'Failed to handle draw event',
         error,
       });
-
-      client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
-        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
-        id: data.id,
-      });
     }
   }
 
