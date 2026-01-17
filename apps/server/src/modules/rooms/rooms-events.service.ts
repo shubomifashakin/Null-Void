@@ -184,6 +184,7 @@ export class RoomsEventsService {
       const snapshotCreated = await this.takeSnapshot(
         roomId,
         convertedToBinary.data,
+        Date.now(),
       );
 
       if (!snapshotCreated.success) {
@@ -668,7 +669,11 @@ export class RoomsEventsService {
       }
 
       if (encoded.success) {
-        const storeSnapshot = await this.takeSnapshot(roomId, encoded.data);
+        const storeSnapshot = await this.takeSnapshot(
+          roomId,
+          encoded.data,
+          latestSnapshot.timestamp.getTime(),
+        );
 
         if (storeSnapshot.error) {
           this.logger.error({
@@ -802,12 +807,16 @@ export class RoomsEventsService {
     return allEvents;
   }
 
-  private async takeSnapshot(roomId: string, buffer: Buffer) {
+  private async takeSnapshot(
+    roomId: string,
+    buffer: Buffer,
+    timestamp: number,
+  ) {
     const done = await this.redisService.setInCache(
       makeRoomSnapshotCacheKey(roomId),
       {
         snapshot: buffer,
-        timestamp: Date.now(),
+        timestamp,
       },
       DAYS_1,
     );
