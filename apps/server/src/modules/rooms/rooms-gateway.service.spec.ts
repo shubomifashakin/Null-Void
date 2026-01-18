@@ -63,6 +63,7 @@ const mockRedisService = {
   hGetAllFromCache: jest.fn(),
   hLenFromCache: jest.fn(),
   getFromCacheNoParse: jest.fn(),
+  setInCacheNoStringify: jest.fn(),
 };
 
 const mockConfigService = {
@@ -101,6 +102,11 @@ const mockServer = {
   emit: jest.fn().mockReturnThis(),
 } as unknown as jest.Mocked<Server>;
 
+const mockBinaryService = {
+  encode: jest.fn(),
+  decode: jest.fn(),
+};
+
 describe('RoomsGatewayService', () => {
   let service: RoomsGatewayService;
 
@@ -129,6 +135,8 @@ describe('RoomsGatewayService', () => {
       .useValue(mockRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)
+      .overrideProvider(BinaryEncodingService)
+      .useValue(mockBinaryService)
       .compile();
 
     module.useLogger(mockLogger);
@@ -261,7 +269,6 @@ describe('RoomsGatewayService', () => {
       expect(mockRedisService.hGetAllFromCache).not.toHaveBeenCalled();
     });
 
-    //FIXME: CONTINUE IMPLEMENTING
     it('should effectively handle the draw event & trigger snapshot', async () => {
       const roomId = 'room-1';
       const userId = 'test-user-id';
@@ -316,7 +323,30 @@ describe('RoomsGatewayService', () => {
       });
       mockRedisService.getFromCacheNoParse.mockResolvedValue({
         success: true,
-        data: 'success',
+        data: 'decoded',
+        error: null,
+      });
+
+      mockBinaryService.decode.mockReturnValue({
+        success: true,
+        data: { events: [drawEvent] },
+        error: null,
+      });
+
+      mockBinaryService.encode.mockReturnValue({
+        success: true,
+        data: 'encoded',
+        error: null,
+      });
+
+      mockRedisService.setInCacheNoStringify.mockResolvedValue({
+        success: true,
+        data: null,
+        error: null,
+      });
+      mockRedisService.deleteFromCache.mockResolvedValue({
+        success: true,
+        data: null,
         error: null,
       });
 
@@ -336,6 +366,14 @@ describe('RoomsGatewayService', () => {
       expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);
       expect(mockRedisService.hGetAllFromCache).toHaveBeenCalled();
       expect(mockRedisService.getFromCacheNoParse).toHaveBeenCalled();
+      expect(mockRedisService.deleteFromCache).toHaveBeenCalledTimes(2);
+      expect(mockBinaryService.decode).toHaveBeenCalled();
+      expect(mockBinaryService.decode).toHaveBeenCalledWith('decoded');
+      expect(mockBinaryService.encode).toHaveBeenCalled();
+      expect(mockBinaryService.encode).toHaveBeenCalledWith(
+        [drawEvent],
+        expect.any(Number),
+      );
     });
   });
 
