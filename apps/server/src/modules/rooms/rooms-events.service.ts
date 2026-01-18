@@ -361,6 +361,27 @@ export class RoomsEventsService {
         users: usersCurrentlyInRoom.data,
       });
 
+      const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
+      const allPendingDrawEvents =
+        await this.redisService.hGetAllFromCache<DrawEvent>(
+          roomDrawEventsCacheKey,
+        );
+
+      if (!allPendingDrawEvents.success) {
+        this.logger.error({
+          message: `Failed to get pending draw events for room ${roomId}`,
+          error: allPendingDrawEvents.error,
+        });
+
+        return client.disconnect(true);
+      }
+
+      const drawEventsThatHappenedRightBeforeUserJoined = Object.values(
+        allPendingDrawEvents.data,
+      ).filter((value) => {
+        return Number(value.timestamp) < connectionTime;
+      });
+
       const snapshot = await this.getLatestSnapshot(roomId);
 
       if (!snapshot.success) {
@@ -372,12 +393,16 @@ export class RoomsEventsService {
         return client.disconnect(true);
       }
 
+      const mergedSnapShotsAndPendingEvents =
+        this.mergeSnapshotsWithPendingEvents(
+          snapshot.data,
+          drawEventsThatHappenedRightBeforeUserJoined,
+        );
+
       //send the current canvas state to the newly connected client
-      if (snapshot?.data?.length) {
-        client.emit(WS_EVENTS.CANVAS_STATE, {
-          snapshot: snapshot.data,
-        });
-      }
+      client.emit(WS_EVENTS.CANVAS_STATE, {
+        state: mergedSnapShotsAndPendingEvents,
+      });
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling connection',
