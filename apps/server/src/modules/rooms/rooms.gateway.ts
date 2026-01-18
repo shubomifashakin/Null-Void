@@ -18,7 +18,7 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { WS_EVENTS } from './utils/constants';
-import { RoomsEventsService } from './rooms-events.service';
+import { RoomsGatewayService } from './rooms-gateway.service';
 
 import { Roles } from '../../common/decorators/roles.decorators';
 import { RoomRoleGuard } from '../../common/guards/room-role.guard';
@@ -39,7 +39,7 @@ import { DrawEventValidationPipe } from './pipes/draw-event-validation.pipe';
   maxHttpBufferSize: 1e6,
 })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly roomsEventsService: RoomsEventsService) {}
+  constructor(private readonly roomsGatewayService: RoomsGatewayService) {}
 
   @WebSocketServer() server: Server;
 
@@ -49,12 +49,12 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: LineEventDto | PolygonEventDto | CircleEventDto,
     @ConnectedSocket() client: Socket,
   ) {
-    return this.roomsEventsService.handleDraw(client, data);
+    return this.roomsGatewayService.handleDraw(client, data);
   }
 
   @SubscribeMessage(WS_EVENTS.ROOM_LEAVE)
   handleLeaveEvent(client: Socket) {
-    return this.roomsEventsService.handleLeave(client);
+    return this.roomsGatewayService.handleLeave(client);
   }
 
   @UseGuards(RoomRoleGuard)
@@ -64,7 +64,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody('userId', new ParseUUIDPipe({ version: '4' })) data: string,
     @ConnectedSocket() client: Socket,
   ) {
-    return this.roomsEventsService.handleRemove(this.server, client, data);
+    return this.roomsGatewayService.handleRemove(this.server, client, data);
   }
 
   @SubscribeMessage(WS_EVENTS.USER_MOVE)
@@ -75,7 +75,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody('timestamp', ParseIntPipe) timestamp: number,
     @MessageBody('isPenDown', ParseBoolPipe) isPenDown: boolean,
   ) {
-    return this.roomsEventsService.handleUserMove(client, {
+    return this.roomsGatewayService.handleUserMove(client, {
       x,
       y,
       timestamp: String(timestamp),
@@ -84,10 +84,10 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleConnection(client: Socket) {
-    return this.roomsEventsService.handleConnection(client);
+    return this.roomsGatewayService.handleConnection(client);
   }
 
   handleDisconnect(client: Socket) {
-    return this.roomsEventsService.handleDisconnect(client);
+    return this.roomsGatewayService.handleDisconnect(client);
   }
 }

@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsController } from './rooms.controller';
-import { RoomsEventsService } from './rooms-events.service';
+import { RoomsGatewayService } from './rooms-gateway.service';
 
 import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 
@@ -99,7 +99,7 @@ describe('RoomsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomsController],
-      providers: [RoomsService, RoomsGateway, RoomsEventsService],
+      providers: [RoomsService, RoomsGateway, RoomsGatewayService],
       imports: [
         DatabaseModule,
         RedisModule,

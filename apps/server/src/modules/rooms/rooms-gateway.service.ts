@@ -48,8 +48,8 @@ interface UserData {
 }
 
 @Injectable()
-export class RoomsEventsService {
-  private readonly logger = new Logger(RoomsEventsService.name);
+export class RoomsGatewayService {
+  private readonly logger = new Logger(RoomsGatewayService.name);
 
   constructor(
     private readonly jwtService: JwtService,
