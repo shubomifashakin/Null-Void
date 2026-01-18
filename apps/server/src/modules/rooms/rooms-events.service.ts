@@ -98,7 +98,8 @@ export class RoomsEventsService {
       }
 
       client.to(roomId).emit(WS_EVENTS.USER_DRAW, {
-        data,
+        ...data,
+        userId: clientInfo.userId,
       });
 
       //get the current length of pending draw events
