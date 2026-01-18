@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsController } from './rooms.controller';
+import { BinaryEncodingService } from './encoding.service';
 import { RoomsGatewayService } from './rooms-gateway.service';
 
 import { RedisModule } from '../../core/redis/redis.module';
@@ -13,6 +14,11 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 @Module({
   controllers: [RoomsController],
   imports: [RedisModule, DatabaseModule, MailerModule, AppConfigModule],
-  providers: [RoomsGateway, RoomsService, RoomsGatewayService],
+  providers: [
+    RoomsGateway,
+    RoomsService,
+    RoomsGatewayService,
+    BinaryEncodingService,
+  ],
 })
 export class RoomsModule {}

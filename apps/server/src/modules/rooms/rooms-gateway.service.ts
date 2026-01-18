@@ -15,14 +15,14 @@ import {
 } from './dtos/draw-event.dto';
 import { MouseMoveDto } from './dtos/mouse-move.dto';
 
+import { BinaryEncodingService } from './encoding.service';
+
 import {
   MAX_NUMBER_OF_DRAW_EVENTS,
   WS_ERROR_CODES,
   WS_EVENTS,
 } from './utils/constants';
 import {
-  convertToBinary,
-  decodeFromBinary,
   makeLockKey,
   makeRoomDrawEventsCacheKey,
   makeRoomSnapshotCacheKey,
@@ -55,6 +55,7 @@ export class RoomsGatewayService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly databaseService: DatabaseService,
+    private readonly binaryEncodingService: BinaryEncodingService,
   ) {}
 
   async handleDraw(
@@ -173,7 +174,10 @@ export class RoomsGatewayService {
       });
 
       //convert the snapshot to binary forma
-      const convertedToBinary = convertToBinary(allEvents, Date.now());
+      const convertedToBinary = this.binaryEncodingService.encode(
+        allEvents,
+        Date.now(),
+      );
 
       if (!convertedToBinary.success) {
         return this.logger.error({
@@ -193,6 +197,10 @@ export class RoomsGatewayService {
           error: snapshotCreated.error,
         });
       }
+
+      this.logger.debug({
+        message: `Created snapshot for room ${roomId}`,
+      });
 
       const deletedPendingEventsFromCache =
         await this.redisService.deleteFromCache(roomDrawEventsCacheKey);
@@ -649,7 +657,7 @@ export class RoomsGatewayService {
       }
 
       if (success && data) {
-        const decoded = decodeFromBinary(data);
+        const decoded = this.binaryEncodingService.decode(data);
 
         if (!decoded.success) {
           this.logger.error({
@@ -681,7 +689,7 @@ export class RoomsGatewayService {
         return { success: true, data: [], error: null };
       }
 
-      const encoded = convertToBinary(
+      const encoded = this.binaryEncodingService.encode(
         latestSnapshot.payload as unknown as DrawEvent[],
         latestSnapshot.timestamp.getTime(),
       );
