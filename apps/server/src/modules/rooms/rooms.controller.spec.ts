@@ -221,7 +221,7 @@ describe('RoomsController', () => {
 
     expect(result).toEqual({
       data: transformed,
-      cursor: selected[selected.length - 1].id,
+      cursor: rooms[rooms.length - 1].id,
       hasNextPage: true,
     });
   });
@@ -365,7 +365,7 @@ describe('RoomsController', () => {
 
     const data = invites.slice(0, 10);
     const hasNextPage = invites.length > 10;
-    const next = data.length > 0 ? data[data.length - 1].id : null;
+    const next = data.length > 0 ? invites[invites.length - 1].id : null;
 
     const transformed = data.map((data) => {
       return {

@@ -92,7 +92,7 @@ export class RoomsService {
     const data = rooms.slice(0, limit);
 
     const hasNextPage = rooms.length > limit;
-    const next = data.length > 0 ? data[data.length - 1].id : null;
+    const next = data.length > 0 ? rooms[rooms.length - 1].id : null;
 
     const transformed = data.map((data) => {
       return {
@@ -250,7 +250,7 @@ export class RoomsService {
     const data = invites.slice(0, limit);
 
     const hasNextPage = invites.length > limit;
-    const next = data.length > 0 ? data[data.length - 1].id : null;
+    const next = data.length > 0 ? invites[invites.length - 1].id : null;
 
     const transformed = data.map((data) => {
       return {
