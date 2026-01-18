@@ -444,7 +444,6 @@ export class RoomsEventsService {
     }
   }
 
-  //FIXME: RATE LIMIT THIS
   async handleRemove(server: Server, client: Socket, userId: string) {
     const roomId = client.handshake.query?.roomId as string;
     const clientInfo = client.data as UserData;
