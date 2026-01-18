@@ -824,7 +824,9 @@ export class RoomsEventsService {
       });
     };
 
-    const allEvents = dedupeById([...(last || []), ...pending]);
+    const allEvents = dedupeById([...(last || []), ...pending]).sort((a, b) => {
+      return Number(a.timestamp) - Number(b.timestamp);
+    });
 
     return allEvents;
   }
