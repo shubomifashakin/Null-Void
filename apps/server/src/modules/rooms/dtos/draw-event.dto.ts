@@ -8,6 +8,7 @@ import {
   IsPositive,
   IsString,
   IsUUID,
+  Matches,
   Max,
   Min,
   ValidateNested,
@@ -27,7 +28,7 @@ interface DrawEventBase {
   type: 'line' | 'circle' | 'polygon';
   strokeColor: string;
   strokeWidth: number;
-  timestamp: number;
+  timestamp: string;
   id: string;
 }
 
@@ -87,9 +88,11 @@ export class DrawEventBaseDto implements DrawEventBase {
   @Max(50)
   strokeWidth: number;
 
-  @IsNumber()
-  @IsPositive()
-  timestamp: number;
+  @IsString()
+  @Matches(/^[1-9]\d*$/, {
+    message: 'Timestamp must be a string representing a positive number',
+  })
+  timestamp: string;
 }
 
 export class LineEventDto extends DrawEventBaseDto implements LineEvent {

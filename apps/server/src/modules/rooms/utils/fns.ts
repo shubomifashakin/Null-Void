@@ -128,7 +128,7 @@ export function convertToBinary(
   try {
     const messages = DrawEventList.create({
       events: payload,
-      timestamp: BigInt(timestamp),
+      timestamp: String(timestamp),
     });
 
     const encoded = DrawEventList.toBinary(messages);

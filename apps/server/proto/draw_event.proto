@@ -16,7 +16,7 @@ message DrawEventBase {
   string id = 1;
   string strokeColor = 2;
   int32 strokeWidth = 3;
-  int64 timestamp = 4;
+  string timestamp = 4;
   string type = 5;
 }
 
@@ -24,7 +24,7 @@ message LineEvent {
   string id = 1;
   string strokeColor = 2;
   int32 strokeWidth = 3;
-  int64 timestamp = 4;
+  string timestamp = 4;
   string type = 5;
   Point from = 6;
   Point to = 7;
@@ -34,7 +34,7 @@ message CircleEvent {
   string id = 1;
   string strokeColor = 2;
   int32 strokeWidth = 3;
-  int64 timestamp = 4;
+  string timestamp = 4;
   string type = 5;
   double radius = 6;
   Point center = 7;
@@ -45,7 +45,7 @@ message PolygonEvent {
   string id = 1;
   string strokeColor = 2;
   int32 strokeWidth = 3;
-  int64 timestamp = 4;
+  string timestamp = 4;
   string type = 5;
   repeated Point points = 6;
   optional FillStyle fillStyle = 7;
@@ -56,7 +56,7 @@ message DrawEvent{
   string id = 1;
   string strokeColor = 2;
   int32 strokeWidth = 3;
-  int64 timestamp = 4;
+  string timestamp = 4;
   string type = 5;
 
   //for PolygonEvent
@@ -74,5 +74,5 @@ message DrawEvent{
 
 message DrawEventList {
   repeated DrawEvent events = 1;
-  int64 timestamp = 2;
+  string timestamp = 2;
 }

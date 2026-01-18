@@ -78,7 +78,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.roomsEventsService.handleUserMove(client, {
       x,
       y,
-      timestamp,
+      timestamp: String(timestamp),
       isPenDown,
     });
   }

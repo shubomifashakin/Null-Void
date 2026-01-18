@@ -344,7 +344,7 @@ export class RoomsEventsService {
         picture: userIsMember.user.picture,
       });
 
-      this.logger.log({
+      this.logger.debug({
         message: `User ${userInfo.userId} joined room ${roomId}`,
       });
 

@@ -53,9 +53,9 @@ export interface DrawEventBase {
      */
     strokeWidth: number;
     /**
-     * @generated from protobuf field: int64 timestamp = 4
+     * @generated from protobuf field: string timestamp = 4
      */
-    timestamp: bigint;
+    timestamp: string;
     /**
      * @generated from protobuf field: string type = 5
      */
@@ -78,9 +78,9 @@ export interface LineEvent {
      */
     strokeWidth: number;
     /**
-     * @generated from protobuf field: int64 timestamp = 4
+     * @generated from protobuf field: string timestamp = 4
      */
-    timestamp: bigint;
+    timestamp: string;
     /**
      * @generated from protobuf field: string type = 5
      */
@@ -111,9 +111,9 @@ export interface CircleEvent {
      */
     strokeWidth: number;
     /**
-     * @generated from protobuf field: int64 timestamp = 4
+     * @generated from protobuf field: string timestamp = 4
      */
-    timestamp: bigint;
+    timestamp: string;
     /**
      * @generated from protobuf field: string type = 5
      */
@@ -148,9 +148,9 @@ export interface PolygonEvent {
      */
     strokeWidth: number;
     /**
-     * @generated from protobuf field: int64 timestamp = 4
+     * @generated from protobuf field: string timestamp = 4
      */
-    timestamp: bigint;
+    timestamp: string;
     /**
      * @generated from protobuf field: string type = 5
      */
@@ -181,9 +181,9 @@ export interface DrawEvent {
      */
     strokeWidth: number;
     /**
-     * @generated from protobuf field: int64 timestamp = 4
+     * @generated from protobuf field: string timestamp = 4
      */
-    timestamp: bigint;
+    timestamp: string;
     /**
      * @generated from protobuf field: string type = 5
      */
@@ -228,9 +228,9 @@ export interface DrawEventList {
      */
     events: DrawEvent[];
     /**
-     * @generated from protobuf field: int64 timestamp = 2
+     * @generated from protobuf field: string timestamp = 2
      */
-    timestamp: bigint;
+    timestamp: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Point$Type extends MessageType<Point> {
@@ -349,7 +349,7 @@ class DrawEventBase$Type extends MessageType<DrawEventBase> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "strokeColor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "strokeWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -358,7 +358,7 @@ class DrawEventBase$Type extends MessageType<DrawEventBase> {
         message.id = "";
         message.strokeColor = "";
         message.strokeWidth = 0;
-        message.timestamp = 0n;
+        message.timestamp = "";
         message.type = "";
         if (value !== undefined)
             reflectionMergePartial<DrawEventBase>(this, message, value);
@@ -378,8 +378,8 @@ class DrawEventBase$Type extends MessageType<DrawEventBase> {
                 case /* int32 strokeWidth */ 3:
                     message.strokeWidth = reader.int32();
                     break;
-                case /* int64 timestamp */ 4:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 4:
+                    message.timestamp = reader.string();
                     break;
                 case /* string type */ 5:
                     message.type = reader.string();
@@ -405,9 +405,9 @@ class DrawEventBase$Type extends MessageType<DrawEventBase> {
         /* int32 strokeWidth = 3; */
         if (message.strokeWidth !== 0)
             writer.tag(3, WireType.Varint).int32(message.strokeWidth);
-        /* int64 timestamp = 4; */
-        if (message.timestamp !== 0n)
-            writer.tag(4, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 4; */
+        if (message.timestamp !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.timestamp);
         /* string type = 5; */
         if (message.type !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.type);
@@ -428,7 +428,7 @@ class LineEvent$Type extends MessageType<LineEvent> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "strokeColor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "strokeWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "from", kind: "message", T: () => Point },
             { no: 7, name: "to", kind: "message", T: () => Point }
@@ -439,7 +439,7 @@ class LineEvent$Type extends MessageType<LineEvent> {
         message.id = "";
         message.strokeColor = "";
         message.strokeWidth = 0;
-        message.timestamp = 0n;
+        message.timestamp = "";
         message.type = "";
         if (value !== undefined)
             reflectionMergePartial<LineEvent>(this, message, value);
@@ -459,8 +459,8 @@ class LineEvent$Type extends MessageType<LineEvent> {
                 case /* int32 strokeWidth */ 3:
                     message.strokeWidth = reader.int32();
                     break;
-                case /* int64 timestamp */ 4:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 4:
+                    message.timestamp = reader.string();
                     break;
                 case /* string type */ 5:
                     message.type = reader.string();
@@ -492,9 +492,9 @@ class LineEvent$Type extends MessageType<LineEvent> {
         /* int32 strokeWidth = 3; */
         if (message.strokeWidth !== 0)
             writer.tag(3, WireType.Varint).int32(message.strokeWidth);
-        /* int64 timestamp = 4; */
-        if (message.timestamp !== 0n)
-            writer.tag(4, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 4; */
+        if (message.timestamp !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.timestamp);
         /* string type = 5; */
         if (message.type !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.type);
@@ -521,7 +521,7 @@ class CircleEvent$Type extends MessageType<CircleEvent> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "strokeColor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "strokeWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "radius", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
             { no: 7, name: "center", kind: "message", T: () => Point },
@@ -533,7 +533,7 @@ class CircleEvent$Type extends MessageType<CircleEvent> {
         message.id = "";
         message.strokeColor = "";
         message.strokeWidth = 0;
-        message.timestamp = 0n;
+        message.timestamp = "";
         message.type = "";
         message.radius = 0;
         if (value !== undefined)
@@ -554,8 +554,8 @@ class CircleEvent$Type extends MessageType<CircleEvent> {
                 case /* int32 strokeWidth */ 3:
                     message.strokeWidth = reader.int32();
                     break;
-                case /* int64 timestamp */ 4:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 4:
+                    message.timestamp = reader.string();
                     break;
                 case /* string type */ 5:
                     message.type = reader.string();
@@ -590,9 +590,9 @@ class CircleEvent$Type extends MessageType<CircleEvent> {
         /* int32 strokeWidth = 3; */
         if (message.strokeWidth !== 0)
             writer.tag(3, WireType.Varint).int32(message.strokeWidth);
-        /* int64 timestamp = 4; */
-        if (message.timestamp !== 0n)
-            writer.tag(4, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 4; */
+        if (message.timestamp !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.timestamp);
         /* string type = 5; */
         if (message.type !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.type);
@@ -622,7 +622,7 @@ class PolygonEvent$Type extends MessageType<PolygonEvent> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "strokeColor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "strokeWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "points", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Point },
             { no: 7, name: "fillStyle", kind: "message", T: () => FillStyle }
@@ -633,7 +633,7 @@ class PolygonEvent$Type extends MessageType<PolygonEvent> {
         message.id = "";
         message.strokeColor = "";
         message.strokeWidth = 0;
-        message.timestamp = 0n;
+        message.timestamp = "";
         message.type = "";
         message.points = [];
         if (value !== undefined)
@@ -654,8 +654,8 @@ class PolygonEvent$Type extends MessageType<PolygonEvent> {
                 case /* int32 strokeWidth */ 3:
                     message.strokeWidth = reader.int32();
                     break;
-                case /* int64 timestamp */ 4:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 4:
+                    message.timestamp = reader.string();
                     break;
                 case /* string type */ 5:
                     message.type = reader.string();
@@ -687,9 +687,9 @@ class PolygonEvent$Type extends MessageType<PolygonEvent> {
         /* int32 strokeWidth = 3; */
         if (message.strokeWidth !== 0)
             writer.tag(3, WireType.Varint).int32(message.strokeWidth);
-        /* int64 timestamp = 4; */
-        if (message.timestamp !== 0n)
-            writer.tag(4, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 4; */
+        if (message.timestamp !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.timestamp);
         /* string type = 5; */
         if (message.type !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.type);
@@ -716,7 +716,7 @@ class DrawEvent$Type extends MessageType<DrawEvent> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "strokeColor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "strokeWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "points", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Point },
             { no: 7, name: "fillStyle", kind: "message", T: () => FillStyle },
@@ -731,7 +731,7 @@ class DrawEvent$Type extends MessageType<DrawEvent> {
         message.id = "";
         message.strokeColor = "";
         message.strokeWidth = 0;
-        message.timestamp = 0n;
+        message.timestamp = "";
         message.type = "";
         message.points = [];
         if (value !== undefined)
@@ -752,8 +752,8 @@ class DrawEvent$Type extends MessageType<DrawEvent> {
                 case /* int32 strokeWidth */ 3:
                     message.strokeWidth = reader.int32();
                     break;
-                case /* int64 timestamp */ 4:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 4:
+                    message.timestamp = reader.string();
                     break;
                 case /* string type */ 5:
                     message.type = reader.string();
@@ -797,9 +797,9 @@ class DrawEvent$Type extends MessageType<DrawEvent> {
         /* int32 strokeWidth = 3; */
         if (message.strokeWidth !== 0)
             writer.tag(3, WireType.Varint).int32(message.strokeWidth);
-        /* int64 timestamp = 4; */
-        if (message.timestamp !== 0n)
-            writer.tag(4, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 4; */
+        if (message.timestamp !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.timestamp);
         /* string type = 5; */
         if (message.type !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.type);
@@ -836,13 +836,13 @@ class DrawEventList$Type extends MessageType<DrawEventList> {
     constructor() {
         super("draw.DrawEventList", [
             { no: 1, name: "events", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => DrawEvent },
-            { no: 2, name: "timestamp", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
+            { no: 2, name: "timestamp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<DrawEventList>): DrawEventList {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.events = [];
-        message.timestamp = 0n;
+        message.timestamp = "";
         if (value !== undefined)
             reflectionMergePartial<DrawEventList>(this, message, value);
         return message;
@@ -855,8 +855,8 @@ class DrawEventList$Type extends MessageType<DrawEventList> {
                 case /* repeated draw.DrawEvent events */ 1:
                     message.events.push(DrawEvent.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* int64 timestamp */ 2:
-                    message.timestamp = reader.int64().toBigInt();
+                case /* string timestamp */ 2:
+                    message.timestamp = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -873,9 +873,9 @@ class DrawEventList$Type extends MessageType<DrawEventList> {
         /* repeated draw.DrawEvent events = 1; */
         for (let i = 0; i < message.events.length; i++)
             DrawEvent.internalBinaryWrite(message.events[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* int64 timestamp = 2; */
-        if (message.timestamp !== 0n)
-            writer.tag(2, WireType.Varint).int64(message.timestamp);
+        /* string timestamp = 2; */
+        if (message.timestamp !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.timestamp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
