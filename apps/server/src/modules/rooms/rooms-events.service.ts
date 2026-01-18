@@ -443,10 +443,21 @@ export class RoomsEventsService {
         });
 
       if (!userToRemoveExistsInRoom) {
-        return client.emit(WS_EVENTS.ROOM_ERROR, {
-          message: 'User does not exist in this room',
-          code: WS_ERROR_CODES.NOT_FOUND,
-        });
+        const socketOfUserToBeRemoved = await this.getUserSocket(
+          server,
+          userId,
+          roomId,
+        );
+
+        if (socketOfUserToBeRemoved) {
+          this.logger.warn({
+            message: `user:${userId} was in room:${roomId} but was not a room member`,
+          });
+
+          socketOfUserToBeRemoved.disconnect(true);
+        }
+
+        return;
       }
 
       await this.databaseService.$transaction(async (tx) => {
