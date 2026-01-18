@@ -2,11 +2,14 @@
 import { JwtModule } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+
 import { Server, Socket } from 'socket.io';
 
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsController } from './rooms.controller';
+import { BinaryEncodingService } from './encoding.service';
 import { RoomsGatewayService } from './rooms-gateway.service';
 
 import { RedisModule } from '../../core/redis/redis.module';
@@ -20,7 +23,6 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
 
 import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
 import { makeRoomDrawEventsCacheKey } from './utils/fns';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 const mockDatabaseService = {
   roomMember: {
@@ -112,7 +114,12 @@ describe('RoomsGatewayService', () => {
         AppConfigModule,
         JwtModule,
       ],
-      providers: [RoomsGatewayService, RoomsService, RoomsGateway],
+      providers: [
+        RoomsGatewayService,
+        RoomsService,
+        RoomsGateway,
+        BinaryEncodingService,
+      ],
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
