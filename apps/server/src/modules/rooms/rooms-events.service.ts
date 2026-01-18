@@ -121,7 +121,7 @@ export class RoomsEventsService {
       const acquiredLock = await this.redisService.setInCache(
         makeLockKey(roomDrawEventsCacheKey),
         'locked',
-        15,
+        20,
         'NX',
       );
 
