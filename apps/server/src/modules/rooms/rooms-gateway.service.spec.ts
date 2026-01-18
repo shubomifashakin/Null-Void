@@ -57,6 +57,7 @@ const mockRedisService = {
   getFromCache: jest.fn(),
   deleteFromCache: jest.fn(),
   hSetInCache: jest.fn(),
+  hDeleteFromCache: jest.fn(),
   hGetAllFromCache: jest.fn(),
   hLenFromCache: jest.fn(),
   getFromCacheNoParse: jest.fn(),
@@ -565,6 +566,62 @@ describe('RoomsGatewayService', () => {
       });
 
       expect(mockLogger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('disconnect events', () => {
+    it('should handle the disconnect event', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      mockRedisService.hDeleteFromCache.mockResolvedValue({
+        success: true,
+        data: null,
+        error: null,
+      });
+
+      await service.handleDisconnect(mockSocket);
+
+      expect(mockSocket.to).toHaveBeenCalledWith(roomId);
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        WS_EVENTS.USER_DISCONNECTED,
+        {
+          userId: mockSocket.data.userId,
+        },
+      );
+    });
+
+    it('should not emit an event', async () => {
+      const roomId = 'room-1';
+      const userId = null;
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      mockRedisService.hDeleteFromCache.mockResolvedValue({
+        success: true,
+        data: null,
+        error: null,
+      });
+
+      await service.handleDisconnect(mockSocket);
+
+      expect(mockRedisService.hDeleteFromCache).not.toHaveBeenCalled();
     });
   });
 });
