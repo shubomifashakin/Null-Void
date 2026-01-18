@@ -173,22 +173,10 @@ export class RoomsGatewayService {
         message: `Merged ${arrayOfPendingDrawEvents.length} draw events with latest snapshot for room ${roomId}`,
       });
 
-      //convert the snapshot to binary forma
-      const convertedToBinary = this.binaryEncodingService.encode(
-        allEvents,
-        Date.now(),
-      );
-
-      if (!convertedToBinary.success) {
-        return this.logger.error({
-          message: `Failed to convert draw events to binary for room ${roomId}`,
-          error: convertedToBinary.error,
-        });
-      }
-
       const snapshotCreated = await this.takeSnapshot(
         roomId,
-        convertedToBinary.data,
+        allEvents,
+        Date.now(),
       );
 
       if (!snapshotCreated.success) {
@@ -630,10 +618,20 @@ export class RoomsGatewayService {
     });
   }
 
-  private async takeSnapshot(roomId: string, buffer: Buffer) {
+  private async takeSnapshot(
+    roomId: string,
+    events: DrawEvent[],
+    timestamp: number,
+  ) {
+    const encoded = this.binaryEncodingService.encode(events, timestamp);
+
+    if (!encoded.success) {
+      return encoded;
+    }
+
     const done = await this.redisService.setInCacheNoStringify(
       makeRoomSnapshotCacheKey(roomId),
-      buffer,
+      encoded.data,
       DAYS_1,
     );
 
@@ -671,6 +669,11 @@ export class RoomsGatewayService {
         return { success: true, data: decoded.data.events || [], error: null };
       }
 
+      this.logger.debug({
+        message:
+          'Failed to get canvas snapshot from redis, getting from database',
+      });
+
       const latestSnapshot = await this.databaseService.snapshots.findFirst({
         where: {
           room_id: roomId,
@@ -689,27 +692,17 @@ export class RoomsGatewayService {
         return { success: true, data: [], error: null };
       }
 
-      const encoded = this.binaryEncodingService.encode(
+      const storeSnapshot = await this.takeSnapshot(
+        roomId,
         latestSnapshot.payload as unknown as DrawEvent[],
         latestSnapshot.timestamp.getTime(),
       );
 
-      if (!encoded.success) {
+      if (storeSnapshot.error) {
         this.logger.error({
-          message: 'Failed to encode canvas snapshot',
-          error: encoded.error,
+          message: 'Failed to store snapshot in redis',
+          error: storeSnapshot.error,
         });
-      }
-
-      if (encoded.success) {
-        const storeSnapshot = await this.takeSnapshot(roomId, encoded.data);
-
-        if (storeSnapshot.error) {
-          this.logger.error({
-            message: 'Failed to store snapshot in redis',
-            error: storeSnapshot.error,
-          });
-        }
       }
 
       return {
