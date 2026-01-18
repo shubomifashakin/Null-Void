@@ -634,7 +634,7 @@ export class RoomsGatewayService {
 
   private async getLatestSnapshot(
     roomId: string,
-  ): Promise<FnResult<DrawEvent[] | null>> {
+  ): Promise<FnResult<DrawEvent[]>> {
     try {
       const { success, error, data } =
         await this.redisService.getFromCacheNoParse<Buffer>(
@@ -660,7 +660,7 @@ export class RoomsGatewayService {
           return { success: false, data: null, error: decoded.error };
         }
 
-        return { success: true, data: decoded.data.events, error: null };
+        return { success: true, data: decoded.data.events || [], error: null };
       }
 
       const latestSnapshot = await this.databaseService.snapshots.findFirst({
@@ -678,7 +678,7 @@ export class RoomsGatewayService {
       });
 
       if (!latestSnapshot) {
-        return { success: true, data: null, error: null };
+        return { success: true, data: [], error: null };
       }
 
       const encoded = convertToBinary(
