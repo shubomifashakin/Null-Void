@@ -291,16 +291,6 @@ export class RoomsGatewayService {
         return client.disconnect(true);
       }
 
-      const connectionTime = client.handshake.issued;
-
-      client.data = {
-        userId: userInfo.userId,
-        role: userIsMember.role,
-        name: userIsMember.user.name,
-        picture: userIsMember.user.picture,
-        joinedAt: new Date(connectionTime),
-      } satisfies UserData;
-
       const usersCurrentlyInRoom =
         await this.getAllCurrentlyActiveUsersInRoom(roomId);
 
@@ -312,6 +302,18 @@ export class RoomsGatewayService {
 
         return client.disconnect(true);
       }
+
+      await client.join(roomId);
+
+      const joinedAt = Date.now();
+
+      client.data = {
+        userId: userInfo.userId,
+        role: userIsMember.role,
+        name: userIsMember.user.name,
+        picture: userIsMember.user.picture,
+        joinedAt: new Date(joinedAt),
+      } satisfies UserData;
 
       const addedUserToCurrentlyActiveUsers =
         await this.addUserToCurrentlyActiveUsersList(
@@ -327,8 +329,6 @@ export class RoomsGatewayService {
 
         return client.disconnect(true);
       }
-
-      await client.join(roomId);
 
       //send the room info to the user
       client.emit(WS_EVENTS.ROOM_INFO, {
@@ -379,7 +379,7 @@ export class RoomsGatewayService {
       const drawEventsThatHappenedRightBeforeUserJoined = Object.values(
         allPendingDrawEvents.data,
       ).filter((value) => {
-        return Number(value.timestamp) < connectionTime;
+        return Number(value.timestamp) < joinedAt;
       });
 
       const snapshot = await this.getLatestSnapshot(roomId);
