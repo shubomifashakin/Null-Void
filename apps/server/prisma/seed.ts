@@ -144,7 +144,7 @@ async function main() {
   await prisma.roomMember.createMany({
     data: rooms.map((room) => ({
       room_id: room.id,
-      user_id: 'c1533c8d-dc85-4fd5-8595-c2810cfd007b', //FIXME: APPEND WITH USER Id
+      user_id: 'c1533c8d-dc85-4fd5-8595-c2810cfd007b',
       role: 'ADMIN',
     })),
   });
