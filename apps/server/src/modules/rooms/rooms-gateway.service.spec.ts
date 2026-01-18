@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
@@ -107,6 +107,10 @@ const mockBinaryService = {
   decode: jest.fn(),
 };
 
+const mockJwtService = {
+  verifyAsync: jest.fn(),
+};
+
 describe('RoomsGatewayService', () => {
   let service: RoomsGatewayService;
 
@@ -137,6 +141,8 @@ describe('RoomsGatewayService', () => {
       .useValue(mockConfigService)
       .overrideProvider(BinaryEncodingService)
       .useValue(mockBinaryService)
+      .overrideProvider(JwtService)
+      .useValue(mockJwtService)
       .compile();
 
     module.useLogger(mockLogger);
@@ -374,6 +380,312 @@ describe('RoomsGatewayService', () => {
         [drawEvent],
         expect.any(Number),
       );
+    });
+  });
+
+  describe('connect events', () => {
+    it('should not accept event if roomId is invalid', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      await service.handleConnection(mockSocket);
+
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+      expect(mockSocket.emit).not.toHaveBeenCalled();
+    });
+
+    it('should not allow user thats not a member to join', async () => {
+      const roomId = '2537d7ca-e4cb-4844-8e5e-8442c24ca97b';
+      const userId = 'test-user-id';
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.handshake.headers.cookie = 'access_token=fake-access-token';
+
+      mockJwtService.verifyAsync.mockResolvedValue({ userId });
+      mockDatabaseService.roomMember.findUnique.mockResolvedValue(null);
+
+      await service.handleConnection(mockSocket);
+
+      expect(mockDatabaseService.roomMember.findUnique).toHaveBeenCalled();
+
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+    });
+
+    it('should disconnect the user because server failed to get snapshot', async () => {
+      const roomId = '2537d7ca-e4cb-4844-8e5e-8442c24ca97b';
+      const userId = 'test-user-id';
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.handshake.headers.cookie = 'access_token=fake-access-token';
+
+      mockJwtService.verifyAsync.mockResolvedValue({ userId });
+      mockDatabaseService.roomMember.findUnique.mockResolvedValue({
+        role: 'ADMIN',
+        room: {
+          description: 'test description',
+          name: 'Test Room',
+        },
+        user: {
+          name: 'Test User',
+          picture: null,
+        },
+      });
+
+      mockRedisService.hGetAllFromCache
+        .mockResolvedValueOnce({
+          success: true,
+          data: {},
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            ['pending-event']: {
+              id: 'pending-event',
+              timestamp: '200',
+            },
+          },
+          error: null,
+        });
+
+      mockRedisService.hSetInCache.mockResolvedValue({
+        success: true,
+        data: true,
+        error: null,
+      });
+
+      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+        success: false,
+        data: 'latest-snapshot',
+        error: 'failed',
+      });
+
+      mockDatabaseService.snapshots.findFirst.mockRejectedValue(
+        new Error('database error'),
+      );
+
+      await service.handleConnection(mockSocket);
+
+      expect(mockDatabaseService.roomMember.findUnique).toHaveBeenCalled();
+
+      expect(mockSocket.join).toHaveBeenCalled();
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.ROOM_INFO, {
+        name: 'Test Room',
+        description: 'test description',
+      });
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_INFO, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+
+      expect(mockSocket.to).toHaveBeenCalledWith(roomId);
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_JOINED, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
+        users: [],
+      });
+
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+    });
+
+    it('should add the user to the room and emit all required events', async () => {
+      const roomId = '2537d7ca-e4cb-4844-8e5e-8442c24ca97b';
+      const userId = 'test-user-id';
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.handshake.headers.cookie = 'access_token=fake-access-token';
+
+      mockJwtService.verifyAsync.mockResolvedValue({ userId });
+      mockDatabaseService.roomMember.findUnique.mockResolvedValue({
+        role: 'ADMIN',
+        room: {
+          description: 'test description',
+          name: 'Test Room',
+        },
+        user: {
+          name: 'Test User',
+          picture: null,
+        },
+      });
+
+      mockRedisService.hGetAllFromCache
+        .mockResolvedValueOnce({
+          success: true,
+          data: {},
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            ['pending-event']: {
+              id: 'pending-event',
+              timestamp: '200',
+            },
+          },
+          error: null,
+        });
+
+      mockRedisService.hSetInCache.mockResolvedValue({
+        success: true,
+        data: true,
+        error: null,
+      });
+
+      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+        success: true,
+        data: 'latest-snapshot',
+        error: null,
+      });
+
+      mockBinaryService.decode.mockReturnValue({
+        success: true,
+        data: { events: [{ id: 'snapshotted-event', timestamp: '100' }] },
+        error: null,
+      });
+
+      await service.handleConnection(mockSocket);
+
+      expect(mockDatabaseService.roomMember.findUnique).toHaveBeenCalled();
+
+      expect(mockSocket.join).toHaveBeenCalled();
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.ROOM_INFO, {
+        name: 'Test Room',
+        description: 'test description',
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_INFO, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+      expect(mockSocket.to).toHaveBeenCalledWith(roomId);
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_JOINED, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
+        users: [],
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.CANVAS_STATE, {
+        state: [
+          { id: 'snapshotted-event', timestamp: '100' },
+          { id: 'pending-event', timestamp: '200' },
+        ],
+      });
+    });
+
+    it('should add the user to the room, get latest snapshot from db since redis failed and emit all required events', async () => {
+      const roomId = '2537d7ca-e4cb-4844-8e5e-8442c24ca97b';
+      const userId = 'test-user-id';
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.handshake.headers.cookie = 'access_token=fake-access-token';
+
+      mockJwtService.verifyAsync.mockResolvedValue({ userId });
+      mockDatabaseService.roomMember.findUnique.mockResolvedValue({
+        role: 'ADMIN',
+        room: {
+          description: 'test description',
+          name: 'Test Room',
+        },
+        user: {
+          name: 'Test User',
+          picture: null,
+        },
+      });
+
+      mockRedisService.hGetAllFromCache
+        .mockResolvedValueOnce({
+          success: true,
+          data: {},
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            ['pending-event']: {
+              id: 'pending-event',
+              timestamp: '200',
+            },
+          },
+          error: null,
+        });
+
+      mockRedisService.hSetInCache.mockResolvedValue({
+        success: true,
+        data: true,
+        error: null,
+      });
+
+      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
+
+      mockDatabaseService.snapshots.findFirst.mockResolvedValue({
+        payload: [{ id: 'snapshotted-event', timestamp: '100' }],
+        timestamp: new Date(),
+      });
+
+      mockBinaryService.encode.mockReturnValue({
+        success: true,
+        data: 'encoded-snapshot',
+        error: null,
+      });
+
+      mockRedisService.setInCacheNoStringify.mockResolvedValue({
+        success: true,
+        data: true,
+        error: null,
+      });
+
+      await service.handleConnection(mockSocket);
+
+      expect(mockDatabaseService.roomMember.findUnique).toHaveBeenCalled();
+
+      expect(mockSocket.join).toHaveBeenCalled();
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.ROOM_INFO, {
+        name: 'Test Room',
+        description: 'test description',
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_INFO, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+      expect(mockSocket.to).toHaveBeenCalledWith(roomId);
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_JOINED, {
+        name: 'Test User',
+        role: 'ADMIN',
+        userId,
+        picture: null,
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
+        users: [],
+      });
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.CANVAS_STATE, {
+        state: [
+          { id: 'snapshotted-event', timestamp: '100' },
+          { id: 'pending-event', timestamp: '200' },
+        ],
+      });
     });
   });
 
