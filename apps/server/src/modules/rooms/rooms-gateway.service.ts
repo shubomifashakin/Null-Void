@@ -238,11 +238,23 @@ export class RoomsGatewayService {
 
       const cookies = client.handshake.headers.cookie;
 
-      if (!cookies) return client.disconnect(true);
+      if (!cookies) {
+        this.logger.debug({
+          message: 'No cookies found disconnecting',
+        });
+
+        return client.disconnect(true);
+      }
 
       const accessToken = this.getAccessTokenFromCookies(client);
 
-      if (!accessToken) return client.disconnect(true);
+      if (!accessToken) {
+        this.logger.debug({
+          message: 'No access token found disconnecting',
+        });
+
+        return client.disconnect(true);
+      }
 
       const {
         data: userInfo,
