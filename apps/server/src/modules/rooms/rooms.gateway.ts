@@ -1,5 +1,6 @@
 import {
   ParseBoolPipe,
+  ParseEnumPipe,
   ParseFloatPipe,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -17,6 +18,8 @@ import {
 
 import { Server, Socket } from 'socket.io';
 
+import { Roles as PrismaRoles } from '../../../generated/prisma/enums';
+
 import { WS_EVENTS } from './utils/constants';
 import { RoomsGatewayService } from './rooms-gateway.service';
 
@@ -30,7 +33,6 @@ import {
 import { RoomInfoPipe } from './pipes/room-info.pipe';
 import { DrawEventValidationPipe } from './pipes/draw-event-validation.pipe';
 import { UpdateRoomDto } from './dtos/update-room.dto';
-
 @WebSocketGateway({
   namespace: 'rooms',
   pingTimeout: 15000,
@@ -84,6 +86,20 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       y,
       timestamp: String(timestamp),
       isPenDown,
+    });
+  }
+
+  @UseGuards(RoomRoleGuard)
+  @Roles('ADMIN')
+  @SubscribeMessage(WS_EVENTS.USER_PROMOTED)
+  handlePromoteEvent(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('userId', new ParseUUIDPipe({ version: '4' })) userId: string,
+    @MessageBody('role', new ParseEnumPipe(PrismaRoles)) role: PrismaRoles,
+  ) {
+    return this.roomsGatewayService.handlePromote(this.server, client, {
+      userId,
+      role,
     });
   }
 

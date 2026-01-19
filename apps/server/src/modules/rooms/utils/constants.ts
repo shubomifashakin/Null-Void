@@ -5,10 +5,12 @@ export const WS_EVENTS = {
   USER_REMOVE: 'user:remove',
   USER_DISCONNECTED: 'user:disconnected',
   USER_LIST: 'user:list',
+  USER_PROMOTED: 'user:promoted',
+  USER_INFO: 'user:info',
+
   CANVAS_STATE: 'canvas:state',
   ROOM_INFO: 'room:info',
   ROOM_LEAVE: 'room:leave',
-  USER_INFO: 'user:info',
   ROOM_NOTIFICATION: 'room:notification',
   ROOM_ERROR: 'room:error',
   ROOM_UNDO_DRAW: 'room:undo:draw',

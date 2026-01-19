@@ -13,6 +13,7 @@ import {
   LineEventDto,
   PolygonEventDto,
 } from './dtos/draw-event.dto';
+import { PromoteDto } from './dtos/promote.dto';
 import { MouseMoveDto } from './dtos/mouse-move.dto';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 
@@ -660,6 +661,91 @@ export class RoomsGatewayService {
     }
   }
 
+  async handlePromote(server: Server, client: Socket, dto: PromoteDto) {
+    try {
+      const roomId = client.handshake.query?.roomId as string;
+      const clientInfo = client.data as UserData;
+
+      if (!roomId || !clientInfo?.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
+
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
+      }
+
+      await this.databaseService.$transaction(async (tx) => {
+        await tx.roomMember.update({
+          where: {
+            room_id_user_id: {
+              room_id: roomId,
+              user_id: dto.userId,
+            },
+          },
+          data: {
+            role: dto.role,
+          },
+        });
+
+        const userIsActive = await this.getUserFromCurrentlyActiveList(
+          roomId,
+          dto.userId,
+        );
+
+        if (!userIsActive.success) {
+          throw userIsActive.error;
+        }
+
+        if (!userIsActive.data) return;
+
+        const updated = await this.addUserToCurrentlyActiveUsersList(roomId, {
+          ...userIsActive.data,
+          role: dto.role,
+        });
+
+        if (!updated.success) {
+          throw updated.error;
+        }
+
+        //FIXME: IF POSSIBLE EDIT USER SOCKET DATA
+      });
+
+      server.to(roomId).emit(WS_EVENTS.USER_PROMOTED, {
+        role: dto.role,
+        userId: dto.userId,
+      });
+
+      server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
+        message: `${clientInfo.name} promoted ${dto.userId} to ${dto.role}`,
+      });
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Failed to promote user',
+        error,
+      });
+
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          client.emit(WS_EVENTS.ROOM_ERROR, {
+            message: 'User not found',
+            code: WS_ERROR_CODES.NOT_FOUND,
+          });
+
+          return;
+        }
+      }
+
+      client.emit(WS_EVENTS.ROOM_ERROR, {
+        message: 'Failed to promote user',
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
   handleUserMove(client: Socket, dto: MouseMoveDto) {
     try {
       const clientInfo = client.data as UserData;
@@ -823,6 +909,18 @@ export class RoomsGatewayService {
     } catch (error) {
       return { success: false, data: null, error: makeError(error) };
     }
+  }
+
+  private async getUserFromCurrentlyActiveList(roomId: string, userId: string) {
+    const roomKey = makeRoomsUsersCacheKey(roomId);
+    const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
+
+    const result = await this.redisService.hGetFromCache<UserData>(
+      roomKey,
+      roomUserIdKey,
+    );
+
+    return result;
   }
 
   private async addUserToCurrentlyActiveUsersList(
