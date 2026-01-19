@@ -955,16 +955,12 @@ export class RoomsGatewayService {
     const roomKey = makeRoomsUsersCacheKey(roomId);
     const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
 
-    const { success, error, data } = await this.redisService.hDeleteFromCache(
+    const result = await this.redisService.hDeleteFromCache(
       roomKey,
       roomUserIdKey,
     );
 
-    if (success) {
-      return { success: true, error: null, data };
-    }
-
-    return { success, error, data };
+    return result;
   }
 
   private async getAllCurrentlyActiveUsersInRoom(
