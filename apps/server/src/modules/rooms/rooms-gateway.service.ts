@@ -436,7 +436,11 @@ export class RoomsGatewayService {
     }
   }
 
-  async updateRoomInfo(server: Server, client: Socket, dto: UpdateRoomDto) {
+  async handleUpdateRoomInfo(
+    server: Server,
+    client: Socket,
+    dto: UpdateRoomDto,
+  ) {
     try {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;

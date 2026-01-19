@@ -110,7 +110,11 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody(RoomInfoPipe) dto: UpdateRoomDto,
   ) {
-    return this.roomsGatewayService.updateRoomInfo(this.server, client, dto);
+    return this.roomsGatewayService.handleUpdateRoomInfo(
+      this.server,
+      client,
+      dto,
+    );
   }
 
   handleConnection(client: Socket) {
