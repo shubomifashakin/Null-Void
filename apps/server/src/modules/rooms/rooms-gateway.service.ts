@@ -711,7 +711,15 @@ export class RoomsGatewayService {
           throw updated.error;
         }
 
-        //FIXME: IF POSSIBLE EDIT USER SOCKET DATA
+        const usersSocket = await this.getUserSocket(
+          server,
+          dto.userId,
+          roomId,
+        );
+
+        if (!usersSocket) return;
+
+        (usersSocket.data as UserData).role = dto.role;
       });
 
       server.to(roomId).emit(WS_EVENTS.USER_PROMOTED, {
