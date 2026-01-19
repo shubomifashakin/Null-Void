@@ -400,6 +400,12 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.CANVAS_STATE, {
         state: mergedSnapShotsAndPendingEvents,
       });
+
+      client.emit(WS_EVENTS.ROOM_READY, {
+        ready: true,
+        timestamp: Date.now(),
+        roomId,
+      });
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling connection',

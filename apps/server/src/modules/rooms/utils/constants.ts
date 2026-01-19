@@ -13,6 +13,7 @@ export const WS_EVENTS = {
   ROOM_NOTIFICATION: 'room:notification',
   ROOM_ERROR: 'room:error',
   ROOM_UNDO_DRAW: 'room:undo:draw',
+  ROOM_READY: 'room:ready',
 } as const;
 
 export const WS_ERROR_CODES = {
