@@ -27,6 +27,7 @@ import {
   LineEventDto,
   PolygonEventDto,
 } from './dtos/draw-event.dto';
+import { RoomInfoPipe } from './pipes/room-info.pipe';
 import { DrawEventValidationPipe } from './pipes/draw-event-validation.pipe';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 
@@ -89,7 +90,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(WS_EVENTS.ROOM_INFO)
   handleUpdateRoomInfo(
     @ConnectedSocket() client: Socket,
-    @MessageBody() dto: UpdateRoomDto,
+    @MessageBody(RoomInfoPipe) dto: UpdateRoomDto,
   ) {
     return this.roomsGatewayService.updateRoomInfo(this.server, client, dto);
   }
