@@ -1,11 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+
 import cookieParser from 'cookie-parser';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
+
+import { RedisService } from './core/redis/redis.service';
+import { RedisIoAdapter } from './core/redis-io-adapter/redis-io-adapter';
 
 import { PrismaKnownErrorFilter } from './common/filters/prisma-known-error.filter';
 
@@ -18,6 +22,11 @@ async function bootstrap() {
     },
     bufferLogs: true,
   });
+
+  const redisIoAdapter = new RedisIoAdapter(app.get(RedisService), app);
+  await redisIoAdapter.connectToRedis();
+
+  app.useWebSocketAdapter(redisIoAdapter);
 
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
