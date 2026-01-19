@@ -14,6 +14,7 @@ import {
   PolygonEventDto,
 } from './dtos/draw-event.dto';
 import { MouseMoveDto } from './dtos/mouse-move.dto';
+import { UpdateRoomDto } from './dtos/update-room.dto';
 
 import { BinaryEncodingService } from './encoding.service';
 
@@ -406,6 +407,44 @@ export class RoomsGatewayService {
       });
 
       return client.disconnect(true);
+    }
+  }
+
+  async updateRoomInfo(server: Server, client: Socket, dto: UpdateRoomDto) {
+    try {
+      const roomId = client.handshake.query?.roomId as string;
+      const clientInfo = client.data as UserData;
+
+      if (!roomId || !clientInfo?.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
+
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
+      }
+
+      if (!dto.description && !dto.name) return;
+
+      await this.databaseService.room.update({
+        where: { id: roomId },
+        data: dto,
+      });
+
+      server.to(roomId).emit(WS_EVENTS.ROOM_INFO, dto);
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Error updating room info',
+        error,
+      });
+
+      client.emit(WS_EVENTS.ROOM_ERROR, {
+        message: 'Failed to update room info',
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 

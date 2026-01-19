@@ -28,6 +28,7 @@ import {
   PolygonEventDto,
 } from './dtos/draw-event.dto';
 import { DrawEventValidationPipe } from './pipes/draw-event-validation.pipe';
+import { UpdateRoomDto } from './dtos/update-room.dto';
 
 @WebSocketGateway({
   namespace: 'rooms',
@@ -81,6 +82,16 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: String(timestamp),
       isPenDown,
     });
+  }
+
+  @UseGuards(RoomRoleGuard)
+  @Roles('ADMIN')
+  @SubscribeMessage(WS_EVENTS.ROOM_INFO)
+  handleUpdateRoomInfo(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: UpdateRoomDto,
+  ) {
+    return this.roomsGatewayService.updateRoomInfo(this.server, client, dto);
   }
 
   handleConnection(client: Socket) {
