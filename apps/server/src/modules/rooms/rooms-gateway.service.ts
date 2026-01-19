@@ -654,25 +654,32 @@ export class RoomsGatewayService {
   }
 
   handleUserMove(client: Socket, dto: MouseMoveDto) {
-    const clientInfo = client.data as UserData;
-    const roomId = client.handshake.query.roomId as string;
+    try {
+      const clientInfo = client.data as UserData;
+      const roomId = client.handshake.query.roomId as string;
 
-    if (!roomId || !clientInfo?.userId) {
-      const errorMessage = !roomId
-        ? 'Room ID not found in handshake query'
-        : 'User ID not found in client data';
+      if (!roomId || !clientInfo?.userId) {
+        const errorMessage = !roomId
+          ? 'Room ID not found in handshake query'
+          : 'User ID not found in client data';
 
-      this.logger.warn({
-        message: errorMessage,
+        this.logger.warn({
+          message: errorMessage,
+        });
+
+        return client.disconnect(true);
+      }
+
+      client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
+        ...dto,
+        userId: clientInfo.userId,
       });
-
-      return client.disconnect(true);
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Failed to handle user move',
+        error,
+      });
     }
-
-    client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
-      ...dto,
-      userId: clientInfo.userId,
-    });
   }
 
   private async takeSnapshot(
