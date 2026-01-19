@@ -45,6 +45,8 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer() server: Server;
 
+  @UseGuards(RoomRoleGuard)
+  @Roles('ADMIN', 'EDITOR')
   @SubscribeMessage(WS_EVENTS.USER_DRAW)
   handleDrawEvent(
     @MessageBody(DrawEventValidationPipe)
