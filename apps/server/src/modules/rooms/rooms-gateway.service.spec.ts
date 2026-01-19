@@ -21,6 +21,8 @@ import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
+import { DAYS_1 } from '../../common/constants';
+
 import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
 import { makeRoomDrawEventsCacheKey } from './utils/fns';
 
@@ -204,6 +206,7 @@ describe('RoomsGatewayService', () => {
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
+        DAYS_1
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,
@@ -265,6 +268,7 @@ describe('RoomsGatewayService', () => {
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
+        DAYS_1
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,
@@ -363,6 +367,7 @@ describe('RoomsGatewayService', () => {
         roomDrawEvents,
         drawEvent.id,
         drawEvent,
+        DAYS_1
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,

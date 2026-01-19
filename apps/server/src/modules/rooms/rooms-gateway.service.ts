@@ -84,12 +84,13 @@ export class RoomsGatewayService {
         roomDrawEventsCacheKey,
         data.id,
         data,
+        DAYS_1
       );
 
       //if failed to append to draw events list, send undo event back
       if (!appendedToDrawEventList.success) {
         this.logger.error({
-          message: `Failed to append draw event to draw events list for room ${roomId}`,
+          message: `Failed to append draw event to draw events list for room:${roomId}`,
           error: appendedToDrawEventList.error,
         });
 
@@ -224,7 +225,13 @@ export class RoomsGatewayService {
   async handleConnection(client: Socket) {
     try {
       const roomId = client.handshake.query?.roomId as string;
-      if (!roomId) return client.disconnect(true);
+      if (!roomId){
+         this.logger.warn({
+          message: `roomId is not specified`,
+        });
+
+         return client.disconnect(true);
+      }
 
       const isValidRoomId = isUUID(roomId, 4);
 
@@ -716,6 +723,8 @@ export class RoomsGatewayService {
           message: 'Failed to get canvas snapshot from redis',
           error,
         });
+
+        return {success,error,data}
       }
 
       if (success && data) {
@@ -735,7 +744,7 @@ export class RoomsGatewayService {
 
       this.logger.debug({
         message:
-          'Failed to get canvas snapshot from redis, getting from database',
+          `Cache miss: no snapshot for room:${roomId} in cache, getting from database`,
       });
 
       const latestSnapshot = await this.databaseService.snapshots.findFirst({
@@ -753,6 +762,9 @@ export class RoomsGatewayService {
       });
 
       if (!latestSnapshot) {
+        this.logger.debug({
+          message:`No snapshot for room:${roomId} in database`
+        })
         return { success: true, data: [], error: null };
       }
 
@@ -764,7 +776,7 @@ export class RoomsGatewayService {
 
       if (storeSnapshot.error) {
         this.logger.error({
-          message: 'Failed to store snapshot in redis',
+          message: `Failed to store snapshot for room:${roomId} in cache`,
           error: storeSnapshot.error,
         });
       }
@@ -825,6 +837,7 @@ export class RoomsGatewayService {
       roomKey,
       roomUserIdKey,
       userInfo,
+      DAYS_1
     );
 
     return result;

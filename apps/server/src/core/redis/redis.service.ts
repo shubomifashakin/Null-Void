@@ -216,10 +216,11 @@ export class RedisService
     key: string,
     field: string,
     value: any,
+    exp:number
   ): Promise<FnResult<null>> {
     try {
       await this.client.hSet(key, field, JSON.stringify(value));
-      await this.client.expire(key, DAYS_1);
+      await this.client.expire(key, exp);
 
       return { success: true, data: null, error: null };
     } catch (error) {
