@@ -21,7 +21,7 @@ export class IsMemberGuard implements CanActivate {
         where: {
           room_id_user_id: {
             user_id: userId,
-            room_id: roomId,
+            room_id: roomId as string,
           },
         },
       });

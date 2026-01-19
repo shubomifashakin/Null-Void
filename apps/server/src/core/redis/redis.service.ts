@@ -34,6 +34,10 @@ export class RedisService
     });
   }
 
+  getClient() {
+    return this.client;
+  }
+
   async increment(
     key: string,
     ttl: number,
