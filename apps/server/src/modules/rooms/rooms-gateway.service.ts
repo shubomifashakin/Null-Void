@@ -84,7 +84,7 @@ export class RoomsGatewayService {
         roomDrawEventsCacheKey,
         data.id,
         data,
-        DAYS_1
+        DAYS_1,
       );
 
       //if failed to append to draw events list, send undo event back
@@ -225,12 +225,12 @@ export class RoomsGatewayService {
   async handleConnection(client: Socket) {
     try {
       const roomId = client.handshake.query?.roomId as string;
-      if (!roomId){
-         this.logger.warn({
+      if (!roomId) {
+        this.logger.warn({
           message: `roomId is not specified`,
         });
 
-         return client.disconnect(true);
+        return client.disconnect(true);
       }
 
       const isValidRoomId = isUUID(roomId, 4);
@@ -724,7 +724,7 @@ export class RoomsGatewayService {
           error,
         });
 
-        return {success,error,data}
+        return { success, error, data };
       }
 
       if (success && data) {
@@ -743,8 +743,7 @@ export class RoomsGatewayService {
       }
 
       this.logger.debug({
-        message:
-          `Cache miss: no snapshot for room:${roomId} in cache, getting from database`,
+        message: `Cache miss: no snapshot for room:${roomId} in cache, getting from database`,
       });
 
       const latestSnapshot = await this.databaseService.snapshots.findFirst({
@@ -763,8 +762,8 @@ export class RoomsGatewayService {
 
       if (!latestSnapshot) {
         this.logger.debug({
-          message:`No snapshot for room:${roomId} in database`
-        })
+          message: `No snapshot for room:${roomId} in database`,
+        });
         return { success: true, data: [], error: null };
       }
 
@@ -837,7 +836,7 @@ export class RoomsGatewayService {
       roomKey,
       roomUserIdKey,
       userInfo,
-      DAYS_1
+      DAYS_1,
     );
 
     return result;

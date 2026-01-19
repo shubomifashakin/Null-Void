@@ -216,7 +216,7 @@ export class RedisService
     key: string,
     field: string,
     value: any,
-    exp:number
+    exp: number,
   ): Promise<FnResult<null>> {
     try {
       await this.client.hSet(key, field, JSON.stringify(value));
