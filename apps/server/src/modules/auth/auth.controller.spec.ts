@@ -7,12 +7,12 @@ import { AuthService } from './auth.service';
 
 import { AuthController } from './auth.controller';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
-import { RedisModule } from '../../core/redis/redis.module';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { TOKEN } from '../../common/constants';
 import { DatabaseService } from '../../core/database/database.service';
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
@@ -85,7 +85,7 @@ describe('AuthController', () => {
       controllers: [AuthController],
       imports: [
         AppConfigModule,
-        RedisModule,
+        CacheRedisModule,
         DatabaseModule,
         JwtModule,
         QueueRedisModule,
@@ -94,7 +94,7 @@ describe('AuthController', () => {
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)

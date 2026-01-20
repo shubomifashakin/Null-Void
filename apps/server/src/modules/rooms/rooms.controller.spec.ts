@@ -12,12 +12,12 @@ import { RoomsGatewayService } from './rooms-gateway.service';
 
 import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 
-import { RedisModule } from '../../core/redis/redis.module';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
@@ -117,7 +117,7 @@ describe('RoomsController', () => {
       ],
       imports: [
         DatabaseModule,
-        RedisModule,
+        CacheRedisModule,
         QueueRedisModule,
         MailerModule,
         AppConfigModule,
@@ -131,7 +131,7 @@ describe('RoomsController', () => {
       .useValue(mockDatabaseService)
       .overrideProvider(MailerService)
       .useValue(mockMailerService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)

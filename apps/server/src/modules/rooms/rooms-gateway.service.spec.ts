@@ -12,8 +12,8 @@ import { RoomsController } from './rooms.controller';
 import { BinaryEncodingService } from './encoding.service';
 import { RoomsGatewayService } from './rooms-gateway.service';
 
-import { RedisModule } from '../../core/redis/redis.module';
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerModule } from '../../core/mailer/mailer.module';
 import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseModule } from '../../core/database/database.module';
@@ -146,7 +146,7 @@ describe('RoomsGatewayService', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomsController],
       imports: [
-        RedisModule,
+        CacheRedisModule,
         DatabaseModule,
         MailerModule,
         QueueRedisModule,
@@ -169,7 +169,7 @@ describe('RoomsGatewayService', () => {
       .useValue(mockMailerService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)

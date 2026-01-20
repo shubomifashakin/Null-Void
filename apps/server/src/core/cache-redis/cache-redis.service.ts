@@ -9,7 +9,7 @@ import { FnResult, makeError } from '../../../types/fnResult';
 import { AppConfigService } from '../app-config/app-config.service';
 
 @Injectable()
-export class RedisService
+export class CacheRedisService
   implements ThrottlerStorage, OnModuleInit, OnModuleDestroy
 {
   private client: RedisClientType;

@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 
 import { v4 as uuid } from 'uuid';
 
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
@@ -30,7 +30,7 @@ export class AuthService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly configService: AppConfigService,
-    private readonly redisService: RedisService,
+    private readonly redisService: CacheRedisService,
     private readonly jwtService: JwtService,
   ) {}
 

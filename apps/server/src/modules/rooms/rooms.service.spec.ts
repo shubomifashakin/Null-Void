@@ -10,9 +10,9 @@ import { RoomsController } from './rooms.controller';
 import { BinaryEncodingService } from './encoding.service';
 import { RoomsGatewayService } from './rooms-gateway.service';
 
-import { RedisModule } from '../../core/redis/redis.module';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseModule } from '../../core/database/database.module';
 import { DatabaseService } from '../../core/database/database.service';
@@ -107,7 +107,7 @@ describe('RoomsService', () => {
       ],
       controllers: [RoomsController],
       imports: [
-        RedisModule,
+        CacheRedisModule,
         QueueRedisModule,
         DatabaseModule,
         MailerModule,
@@ -120,7 +120,7 @@ describe('RoomsService', () => {
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)

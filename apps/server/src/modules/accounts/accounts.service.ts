@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { UpdateAccountDto } from './dtos/update-account.dto';
 
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { DatabaseService } from '../../core/database/database.service';
 
 import { MESSAGES } from '../../common/constants';
@@ -21,7 +21,7 @@ export class AccountsService {
   logger = new Logger(AccountsService.name);
 
   constructor(
-    private readonly redisService: RedisService,
+    private readonly redisService: CacheRedisService,
     private readonly databaseService: DatabaseService,
   ) {}
 

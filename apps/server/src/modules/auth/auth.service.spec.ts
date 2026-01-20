@@ -2,12 +2,12 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 
-import { RedisModule } from '../../core/redis/redis.module';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { DatabaseService } from '../../core/database/database.service';
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
@@ -65,7 +65,7 @@ describe('AuthService', () => {
       providers: [AuthService],
       imports: [
         AppConfigModule,
-        RedisModule,
+        CacheRedisModule,
         DatabaseModule,
         JwtModule,
         QueueRedisModule,
@@ -73,7 +73,7 @@ describe('AuthService', () => {
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)

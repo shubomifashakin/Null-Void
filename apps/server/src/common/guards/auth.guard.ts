@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 
 import { TOKEN } from '../constants';
 import { makeBlacklistedKey } from '../utils';
@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
+    private readonly redisService: CacheRedisService,
   ) {}
 
   async canActivate(ctx: ExecutionContext) {

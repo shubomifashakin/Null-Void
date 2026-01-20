@@ -12,7 +12,7 @@ import { InviteUserDto } from './dtos/invite-user.dto';
 
 import { DAYS_7_MS, MESSAGES } from '../../common/constants';
 
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
@@ -22,7 +22,7 @@ export class RoomsService {
   logger = new Logger(RoomsService.name);
 
   constructor(
-    private readonly redisService: RedisService,
+    private readonly redisService: CacheRedisService,
     private readonly mailerService: MailerService,
     private readonly databaseService: DatabaseService,
     private readonly appConfigService: AppConfigService,

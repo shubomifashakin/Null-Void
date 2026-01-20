@@ -7,11 +7,11 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { AccountsService } from './accounts.service';
 
 import { makeAccountKey } from '../../common/utils';
-import { RedisModule } from '../../core/redis/redis.module';
+import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { DatabaseService } from '../../core/database/database.service';
-import { RedisService } from '../../core/redis/redis.service';
+import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
@@ -55,11 +55,16 @@ describe('AccountsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AccountsService],
-      imports: [DatabaseModule, RedisModule, AppConfigModule, QueueRedisModule],
+      imports: [
+        DatabaseModule,
+        CacheRedisModule,
+        AppConfigModule,
+        QueueRedisModule,
+      ],
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
-      .overrideProvider(RedisService)
+      .overrideProvider(CacheRedisService)
       .useValue(mockRedisService)
       .overrideProvider(QueueRedisService)
       .useValue(mockQueueRedisService)
