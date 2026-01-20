@@ -4,13 +4,13 @@ import { type INestApplicationContext } from '@nestjs/common';
 import { ServerOptions, Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 
-import { RedisService } from '../redis/redis.service';
+import { QueueRedisService } from '../queue-redis/queue-redis.service';
 
 export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
 
   constructor(
-    private readonly redisService: RedisService,
+    private readonly redisService: QueueRedisService,
     appOrHttpServer: INestApplicationContext,
   ) {
     super(appOrHttpServer);

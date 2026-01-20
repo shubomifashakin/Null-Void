@@ -41,9 +41,9 @@ import { Roles } from '../../../generated/prisma/enums';
 
 import { DAYS_1 } from '../../common/constants';
 
-import { RedisService } from '../../core/redis/redis.service';
-import { DatabaseService } from '../../core/database/database.service';
 import { DrawEvent } from '../../core/protos/draw_event';
+import { DatabaseService } from '../../core/database/database.service';
+import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
 interface UserData {
   userId: string;
@@ -59,7 +59,7 @@ export class RoomsGatewayService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
+    private readonly queueRedisService: QueueRedisService,
     private readonly databaseService: DatabaseService,
     private readonly binaryEncodingService: BinaryEncodingService,
     @InjectQueue('rooms') private readonly roomsQueue: Queue,
@@ -78,7 +78,7 @@ export class RoomsGatewayService {
       }
 
       const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
-      const appendedToDrawEventList = await this.redisService.hSetInCache(
+      const appendedToDrawEventList = await this.queueRedisService.hSetInCache(
         roomDrawEventsCacheKey,
         data.id,
         data,
@@ -104,9 +104,8 @@ export class RoomsGatewayService {
       });
 
       //get the current length of pending draw events
-      const totalNumberOfDrawEvents = await this.redisService.hLenFromCache(
-        roomDrawEventsCacheKey,
-      );
+      const totalNumberOfDrawEvents =
+        await this.queueRedisService.hLenFromCache(roomDrawEventsCacheKey);
 
       if (!totalNumberOfDrawEvents.success) {
         return this.logger.error({
@@ -119,7 +118,7 @@ export class RoomsGatewayService {
       if (totalNumberOfDrawEvents.data < MAX_NUMBER_OF_DRAW_EVENTS) return;
 
       //acquire lock on draw events for the room
-      const acquiredLock = await this.redisService.setInCache(
+      const acquiredLock = await this.queueRedisService.setInCache(
         makeLockKey(roomDrawEventsCacheKey),
         'locked',
         20,
@@ -141,7 +140,7 @@ export class RoomsGatewayService {
 
       //get all pending draw events
       const allPendingDrawEvents =
-        await this.redisService.hGetAllFromCache<DrawEvent>(
+        await this.queueRedisService.hGetAllFromCache<DrawEvent>(
           roomDrawEventsCacheKey,
         );
 
@@ -191,7 +190,7 @@ export class RoomsGatewayService {
       });
 
       const deletedPendingEventsFromCache =
-        await this.redisService.deleteFromCache(roomDrawEventsCacheKey);
+        await this.queueRedisService.deleteFromCache(roomDrawEventsCacheKey);
 
       if (!deletedPendingEventsFromCache.success) {
         this.logger.error({
@@ -200,7 +199,7 @@ export class RoomsGatewayService {
         });
       }
 
-      const unlocked = await this.redisService.deleteFromCache(
+      const unlocked = await this.queueRedisService.deleteFromCache(
         makeLockKey(roomDrawEventsCacheKey),
       );
 
@@ -384,7 +383,7 @@ export class RoomsGatewayService {
 
       const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
       const allPendingDrawEvents =
-        await this.redisService.hGetAllFromCache<DrawEvent>(
+        await this.queueRedisService.hGetAllFromCache<DrawEvent>(
           roomDrawEventsCacheKey,
         );
 
@@ -470,7 +469,7 @@ export class RoomsGatewayService {
         },
       });
 
-      const cacheInvalidated = await this.redisService.deleteFromCache(
+      const cacheInvalidated = await this.queueRedisService.deleteFromCache(
         makeRoomCacheKey(roomId),
       );
 
@@ -810,7 +809,7 @@ export class RoomsGatewayService {
     }
 
     const snapshotKey = makeRoomSnapshotCacheKey(roomId);
-    const done = await this.redisService.setInCacheNoStringify(
+    const done = await this.queueRedisService.setInCacheNoStringify(
       snapshotKey,
       encoded.data,
       DAYS_1,
@@ -828,7 +827,7 @@ export class RoomsGatewayService {
   ): Promise<FnResult<DrawEvent[]>> {
     try {
       const { success, error, data } =
-        await this.redisService.getFromCacheNoParse<Buffer>(
+        await this.queueRedisService.getFromCacheNoParse<Buffer>(
           makeRoomSnapshotCacheKey(roomId),
         );
 
@@ -943,7 +942,7 @@ export class RoomsGatewayService {
     const roomKey = makeRoomsUsersCacheKey(roomId);
     const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
 
-    const result = await this.redisService.hGetFromCache<UserData>(
+    const result = await this.queueRedisService.hGetFromCache<UserData>(
       roomKey,
       roomUserIdKey,
     );
@@ -958,7 +957,7 @@ export class RoomsGatewayService {
     const roomKey = makeRoomsUsersCacheKey(roomId);
     const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userInfo.userId);
 
-    const result = await this.redisService.hSetInCache(
+    const result = await this.queueRedisService.hSetInCache(
       roomKey,
       roomUserIdKey,
       userInfo,
@@ -975,7 +974,7 @@ export class RoomsGatewayService {
     const roomKey = makeRoomsUsersCacheKey(roomId);
     const roomUserIdKey = makeRoomUsersIdCacheKey(roomId, userId);
 
-    const result = await this.redisService.hDeleteFromCache(
+    const result = await this.queueRedisService.hDeleteFromCache(
       roomKey,
       roomUserIdKey,
     );
@@ -988,7 +987,8 @@ export class RoomsGatewayService {
   ): Promise<FnResult<UserData[]>> {
     const roomKey = makeRoomsUsersCacheKey(roomId);
 
-    const users = await this.redisService.hGetAllFromCache<UserData>(roomKey);
+    const users =
+      await this.queueRedisService.hGetAllFromCache<UserData>(roomKey);
 
     if (!users.success) {
       return { data: null, error: users.error, success: false };

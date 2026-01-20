@@ -8,7 +8,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
 
-import { RedisService } from './core/redis/redis.service';
+import { QueueRedisService } from './core/queue-redis/queue-redis.service';
 import { RedisIoAdapter } from './core/redis-io-adapter/redis-io-adapter';
 
 import { PrismaKnownErrorFilter } from './common/filters/prisma-known-error.filter';
@@ -23,7 +23,7 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
-  const redisIoAdapter = new RedisIoAdapter(app.get(RedisService), app);
+  const redisIoAdapter = new RedisIoAdapter(app.get(QueueRedisService), app);
   await redisIoAdapter.connectToRedis();
 
   app.useWebSocketAdapter(redisIoAdapter);
