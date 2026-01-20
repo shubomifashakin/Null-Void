@@ -19,7 +19,7 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  REDIS_CACHE_URL: string;
+  QUEUE_REDIS_URL: string;
 
   @IsUrl()
   BASE_URL: string;
@@ -69,7 +69,7 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  REDIS_QUEUE_URL: string;
+  CACHE_REDIS_URL: string;
 }
 
 export function validateConfig(config: Record<string, string>) {

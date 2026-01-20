@@ -121,9 +121,9 @@ export class AppConfigService {
     }
   }
 
-  get REDIS_CACHE_URL(): FnResult<string> {
+  get CACHE_REDIS_URL(): FnResult<string> {
     try {
-      const baseUrl = this.config.getOrThrow<string>('REDIS_CACHE_URL');
+      const baseUrl = this.config.getOrThrow<string>('CACHE_REDIS_URL');
 
       return { success: true, data: baseUrl.trim(), error: null };
     } catch (error) {
@@ -135,9 +135,9 @@ export class AppConfigService {
     }
   }
 
-  get REDIS_QUEUE_URL(): FnResult<string> {
+  get QUEUE_REDIS_URL(): FnResult<string> {
     try {
-      const queueUrl = this.config.getOrThrow<string>('REDIS_QUEUE_URL');
+      const queueUrl = this.config.getOrThrow<string>('QUEUE_REDIS_URL');
 
       return { success: true, data: queueUrl.trim(), error: null };
     } catch (error) {

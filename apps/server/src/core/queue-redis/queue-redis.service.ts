@@ -15,7 +15,7 @@ export class QueueRedisService
   private client: RedisClientType;
 
   constructor(configService: AppConfigService) {
-    const redisUrl = configService.REDIS_QUEUE_URL;
+    const redisUrl = configService.QUEUE_REDIS_URL;
     const serviceName = configService.SERVICE_NAME;
 
     if (!redisUrl.success) {

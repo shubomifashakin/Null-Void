@@ -2,7 +2,7 @@ import { Request } from 'express';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 
 import { MailerModule } from './core/mailer/mailer.module';
@@ -17,6 +17,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 
 import { validateConfig } from './common/utils';
 import { DEFAULT_JWT_ALG } from './common/constants';
+import { AppConfigService } from './core/app-config/app-config.service';
 
 @Module({
   imports: [
@@ -119,14 +120,14 @@ import { DEFAULT_JWT_ALG } from './common/constants';
       secret: process.env.JWT_SECRET!,
     }),
     BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (configService: AppConfigService) => {
         return {
           connection: {
             connectionName: 'bull',
             maxRetriesPerRequest: 2,
-            url: configService.getOrThrow('REDIS_QUEUE_URL'),
+            url: configService.QUEUE_REDIS_URL.data!,
           },
           defaultJobOptions: {
             attempts: 4,

@@ -15,7 +15,7 @@ export class CacheRedisService
   private client: RedisClientType;
 
   constructor(configService: AppConfigService) {
-    const redisUrl = configService.REDIS_CACHE_URL;
+    const redisUrl = configService.CACHE_REDIS_URL;
     const serviceName = configService.SERVICE_NAME;
 
     if (!redisUrl.success) {
