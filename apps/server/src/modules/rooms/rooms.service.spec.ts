@@ -20,6 +20,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
+import { BullModule } from '@nestjs/bullmq';
 
 const mockDatabaseService = {
   user: {
@@ -103,6 +104,9 @@ describe('RoomsService', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        BullModule.registerQueue({
+          name: 'rooms',
+        }),
       ],
     })
       .overrideProvider(DatabaseService)
