@@ -73,7 +73,7 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -449,7 +449,7 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -533,7 +533,7 @@ export class RoomsGatewayService {
     const clientInfo = client.data as UserData;
 
     try {
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -624,7 +624,7 @@ export class RoomsGatewayService {
 
       const clientInfo = client.data as UserData;
 
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -674,7 +674,7 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -763,7 +763,7 @@ export class RoomsGatewayService {
       const clientInfo = client.data as UserData;
       const roomId = client.handshake.query.roomId as string;
 
-      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+      if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
       }
 
@@ -779,7 +779,7 @@ export class RoomsGatewayService {
     }
   }
 
-  private validateConnectionData(
+  private validateSocketState(
     client: Socket,
     roomId?: string,
     userId?: string,
