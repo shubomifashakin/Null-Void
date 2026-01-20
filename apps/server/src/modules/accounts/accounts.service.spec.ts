@@ -13,6 +13,8 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { DatabaseService } from '../../core/database/database.service';
 import { RedisService } from '../../core/redis/redis.service';
 import { AppConfigService } from '../../core/app-config/app-config.service';
+import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
 const mockDatabaseService = {
   user: {
@@ -24,6 +26,12 @@ const mockDatabaseService = {
 };
 
 const mockRedisService = {
+  setInCache: jest.fn(),
+  getFromCache: jest.fn(),
+  deleteFromCache: jest.fn(),
+};
+
+const mockQueueRedisService = {
   setInCache: jest.fn(),
   getFromCache: jest.fn(),
   deleteFromCache: jest.fn(),
@@ -47,12 +55,14 @@ describe('AccountsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AccountsService],
-      imports: [DatabaseModule, RedisModule, AppConfigModule],
+      imports: [DatabaseModule, RedisModule, AppConfigModule, QueueRedisModule],
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
       .overrideProvider(RedisService)
       .useValue(mockRedisService)
+      .overrideProvider(QueueRedisService)
+      .useValue(mockQueueRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)
       .overrideProvider(JwtService)

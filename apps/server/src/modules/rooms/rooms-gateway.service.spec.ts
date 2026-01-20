@@ -20,6 +20,8 @@ import { DatabaseModule } from '../../core/database/database.module';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
+import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
+import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 
 import { DAYS_1 } from '../../common/constants';
 
@@ -65,6 +67,18 @@ const mockMailerService = {
 };
 
 const mockRedisService = {
+  setInCache: jest.fn(),
+  getFromCache: jest.fn(),
+  deleteFromCache: jest.fn(),
+  hSetInCache: jest.fn(),
+  hDeleteFromCache: jest.fn(),
+  hGetAllFromCache: jest.fn(),
+  hLenFromCache: jest.fn(),
+  getFromCacheNoParse: jest.fn(),
+  setInCacheNoStringify: jest.fn(),
+};
+
+const mockQueueRedisService = {
   setInCache: jest.fn(),
   getFromCache: jest.fn(),
   deleteFromCache: jest.fn(),
@@ -135,6 +149,7 @@ describe('RoomsGatewayService', () => {
         RedisModule,
         DatabaseModule,
         MailerModule,
+        QueueRedisModule,
         AppConfigModule,
         JwtModule,
         BullModule.registerQueue({
@@ -152,6 +167,8 @@ describe('RoomsGatewayService', () => {
       .useValue(mockDatabaseService)
       .overrideProvider(MailerService)
       .useValue(mockMailerService)
+      .overrideProvider(QueueRedisService)
+      .useValue(mockQueueRedisService)
       .overrideProvider(RedisService)
       .useValue(mockRedisService)
       .overrideProvider(AppConfigService)
@@ -188,12 +205,12 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
       });
-      mockRedisService.hLenFromCache.mockResolvedValue({
+      mockQueueRedisService.hLenFromCache.mockResolvedValue({
         success: true,
         data: 1,
         error: null,
@@ -219,7 +236,7 @@ describe('RoomsGatewayService', () => {
       await service.handleDraw(mockSocket, drawEvent);
 
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
-      expect(mockRedisService.hSetInCache).toHaveBeenCalledWith(
+      expect(mockQueueRedisService.hSetInCache).toHaveBeenCalledWith(
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
@@ -229,8 +246,8 @@ describe('RoomsGatewayService', () => {
         ...drawEvent,
         userId,
       });
-      expect(mockRedisService.hLenFromCache).toHaveBeenCalled();
-      expect(mockRedisService.setInCache).not.toHaveBeenCalled();
+      expect(mockQueueRedisService.hLenFromCache).toHaveBeenCalled();
+      expect(mockQueueRedisService.setInCache).not.toHaveBeenCalled();
     });
 
     it('should effectively handle the draw event but not trigger a snapshot since lock was acquired', async () => {
@@ -245,17 +262,17 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
       });
-      mockRedisService.hLenFromCache.mockResolvedValue({
+      mockQueueRedisService.hLenFromCache.mockResolvedValue({
         success: true,
         data: 10,
         error: null,
       });
-      mockRedisService.setInCache.mockResolvedValue({
+      mockQueueRedisService.setInCache.mockResolvedValue({
         success: true,
         data: false,
         error: null,
@@ -281,7 +298,7 @@ describe('RoomsGatewayService', () => {
       await service.handleDraw(mockSocket, drawEvent);
 
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
-      expect(mockRedisService.hSetInCache).toHaveBeenCalledWith(
+      expect(mockQueueRedisService.hSetInCache).toHaveBeenCalledWith(
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
@@ -291,9 +308,9 @@ describe('RoomsGatewayService', () => {
         ...drawEvent,
         userId,
       });
-      expect(mockRedisService.hLenFromCache).toHaveBeenCalled();
-      expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);
-      expect(mockRedisService.hGetAllFromCache).not.toHaveBeenCalled();
+      expect(mockQueueRedisService.hLenFromCache).toHaveBeenCalled();
+      expect(mockQueueRedisService.setInCache).toHaveBeenCalledTimes(1);
+      expect(mockQueueRedisService.hGetAllFromCache).not.toHaveBeenCalled();
     });
 
     it('should effectively handle the draw event & trigger snapshot', async () => {
@@ -327,28 +344,28 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
       });
-      mockRedisService.hLenFromCache.mockResolvedValue({
+      mockQueueRedisService.hLenFromCache.mockResolvedValue({
         success: true,
         data: 10,
         error: null,
       });
-      mockRedisService.setInCache.mockResolvedValue({
+      mockQueueRedisService.setInCache.mockResolvedValue({
         success: true,
         data: true,
         error: null,
       });
 
-      mockRedisService.hGetAllFromCache.mockResolvedValue({
+      mockQueueRedisService.hGetAllFromCache.mockResolvedValue({
         success: true,
         data: { [drawEvent.id]: drawEvent },
         error: null,
       });
-      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+      mockQueueRedisService.getFromCacheNoParse.mockResolvedValue({
         success: true,
         data: 'decoded',
         error: null,
@@ -366,12 +383,12 @@ describe('RoomsGatewayService', () => {
         error: null,
       });
 
-      mockRedisService.setInCacheNoStringify.mockResolvedValue({
+      mockQueueRedisService.setInCacheNoStringify.mockResolvedValue({
         success: true,
         data: null,
         error: null,
       });
-      mockRedisService.deleteFromCache.mockResolvedValue({
+      mockQueueRedisService.deleteFromCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
@@ -380,7 +397,7 @@ describe('RoomsGatewayService', () => {
       await service.handleDraw(mockSocket, drawEvent);
 
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
-      expect(mockRedisService.hSetInCache).toHaveBeenCalledWith(
+      expect(mockQueueRedisService.hSetInCache).toHaveBeenCalledWith(
         roomDrawEvents,
         drawEvent.id,
         drawEvent,
@@ -390,11 +407,11 @@ describe('RoomsGatewayService', () => {
         ...drawEvent,
         userId,
       });
-      expect(mockRedisService.hLenFromCache).toHaveBeenCalled();
-      expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);
-      expect(mockRedisService.hGetAllFromCache).toHaveBeenCalled();
-      expect(mockRedisService.getFromCacheNoParse).toHaveBeenCalled();
-      expect(mockRedisService.deleteFromCache).toHaveBeenCalledTimes(2);
+      expect(mockQueueRedisService.hLenFromCache).toHaveBeenCalled();
+      expect(mockQueueRedisService.setInCache).toHaveBeenCalledTimes(1);
+      expect(mockQueueRedisService.hGetAllFromCache).toHaveBeenCalled();
+      expect(mockQueueRedisService.getFromCacheNoParse).toHaveBeenCalled();
+      expect(mockQueueRedisService.deleteFromCache).toHaveBeenCalledTimes(2);
       expect(mockBinaryService.decode).toHaveBeenCalled();
       expect(mockBinaryService.decode).toHaveBeenCalledWith('decoded');
       expect(mockBinaryService.encode).toHaveBeenCalled();
@@ -470,7 +487,7 @@ describe('RoomsGatewayService', () => {
         },
       });
 
-      mockRedisService.hGetAllFromCache
+      mockQueueRedisService.hGetAllFromCache
         .mockResolvedValueOnce({
           success: true,
           data: {},
@@ -487,13 +504,13 @@ describe('RoomsGatewayService', () => {
           error: null,
         });
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: true,
         error: null,
       });
 
-      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+      mockQueueRedisService.getFromCacheNoParse.mockResolvedValue({
         success: false,
         data: 'latest-snapshot',
         error: 'failed',
@@ -555,7 +572,7 @@ describe('RoomsGatewayService', () => {
         },
       });
 
-      mockRedisService.hGetAllFromCache
+      mockQueueRedisService.hGetAllFromCache
         .mockResolvedValueOnce({
           success: true,
           data: {},
@@ -572,13 +589,13 @@ describe('RoomsGatewayService', () => {
           error: null,
         });
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: true,
         error: null,
       });
 
-      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+      mockQueueRedisService.getFromCacheNoParse.mockResolvedValue({
         success: true,
         data: 'latest-snapshot',
         error: null,
@@ -642,7 +659,7 @@ describe('RoomsGatewayService', () => {
         },
       });
 
-      mockRedisService.hGetAllFromCache
+      mockQueueRedisService.hGetAllFromCache
         .mockResolvedValueOnce({
           success: true,
           data: {},
@@ -659,13 +676,13 @@ describe('RoomsGatewayService', () => {
           error: null,
         });
 
-      mockRedisService.hSetInCache.mockResolvedValue({
+      mockQueueRedisService.hSetInCache.mockResolvedValue({
         success: true,
         data: true,
         error: null,
       });
 
-      mockRedisService.getFromCacheNoParse.mockResolvedValue({
+      mockQueueRedisService.getFromCacheNoParse.mockResolvedValue({
         success: false,
         data: null,
         error: new Error('failed to get snapshots from cache'),
@@ -682,7 +699,7 @@ describe('RoomsGatewayService', () => {
         error: null,
       });
 
-      mockRedisService.setInCacheNoStringify.mockResolvedValue({
+      mockQueueRedisService.setInCacheNoStringify.mockResolvedValue({
         success: true,
         data: true,
         error: null,
@@ -974,7 +991,7 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
-      mockRedisService.hDeleteFromCache.mockResolvedValue({
+      mockQueueRedisService.hDeleteFromCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
@@ -1004,7 +1021,7 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
-      mockRedisService.hDeleteFromCache.mockResolvedValue({
+      mockQueueRedisService.hDeleteFromCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
@@ -1012,7 +1029,7 @@ describe('RoomsGatewayService', () => {
 
       await service.handleDisconnect(mockSocket);
 
-      expect(mockRedisService.hDeleteFromCache).not.toHaveBeenCalled();
+      expect(mockQueueRedisService.hDeleteFromCache).not.toHaveBeenCalled();
     });
   });
 
@@ -1036,7 +1053,7 @@ describe('RoomsGatewayService', () => {
       };
 
       mockDatabaseService.room.update.mockResolvedValue(updatedInfo);
-      mockRedisService.deleteFromCache.mockResolvedValue({
+      mockQueueRedisService.deleteFromCache.mockResolvedValue({
         success: true,
         data: null,
         error: null,
@@ -1050,7 +1067,7 @@ describe('RoomsGatewayService', () => {
       await service.handleUpdateRoomInfo(mockServer, mockSocket, dto);
 
       expect(mockDatabaseService.room.update).toHaveBeenCalled();
-      expect(mockRedisService.deleteFromCache).toHaveBeenCalled();
+      expect(mockQueueRedisService.deleteFromCache).toHaveBeenCalled();
       expect(mockServer.to).toHaveBeenCalledWith(roomId);
       expect(mockServer.emit).toHaveBeenCalledWith(
         WS_EVENTS.ROOM_INFO,

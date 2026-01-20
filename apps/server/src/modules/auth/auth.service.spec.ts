@@ -8,6 +8,8 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { DatabaseService } from '../../core/database/database.service';
 import { RedisService } from '../../core/redis/redis.service';
+import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
 import { makeOauthStateKey } from '../../common/utils';
 import { MINUTES_1 } from '../../common/constants';
@@ -34,6 +36,12 @@ const mockRedisService = {
   deleteFromCache: jest.fn(),
 };
 
+const mockQueueRedisService = {
+  setInCache: jest.fn(),
+  getFromCache: jest.fn(),
+  deleteFromCache: jest.fn(),
+};
+
 const mockConfigService = {
   BASE_URL: { success: true, data: 'test-base-url' },
   JWT_SECRET: { success: true, data: 'test-jwt-secret' },
@@ -55,12 +63,20 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService],
-      imports: [AppConfigModule, RedisModule, DatabaseModule, JwtModule],
+      imports: [
+        AppConfigModule,
+        RedisModule,
+        DatabaseModule,
+        JwtModule,
+        QueueRedisModule,
+      ],
     })
       .overrideProvider(DatabaseService)
       .useValue(mockDatabaseService)
       .overrideProvider(RedisService)
       .useValue(mockRedisService)
+      .overrideProvider(QueueRedisService)
+      .useValue(mockQueueRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)
       .overrideProvider(JwtService)

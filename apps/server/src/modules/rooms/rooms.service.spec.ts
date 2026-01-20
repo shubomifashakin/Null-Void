@@ -18,6 +18,8 @@ import { DatabaseModule } from '../../core/database/database.module';
 import { DatabaseService } from '../../core/database/database.service';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
+import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
 import { BullModule } from '@nestjs/bullmq';
@@ -69,6 +71,12 @@ const mockRedisService = {
   deleteFromCache: jest.fn(),
 };
 
+const mockQueueRedisService = {
+  setInCache: jest.fn(),
+  getFromCache: jest.fn(),
+  deleteFromCache: jest.fn(),
+};
+
 const mockConfigService = {
   BASE_URL: { success: true, data: 'test-base-url' },
   JWT_SECRET: { success: true, data: 'test-jwt-secret' },
@@ -100,6 +108,7 @@ describe('RoomsService', () => {
       controllers: [RoomsController],
       imports: [
         RedisModule,
+        QueueRedisModule,
         DatabaseModule,
         MailerModule,
         AppConfigModule,
@@ -113,6 +122,8 @@ describe('RoomsService', () => {
       .useValue(mockDatabaseService)
       .overrideProvider(RedisService)
       .useValue(mockRedisService)
+      .overrideProvider(QueueRedisService)
+      .useValue(mockQueueRedisService)
       .overrideProvider(AppConfigService)
       .useValue(mockConfigService)
       .overrideProvider(MailerService)
