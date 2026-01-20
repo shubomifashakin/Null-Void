@@ -19,7 +19,7 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  REDIS_URL: string;
+  REDIS_CACHE_URL: string;
 
   @IsUrl()
   BASE_URL: string;

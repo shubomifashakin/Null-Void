@@ -121,9 +121,9 @@ export class AppConfigService {
     }
   }
 
-  get REDIS_URL(): FnResult<string> {
+  get REDIS_CACHE_URL(): FnResult<string> {
     try {
-      const baseUrl = this.config.getOrThrow<string>('REDIS_URL');
+      const baseUrl = this.config.getOrThrow<string>('REDIS_CACHE_URL');
 
       return { success: true, data: baseUrl.trim(), error: null };
     } catch (error) {
