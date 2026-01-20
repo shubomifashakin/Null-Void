@@ -24,7 +24,11 @@ import { AppConfigService } from '../../core/app-config/app-config.service';
 import { DAYS_1 } from '../../common/constants';
 
 import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
-import { makeRoomDrawEventsCacheKey } from './utils/fns';
+import {
+  makeRoomDrawEventsCacheKey,
+  makeRoomSnapshotCacheKey,
+} from './utils/fns';
+import { BullModule, getQueueToken } from '@nestjs/bullmq';
 
 const mockDatabaseService = {
   roomMember: {
@@ -117,6 +121,10 @@ const mockJwtService = {
   verifyAsync: jest.fn(),
 };
 
+const mockBullService = {
+  add: jest.fn(),
+};
+
 describe('RoomsGatewayService', () => {
   let service: RoomsGatewayService;
 
@@ -129,6 +137,9 @@ describe('RoomsGatewayService', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        BullModule.registerQueue({
+          name: 'rooms',
+        }),
       ],
       providers: [
         RoomsGatewayService,
@@ -149,6 +160,8 @@ describe('RoomsGatewayService', () => {
       .useValue(mockBinaryService)
       .overrideProvider(JwtService)
       .useValue(mockJwtService)
+      .overrideProvider(getQueueToken('rooms'))
+      .useValue(mockBullService)
       .compile();
 
     module.useLogger(mockLogger);
@@ -388,6 +401,17 @@ describe('RoomsGatewayService', () => {
       expect(mockBinaryService.encode).toHaveBeenCalledWith(
         [drawEvent],
         expect.any(Number),
+      );
+      expect(mockBullService.add).toHaveBeenCalled();
+      expect(mockBullService.add).toHaveBeenCalledWith(
+        'process-snapshot',
+        {
+          roomId,
+          snapshotKey: makeRoomSnapshotCacheKey(roomId),
+        },
+        {
+          jobId: makeRoomSnapshotCacheKey(roomId),
+        },
       );
     });
   });
