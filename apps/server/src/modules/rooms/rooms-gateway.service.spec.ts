@@ -421,7 +421,7 @@ describe('RoomsGatewayService', () => {
       );
       expect(mockBullService.add).toHaveBeenCalled();
       expect(mockBullService.add).toHaveBeenCalledWith(
-        'process-snapshot',
+        'persist-snapshot',
         {
           roomId,
           snapshotKey: makeRoomSnapshotCacheKey(roomId),

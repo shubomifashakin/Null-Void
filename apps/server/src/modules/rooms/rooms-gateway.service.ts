@@ -211,7 +211,7 @@ export class RoomsGatewayService {
       }
 
       await this.roomsQueue.add(
-        'process-snapshot',
+        'persist-snapshot',
         {
           roomId,
           snapshotKey: snapshotCreated.data,
