@@ -66,6 +66,10 @@ class EnvConfig {
   @IsString()
   @IsNotEmpty()
   NODE_ENV: string;
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_QUEUE_URL: string;
 }
 
 export function validateConfig(config: Record<string, string>) {

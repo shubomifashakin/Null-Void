@@ -2,7 +2,8 @@ import { Request } from 'express';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 
 import { MailerModule } from './core/mailer/mailer.module';
 import { RedisModule } from './core/redis/redis.module';
@@ -115,6 +116,29 @@ import { DEFAULT_JWT_ALG } from './common/constants';
         algorithm: DEFAULT_JWT_ALG,
       },
       secret: process.env.JWT_SECRET!,
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          connection: {
+            connectionName: 'bull',
+            maxRetriesPerRequest: 2,
+            url: configService.getOrThrow('REDIS_QUEUE_URL'),
+          },
+          defaultJobOptions: {
+            attempts: 4,
+            delay: 1000,
+            removeOnComplete: true,
+            backoff: {
+              jitter: 1,
+              delay: 1000,
+              type: 'exponential',
+            },
+          },
+        };
+      },
     }),
     RoomsModule,
     DatabaseModule,

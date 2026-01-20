@@ -24,3 +24,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  queue_redis:
+    image: redis:latest
+    container_name: null_void_queue_redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

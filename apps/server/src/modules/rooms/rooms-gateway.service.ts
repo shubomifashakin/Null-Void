@@ -1,8 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
 
 import { isUUID } from 'class-validator';
+
+import { Queue } from 'bullmq';
 
 import { RemoteSocket, Server, Socket } from 'socket.io';
 
@@ -59,6 +62,7 @@ export class RoomsGatewayService {
     private readonly redisService: RedisService,
     private readonly databaseService: DatabaseService,
     private readonly binaryEncodingService: BinaryEncodingService,
+    @InjectQueue('rooms') private readonly roomsQueue: Queue,
   ) {}
 
   async handleDraw(
@@ -215,7 +219,14 @@ export class RoomsGatewayService {
         });
       }
 
-      //FIXME: send all the snapshot keys available to the queue so it can be picked up by the worker and persisted in database (should be idempotent)
+      await this.roomsQueue.add(
+        'process-snapshot',
+        {
+          roomId,
+          snapshotKey: snapshotCreated.data,
+        },
+        { jobId: snapshotCreated.data },
+      );
     } catch (error: unknown) {
       this.logger.error({
         message: 'Failed to handle draw event',
@@ -827,13 +838,18 @@ export class RoomsGatewayService {
       return encoded;
     }
 
+    const snapshotKey = makeRoomSnapshotCacheKey(roomId);
     const done = await this.redisService.setInCacheNoStringify(
-      makeRoomSnapshotCacheKey(roomId),
+      snapshotKey,
       encoded.data,
       DAYS_1,
     );
 
-    return done;
+    if (!done.success) {
+      return done;
+    }
+
+    return { success: true, error: null, data: snapshotKey };
   }
 
   private async getLatestSnapshot(

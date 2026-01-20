@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 
 import { RoomsService } from './rooms.service';
 import { RoomsGateway } from './rooms.gateway';
@@ -13,7 +14,15 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 
 @Module({
   controllers: [RoomsController],
-  imports: [RedisModule, DatabaseModule, MailerModule, AppConfigModule],
+  imports: [
+    RedisModule,
+    DatabaseModule,
+    MailerModule,
+    AppConfigModule,
+    BullModule.registerQueue({
+      name: 'rooms',
+    }),
+  ],
   providers: [
     RoomsGateway,
     RoomsService,
