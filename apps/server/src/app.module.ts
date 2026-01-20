@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bullmq';
 
 import { MailerModule } from './core/mailer/mailer.module';
 import { RedisModule } from './core/redis/redis.module';
+import { QueueRedisModule } from './core/queue-redis/queue-redis.module';
 import { DatabaseModule } from './core/database/database.module';
 import { AppConfigModule } from './core/app-config/app-config.module';
 
@@ -146,6 +147,7 @@ import { DEFAULT_JWT_ALG } from './common/constants';
     AccountsModule,
     AuthModule,
     RedisModule,
+    QueueRedisModule,
   ],
   providers: [],
   controllers: [],

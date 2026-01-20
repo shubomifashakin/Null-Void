@@ -135,6 +135,20 @@ export class AppConfigService {
     }
   }
 
+  get REDIS_QUEUE_URL(): FnResult<string> {
+    try {
+      const queueUrl = this.config.getOrThrow<string>('REDIS_QUEUE_URL');
+
+      return { success: true, data: queueUrl.trim(), error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
   get FRONTEND_URL(): FnResult<string> {
     try {
       const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
