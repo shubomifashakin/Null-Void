@@ -575,7 +575,9 @@ export class RoomsGatewayService {
           message: `user:${userId} was in room:${roomId} but was not a room member`,
         });
 
-        return socketOfUserToBeRemoved.data.disconnect(true);
+        socketOfUserToBeRemoved.data.disconnect(true);
+
+        return;
       }
 
       await this.databaseService.$transaction(async (tx) => {
