@@ -73,16 +73,8 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!roomId || !clientInfo?.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
@@ -457,16 +449,8 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!roomId || !clientInfo?.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       if (!dto.description && !dto.name) {
@@ -549,16 +533,8 @@ export class RoomsGatewayService {
     const clientInfo = client.data as UserData;
 
     try {
-      if (!roomId || !clientInfo?.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       const socketOfUserToBeRemoved = await this.getUserSocket(
@@ -648,16 +624,8 @@ export class RoomsGatewayService {
 
       const clientInfo = client.data as UserData;
 
-      if (!roomId || !clientInfo.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       await this.databaseService.roomMember
@@ -706,16 +674,8 @@ export class RoomsGatewayService {
       const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
-      if (!roomId || !clientInfo?.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       await this.databaseService.$transaction(async (tx) => {
@@ -803,16 +763,8 @@ export class RoomsGatewayService {
       const clientInfo = client.data as UserData;
       const roomId = client.handshake.query.roomId as string;
 
-      if (!roomId || !clientInfo?.userId) {
-        const errorMessage = !roomId
-          ? 'Room ID not found in handshake query'
-          : 'User ID not found in client data';
-
-        this.logger.warn({
-          message: errorMessage,
-        });
-
-        return client.disconnect(true);
+      if (!this.validateConnectionData(client, roomId, clientInfo?.userId)) {
+        return;
       }
 
       client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
@@ -825,6 +777,25 @@ export class RoomsGatewayService {
         error,
       });
     }
+  }
+
+  private validateConnectionData(
+    client: Socket,
+    roomId?: string,
+    userId?: string,
+  ): boolean {
+    if (!roomId || !userId) {
+      const errorMessage = !roomId
+        ? 'Room ID not found in handshake query'
+        : 'User ID not found in client data';
+
+      this.logger.warn({ message: errorMessage });
+
+      client.disconnect(true);
+
+      return false;
+    }
+    return true;
   }
 
   private async takeSnapshot(
