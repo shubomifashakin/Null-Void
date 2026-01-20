@@ -30,6 +30,7 @@ const mockDatabaseService = {
   roomMember: {
     delete: jest.fn(),
     findUnique: jest.fn(),
+    update: jest.fn(),
   },
   snapshots: {
     findFirst: jest.fn(),
@@ -1089,6 +1090,46 @@ describe('RoomsGatewayService', () => {
         message: 'Failed to update room info',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
+    });
+  });
+
+  describe('promote events', () => {
+    it('should promote a user', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+      const userToPromote = 'test-member-id';
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      mockDatabaseService.roomMember.findUnique.mockResolvedValue(null);
+
+      mockDatabaseService.$transaction.mockResolvedValue(null);
+
+      await service.handlePromote(mockServer, mockSocket, {
+        userId: userToPromote,
+        role: 'ADMIN',
+      });
+
+      expect(mockDatabaseService.$transaction).toHaveBeenCalled();
+      expect(mockServer.to).toHaveBeenCalledWith(roomId);
+      expect(mockServer.emit).toHaveBeenCalledWith(WS_EVENTS.USER_PROMOTED, {
+        userId: userToPromote,
+        role: 'ADMIN',
+      });
+      expect(mockServer.to).toHaveBeenCalledWith(roomId);
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        WS_EVENTS.ROOM_NOTIFICATION,
+        {
+          message: `Test User promoted ${userToPromote} to ADMIN`,
+        },
+      );
     });
   });
 });
