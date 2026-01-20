@@ -50,6 +50,9 @@ const mockDatabaseService = {
     findMany: jest.fn(),
     create: jest.fn(),
   },
+  room: {
+    update: jest.fn(),
+  },
 };
 
 const mockMailerService = {
@@ -206,7 +209,7 @@ describe('RoomsGatewayService', () => {
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
-        DAYS_1
+        DAYS_1,
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,
@@ -268,7 +271,7 @@ describe('RoomsGatewayService', () => {
         makeRoomDrawEventsCacheKey(roomId),
         drawEvent.id,
         drawEvent,
-        DAYS_1
+        DAYS_1,
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,
@@ -367,7 +370,7 @@ describe('RoomsGatewayService', () => {
         roomDrawEvents,
         drawEvent.id,
         drawEvent,
-        DAYS_1
+        DAYS_1,
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_DRAW, {
         ...drawEvent,
@@ -595,7 +598,7 @@ describe('RoomsGatewayService', () => {
       });
     });
 
-    it('should add the user to the room, get latest snapshot from db since redis failed and emit all required events', async () => {
+    it('should fail to successfully connect since redis failed when getting latest snapshot', async () => {
       const roomId = '2537d7ca-e4cb-4844-8e5e-8442c24ca97b';
       const userId = 'test-user-id';
       mockSocket.handshake.query.roomId = roomId;
@@ -640,7 +643,7 @@ describe('RoomsGatewayService', () => {
       mockRedisService.getFromCacheNoParse.mockResolvedValue({
         success: false,
         data: null,
-        error: null,
+        error: new Error('failed to get snapshots from cache'),
       });
 
       mockDatabaseService.snapshots.findFirst.mockResolvedValue({
@@ -685,7 +688,8 @@ describe('RoomsGatewayService', () => {
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
         users: [],
       });
-      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.CANVAS_STATE, {
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+      expect(mockSocket.emit).not.toHaveBeenCalledWith(WS_EVENTS.CANVAS_STATE, {
         state: [
           { id: 'snapshotted-event', timestamp: '100' },
           { id: 'pending-event', timestamp: '200' },
@@ -724,7 +728,7 @@ describe('RoomsGatewayService', () => {
       });
     });
 
-    it('should not emit mouse move events and disconnect user', () => {
+    it('should not emit mouse move events and disconnect user because userId is not available in socket data', () => {
       const roomId = null;
       const userId = null;
 
@@ -984,6 +988,107 @@ describe('RoomsGatewayService', () => {
       await service.handleDisconnect(mockSocket);
 
       expect(mockRedisService.hDeleteFromCache).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('update room events', () => {
+    it('should update the room info & broadcast update', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      const updatedInfo = {
+        name: 'Updated name',
+        description: 'Updated description',
+      };
+
+      mockDatabaseService.room.update.mockResolvedValue(updatedInfo);
+      mockRedisService.deleteFromCache.mockResolvedValue({
+        success: true,
+        data: null,
+        error: null,
+      });
+
+      const dto = {
+        name: 'updated name',
+        description: 'updated description',
+      };
+
+      await service.handleUpdateRoomInfo(mockServer, mockSocket, dto);
+
+      expect(mockDatabaseService.room.update).toHaveBeenCalled();
+      expect(mockRedisService.deleteFromCache).toHaveBeenCalled();
+      expect(mockServer.to).toHaveBeenCalledWith(roomId);
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        WS_EVENTS.ROOM_INFO,
+        updatedInfo,
+      );
+    });
+
+    it('should not update the room info since dto was empty', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      mockDatabaseService.room.update.mockResolvedValue(null);
+
+      const dto = {};
+
+      await service.handleUpdateRoomInfo(mockServer, mockSocket, dto);
+
+      expect(mockDatabaseService.room.update).not.toHaveBeenCalled();
+
+      expect(mockServer.to).not.toHaveBeenCalled();
+      expect(mockServer.emit).not.toHaveBeenCalled();
+    });
+
+    it('should not update the room since database failed', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      mockDatabaseService.room.update.mockRejectedValue(
+        new Error('Test error'),
+      );
+      const dto = {
+        name: 'updated name',
+        description: 'updated description',
+      };
+
+      await service.handleUpdateRoomInfo(mockServer, mockSocket, dto);
+
+      expect(mockDatabaseService.room.update).toHaveBeenCalled();
+      expect(mockServer.to).not.toHaveBeenCalled();
+      expect(mockServer.emit).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.ROOM_ERROR, {
+        message: 'Failed to update room info',
+        code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     });
   });
 });

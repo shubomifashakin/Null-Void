@@ -26,6 +26,7 @@ import {
 } from './utils/constants';
 import {
   makeLockKey,
+  makeRoomCacheKey,
   makeRoomDrawEventsCacheKey,
   makeRoomSnapshotCacheKey,
   makeRoomsUsersCacheKey,
@@ -457,14 +458,37 @@ export class RoomsGatewayService {
         return client.disconnect(true);
       }
 
-      if (!dto.description && !dto.name) return;
+      if (!dto.description && !dto.name) {
+        this.logger.debug({
+          message: 'Update room info payload was empty',
+        });
 
-      await this.databaseService.room.update({
+        return;
+      }
+
+      const updatedRoomInfo = await this.databaseService.room.update({
         where: { id: roomId },
         data: dto,
+        select: {
+          name: true,
+          description: true,
+        },
       });
 
-      server.to(roomId).emit(WS_EVENTS.ROOM_INFO, dto);
+      const cacheInvalidated = await this.redisService.deleteFromCache(
+        makeRoomCacheKey(roomId),
+      );
+
+      if (!cacheInvalidated.success) {
+        this.logger.error({
+          message: `Failed to invalidate cache for room ${roomId}`,
+          error: cacheInvalidated.error,
+        });
+      }
+
+      server.to(roomId).emit(WS_EVENTS.ROOM_INFO, {
+        ...updatedRoomInfo,
+      });
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error updating room info',
@@ -816,7 +840,7 @@ export class RoomsGatewayService {
           makeRoomSnapshotCacheKey(roomId),
         );
 
-      if (error) {
+      if (!success) {
         this.logger.error({
           message: 'Failed to get canvas snapshot from redis',
           error,
