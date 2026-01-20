@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { isUUID } from 'class-validator';
 
-import { Server, Socket } from 'socket.io';
+import { RemoteSocket, Server, Socket } from 'socket.io';
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
@@ -550,27 +550,32 @@ export class RoomsGatewayService {
         return client.disconnect(true);
       }
 
+      const socketOfUserToBeRemoved = await this.getUserSocket(
+        server,
+        userId,
+        roomId,
+      );
+
+      if (!socketOfUserToBeRemoved.success) {
+        this.logger.error({
+          message: `Failed to get socket for user ${userId} in room ${roomId}`,
+          error: socketOfUserToBeRemoved.error,
+        });
+
+        throw socketOfUserToBeRemoved.error;
+      }
+
       const userToRemoveExistsInRoom =
         await this.databaseService.roomMember.findUnique({
           where: { room_id_user_id: { room_id: roomId, user_id: userId } },
         });
 
-      if (!userToRemoveExistsInRoom) {
-        const socketOfUserToBeRemoved = await this.getUserSocket(
-          server,
-          userId,
-          roomId,
-        );
+      if (!userToRemoveExistsInRoom && socketOfUserToBeRemoved.data) {
+        this.logger.warn({
+          message: `user:${userId} was in room:${roomId} but was not a room member`,
+        });
 
-        if (socketOfUserToBeRemoved) {
-          this.logger.warn({
-            message: `user:${userId} was in room:${roomId} but was not a room member`,
-          });
-
-          socketOfUserToBeRemoved.disconnect(true);
-        }
-
-        return;
+        return socketOfUserToBeRemoved.data.disconnect(true);
       }
 
       await this.databaseService.$transaction(async (tx) => {
@@ -598,18 +603,12 @@ export class RoomsGatewayService {
         }
       });
 
-      const socketOfUserToBeRemoved = await this.getUserSocket(
-        server,
-        userId,
-        roomId,
-      );
+      if (!socketOfUserToBeRemoved.data) return;
 
-      if (!socketOfUserToBeRemoved || !socketOfUserToBeRemoved.data) return;
-
-      const usersInfo = socketOfUserToBeRemoved.data as UserData;
+      const usersInfo = socketOfUserToBeRemoved.data.data;
 
       //disconnect that user, triggers disconnect block
-      socketOfUserToBeRemoved.disconnect(true);
+      socketOfUserToBeRemoved.data.disconnect(true);
 
       //inform everyone that the user was removed
       if (usersInfo?.name) {
@@ -707,6 +706,16 @@ export class RoomsGatewayService {
       }
 
       await this.databaseService.$transaction(async (tx) => {
+        const usersSocket = await this.getUserSocket(
+          server,
+          dto.userId,
+          roomId,
+        );
+
+        if (!usersSocket.success) {
+          throw usersSocket.error;
+        }
+
         await tx.roomMember.update({
           where: {
             room_id_user_id: {
@@ -739,15 +748,9 @@ export class RoomsGatewayService {
           throw updated.error;
         }
 
-        const usersSocket = await this.getUserSocket(
-          server,
-          dto.userId,
-          roomId,
-        );
+        if (!usersSocket.data) return;
 
-        if (!usersSocket) return;
-
-        (usersSocket.data as UserData).role = dto.role;
+        usersSocket.data.data.role = dto.role;
       });
 
       server.to(roomId).emit(WS_EVENTS.USER_PROMOTED, {
@@ -1007,14 +1010,26 @@ export class RoomsGatewayService {
     return { data: usersInRoom, error: null, success: true };
   }
 
-  private async getUserSocket(server: Server, userId: string, roomId: string) {
-    const sockets = await server.in(roomId).fetchSockets();
+  private async getUserSocket(
+    server: Server,
+    userId: string,
+    roomId: string,
+  ): Promise<FnResult<RemoteSocket<any, UserData> | null>> {
+    try {
+      const sockets = await server.in(roomId).fetchSockets();
 
-    const usersSocket = sockets.find((socket) => {
-      return (socket.data as UserData)?.userId === userId;
-    });
+      const usersSocket = sockets.find((socket) => {
+        return (socket.data as UserData)?.userId === userId;
+      });
 
-    return usersSocket;
+      if (!usersSocket) {
+        return { success: true, data: null, error: null };
+      }
+
+      return { success: true, data: usersSocket, error: null };
+    } catch (error: unknown) {
+      return { success: false, data: null, error: makeError(error) };
+    }
   }
 
   private mergeSnapshotsWithPendingEvents(
