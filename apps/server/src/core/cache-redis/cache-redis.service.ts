@@ -87,16 +87,19 @@ export class CacheRedisService
   }
 
   async onModuleDestroy() {
-    console.log('Closing Redis...');
+    console.log('Closing cache Redis...');
 
     const shutdownWithTimeout = async () => {
       try {
         await this.client.quit();
-        console.log('Redis connection closed successfully');
+        console.log('cache Redis connection closed successfully');
       } catch (error) {
-        console.warn('Graceful Redis shutdown failed, forcing close', error);
+        console.warn(
+          'Graceful cache Redis shutdown failed, forcing close',
+          error,
+        );
         this.client.destroy();
-        console.log('Redis connection force closed');
+        console.log('cache Redis connection force closed');
       }
     };
 
@@ -104,7 +107,7 @@ export class CacheRedisService
       shutdownWithTimeout(),
       new Promise((resolve) => setTimeout(resolve, 2000)),
     ]).catch((error) => {
-      console.error('Error during Redis shutdown', error);
+      console.error('Error during cache Redis shutdown', error);
     });
   }
 
