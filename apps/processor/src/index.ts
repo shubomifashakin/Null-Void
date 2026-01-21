@@ -19,21 +19,36 @@ const connection = new IORedis.Redis({
 
 const worker = new Worker(
   "idle-snapshots",
-  async (job: Job<{ roomEventsId: string; roomId: string }>) => {
+  async (job: Job<{ roomEventsKey: string; roomId: string }>) => {
+    if (!job.data?.roomEventsKey || !job.data?.roomId) {
+      throw new Error("Invalid job data");
+    }
+
     //acquire a lock on pending events
     const acquiredLock = await connection.set(
-      job.data.roomEventsId,
+      `lock:${job.data.roomEventsKey}`,
       "locked",
       "EX",
       20, //FIXME: SHOULD BE THE SAME AS the onee i set on backend
       "NX"
     );
 
-    if (!acquiredLock) return;
+    if (!acquiredLock) {
+      console.debug(`Failed to acquire lock for ${job.data.roomEventsKey}`);
 
-    const pendingEvents = await connection.hgetall(job.data.roomEventsId);
+      return;
+    }
+
+    const pendingEvents = await connection.hgetall(job.data.roomEventsKey);
 
     //get previous snapshot
+    const previousSnapshot = await connection.getBuffer(
+      `room:${job.data.roomId}:snapshots`
+    );
+
+    console.log("previousSnapshot", previousSnapshot);
+
+    //decode the previous snapshot if present
 
     //merge pending events and previous events to make new snapshot
 

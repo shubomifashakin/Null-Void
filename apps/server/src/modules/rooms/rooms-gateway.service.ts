@@ -806,7 +806,7 @@ export class RoomsGatewayService {
 
   private async rescheduleIdleSnapshotJob(
     roomId: string,
-    roomEventsId: string,
+    roomEventsKey: string,
   ): Promise<FnResult<void>> {
     try {
       const removed = await this.removeIdleSnapshotJob(roomId);
@@ -817,7 +817,7 @@ export class RoomsGatewayService {
 
       await this.idleSnapshotsQueue.add(
         'idle-snapshots',
-        { roomEventsId, roomId },
+        { roomEventsKey, roomId },
         { jobId: roomId, delay: MINUTES_5_MS },
       );
 
