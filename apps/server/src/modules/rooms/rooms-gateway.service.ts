@@ -217,6 +217,14 @@ export class RoomsGatewayService {
         });
       }
 
+      await this.databaseService.snapshots.create({
+        data: {
+          room_id: roomId,
+          payload: allEvents as unknown as InputJsonValue,
+          timestamp: new Date(),
+        },
+      });
+
       const unlocked = await this.queueRedisService.deleteFromCache(
         makeLockKey(roomDrawEventsCacheKey),
       );
@@ -227,14 +235,6 @@ export class RoomsGatewayService {
           error: unlocked.error,
         });
       }
-
-      await this.databaseService.snapshots.create({
-        data: {
-          room_id: roomId,
-          payload: allEvents as unknown as InputJsonValue,
-          timestamp: new Date(),
-        },
-      });
 
       const removedIdleSnapshot = await this.removeIdleSnapshotJob(roomId);
 
