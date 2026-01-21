@@ -108,7 +108,7 @@ export class RoomsGatewayService {
         userId: clientInfo.userId,
       });
 
-      //reset the last idle snapshot job
+      //reschedule idle snapshot job
       const rescheduleIdleSnapshotJob = await this.rescheduleIdleSnapshotJob(
         roomId,
         roomDrawEventsCacheKey,
@@ -809,8 +809,6 @@ export class RoomsGatewayService {
     roomEventsId: string,
   ): Promise<FnResult<void>> {
     try {
-      const jobId = `idle-snapshot-${roomId}`;
-
       const removed = await this.removeIdleSnapshotJob(roomId);
 
       if (!removed.success) {
@@ -819,8 +817,8 @@ export class RoomsGatewayService {
 
       await this.idleSnapshotsQueue.add(
         'idle-snapshots',
-        { roomEventsId },
-        { jobId, delay: MINUTES_5_MS },
+        { roomEventsId, roomId },
+        { jobId: roomId, delay: MINUTES_5_MS },
       );
 
       return { success: true, error: null, data: void 0 };
@@ -831,9 +829,7 @@ export class RoomsGatewayService {
 
   private async removeIdleSnapshotJob(roomId: string): Promise<FnResult<void>> {
     try {
-      const jobId = `idle-snapshot-${roomId}`;
-
-      await this.idleSnapshotsQueue.remove(jobId, { removeChildren: true });
+      await this.idleSnapshotsQueue.remove(roomId, { removeChildren: true });
 
       return { success: true, error: null, data: void 0 };
     } catch (error) {

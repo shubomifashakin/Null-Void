@@ -19,15 +19,20 @@ const connection = new IORedis.Redis({
 
 const worker = new Worker(
   "idle-snapshots",
-  async (job: Job<{ roomId: string; snapshotKey: string }>) => {
-    console.log("the job data", job.data);
-    const snapshot = await connection.get(job.data.snapshotKey);
+  async (job: Job<{ roomEventsId: string; roomId: string }>) => {
+    const pendingEvents = await connection.hgetall(job.data.roomEventsId);
 
-    //decode from binary
+    //get previous snapshot
 
-    // store the snapshot in the database
+    //merge pending events and previous events to make new snapshot
 
-    console.log("snapshot", snapshot);
+    //encode the new snapshot as binary
+
+    //store the encoded snapshot in redis
+
+    // store the json snapshot in the database
+
+    console.log("pendingEvents", pendingEvents);
   },
   {
     connection,
@@ -52,7 +57,7 @@ worker.on("completed", (job) => {
 });
 
 worker.on("active", () => {
-  console.log("worker is active");
+  console.debug("worker is active");
 });
 
 process.on("SIGINT", async () => {
@@ -64,5 +69,3 @@ process.on("SIGTERM", async () => {
   await worker.close();
   process.exit(0);
 });
-
-console.log("ran");
