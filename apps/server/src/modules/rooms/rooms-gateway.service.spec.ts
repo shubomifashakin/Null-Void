@@ -26,10 +26,7 @@ import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { DAYS_1 } from '../../common/constants';
 
 import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
-import {
-  makeRoomDrawEventsCacheKey,
-  makeRoomSnapshotCacheKey,
-} from './utils/fns';
+import { makeRoomDrawEventsCacheKey } from './utils/fns';
 import { BullModule, getQueueToken } from '@nestjs/bullmq';
 
 const mockDatabaseService = {
@@ -40,6 +37,7 @@ const mockDatabaseService = {
   },
   snapshots: {
     findFirst: jest.fn(),
+    create: jest.fn(),
   },
   $transaction: jest.fn().mockImplementation((fn) => {
     const tx = {
@@ -137,6 +135,7 @@ const mockJwtService = {
 
 const mockBullService = {
   add: jest.fn(),
+  remove: jest.fn(),
 };
 
 describe('RoomsGatewayService', () => {
@@ -394,6 +393,8 @@ describe('RoomsGatewayService', () => {
         error: null,
       });
 
+      mockDatabaseService.snapshots.create.mockResolvedValue(true);
+
       await service.handleDraw(mockSocket, drawEvent);
 
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
@@ -419,17 +420,9 @@ describe('RoomsGatewayService', () => {
         [drawEvent],
         expect.any(Number),
       );
+      expect(mockDatabaseService.snapshots.create).toHaveBeenCalled();
+      expect(mockBullService.remove).toHaveBeenCalledTimes(2);
       expect(mockBullService.add).toHaveBeenCalled();
-      expect(mockBullService.add).toHaveBeenCalledWith(
-        'persist-snapshot',
-        {
-          roomId,
-          snapshotKey: makeRoomSnapshotCacheKey(roomId),
-        },
-        {
-          jobId: makeRoomSnapshotCacheKey(roomId),
-        },
-      );
     });
   });
 

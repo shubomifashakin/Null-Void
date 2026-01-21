@@ -9,7 +9,10 @@ import { Queue } from 'bullmq';
 
 import { RemoteSocket, Server, Socket } from 'socket.io';
 
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import {
+  InputJsonValue,
+  PrismaClientKnownRequestError,
+} from '@prisma/client/runtime/client';
 
 import {
   CircleEventDto,
@@ -39,7 +42,7 @@ import {
 import { FnResult, makeError } from '../../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
-import { DAYS_1 } from '../../common/constants';
+import { DAYS_1, MINUTES_5_MS } from '../../common/constants';
 
 import { DrawEvent } from '../../core/protos/draw_event';
 import { DatabaseService } from '../../core/database/database.service';
@@ -102,6 +105,17 @@ export class RoomsGatewayService {
         ...data,
         userId: clientInfo.userId,
       });
+
+      //reset the last idle snapshot job
+      const rescheduleIdleSnapshotJob =
+        await this.rescheduleIdleSnapshotJob(roomId);
+
+      if (!rescheduleIdleSnapshotJob.success) {
+        this.logger.error({
+          message: `Failed to reschedule idle snapshot job for room ${roomId}`,
+          error: rescheduleIdleSnapshotJob.error,
+        });
+      }
 
       //get the current length of pending draw events
       const totalNumberOfDrawEvents =
@@ -210,14 +224,22 @@ export class RoomsGatewayService {
         });
       }
 
-      await this.roomsQueue.add(
-        'persist-snapshot',
-        {
-          roomId,
-          snapshotKey: snapshotCreated.data,
+      await this.databaseService.snapshots.create({
+        data: {
+          room_id: roomId,
+          payload: allEvents as unknown as InputJsonValue,
+          timestamp: new Date(),
         },
-        { jobId: snapshotCreated.data },
-      );
+      });
+
+      const removedIdleSnapshot = await this.removeIdleSnapshotJob(roomId);
+
+      if (!removedIdleSnapshot.success) {
+        this.logger.warn({
+          message: `Failed to remove idle snapshot job for room ${roomId}`,
+          error: removedIdleSnapshot.error,
+        });
+      }
     } catch (error: unknown) {
       this.logger.error({
         message: 'Failed to handle draw event',
@@ -775,6 +797,42 @@ export class RoomsGatewayService {
         message: 'Failed to handle user move',
         error,
       });
+    }
+  }
+
+  private async rescheduleIdleSnapshotJob(
+    roomId: string,
+  ): Promise<FnResult<void>> {
+    try {
+      const jobId = `idle-snapshot-${roomId}`;
+
+      const removed = await this.removeIdleSnapshotJob(roomId);
+
+      if (!removed.success) {
+        throw removed.error;
+      }
+
+      await this.roomsQueue.add(
+        'idle-snapshots',
+        { roomId },
+        { jobId, delay: MINUTES_5_MS },
+      );
+
+      return { success: true, error: null, data: void 0 };
+    } catch (error) {
+      return { success: false, error: makeError(error), data: null };
+    }
+  }
+
+  private async removeIdleSnapshotJob(roomId: string): Promise<FnResult<void>> {
+    try {
+      const jobId = `idle-snapshot-${roomId}`;
+
+      await this.roomsQueue.remove(jobId, { removeChildren: true });
+
+      return { success: true, error: null, data: void 0 };
+    } catch (error) {
+      return { success: false, error: makeError(error), data: null };
     }
   }
 
