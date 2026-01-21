@@ -30,3 +30,5 @@ export const WS_ERROR_CODES = {
 } as const;
 
 export const MAX_NUMBER_OF_DRAW_EVENTS = 10;
+
+export const IDLE_SNAPSHOT_QUEUE = 'idle-snapshots';

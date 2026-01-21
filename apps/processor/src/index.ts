@@ -14,11 +14,11 @@ const connection = new IORedis.Redis({
   maxRetriesPerRequest: null,
   port: redisPort,
   host: redisHost,
-  name: "persist-snapshots-worker",
+  name: "idle-snapshots-worker",
 });
 
 const worker = new Worker(
-  "persist-snapshot",
+  "idle-snapshots",
   async (job: Job<{ roomId: string; snapshotKey: string }>) => {
     console.log("the job data", job.data);
     const snapshot = await connection.get(job.data.snapshotKey);
@@ -31,11 +31,11 @@ const worker = new Worker(
   },
   {
     connection,
-    name: "persist-snapshots-worker",
+    name: "idle-snapshots-worker",
     removeOnComplete: { count: 0 },
     metrics: { maxDataPoints: MetricsTime.ONE_WEEK },
     autorun: true,
-  },
+  }
 );
 
 worker.on("failed", (job, error) => {

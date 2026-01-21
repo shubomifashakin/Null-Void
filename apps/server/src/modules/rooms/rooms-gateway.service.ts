@@ -26,6 +26,7 @@ import { UpdateRoomDto } from './dtos/update-room.dto';
 import { BinaryEncodingService } from './encoding.service';
 
 import {
+  IDLE_SNAPSHOT_QUEUE,
   MAX_NUMBER_OF_DRAW_EVENTS,
   WS_ERROR_CODES,
   WS_EVENTS,
@@ -65,7 +66,8 @@ export class RoomsGatewayService {
     private readonly queueRedisService: QueueRedisService,
     private readonly databaseService: DatabaseService,
     private readonly binaryEncodingService: BinaryEncodingService,
-    @InjectQueue('rooms') private readonly roomsQueue: Queue,
+    @InjectQueue(IDLE_SNAPSHOT_QUEUE)
+    private readonly idleSnapshotsQueue: Queue,
   ) {}
 
   async handleDraw(
@@ -812,7 +814,7 @@ export class RoomsGatewayService {
         throw removed.error;
       }
 
-      await this.roomsQueue.add(
+      await this.idleSnapshotsQueue.add(
         'idle-snapshots',
         { roomId },
         { jobId, delay: MINUTES_5_MS },
@@ -828,7 +830,7 @@ export class RoomsGatewayService {
     try {
       const jobId = `idle-snapshot-${roomId}`;
 
-      await this.roomsQueue.remove(jobId, { removeChildren: true });
+      await this.idleSnapshotsQueue.remove(jobId, { removeChildren: true });
 
       return { success: true, error: null, data: void 0 };
     } catch (error) {
