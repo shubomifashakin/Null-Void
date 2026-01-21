@@ -186,7 +186,7 @@ export class RoomsGatewayService {
         message: `Merged ${arrayOfPendingDrawEvents.length} draw events with latest snapshot for room ${roomId}`,
       });
 
-      const snapshotCreated = await this.takeSnapshot(
+      const snapshotCreated = await this.encodeSnapshot(
         roomId,
         allEvents,
         Date.now(),
@@ -855,7 +855,7 @@ export class RoomsGatewayService {
     return true;
   }
 
-  private async takeSnapshot(
+  private async encodeSnapshot(
     roomId: string,
     events: DrawEvent[],
     timestamp: number,
@@ -938,7 +938,7 @@ export class RoomsGatewayService {
         return { success: true, data: [], error: null };
       }
 
-      const storeSnapshot = await this.takeSnapshot(
+      const storeSnapshot = await this.encodeSnapshot(
         roomId,
         latestSnapshot.payload as unknown as DrawEvent[],
         latestSnapshot.timestamp.getTime(),
