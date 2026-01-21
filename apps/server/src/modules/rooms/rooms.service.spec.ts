@@ -23,6 +23,7 @@ import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
 import { BullModule } from '@nestjs/bullmq';
+import { IDLE_SNAPSHOT_QUEUE } from './utils/constants';
 
 const mockDatabaseService = {
   user: {
@@ -114,7 +115,7 @@ describe('RoomsService', () => {
         AppConfigModule,
         JwtModule,
         BullModule.registerQueue({
-          name: 'rooms',
+          name: IDLE_SNAPSHOT_QUEUE,
         }),
       ],
     })

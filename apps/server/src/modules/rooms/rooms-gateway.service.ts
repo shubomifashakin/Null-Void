@@ -109,8 +109,10 @@ export class RoomsGatewayService {
       });
 
       //reset the last idle snapshot job
-      const rescheduleIdleSnapshotJob =
-        await this.rescheduleIdleSnapshotJob(roomId);
+      const rescheduleIdleSnapshotJob = await this.rescheduleIdleSnapshotJob(
+        roomId,
+        roomDrawEventsCacheKey,
+      );
 
       if (!rescheduleIdleSnapshotJob.success) {
         this.logger.error({
@@ -804,6 +806,7 @@ export class RoomsGatewayService {
 
   private async rescheduleIdleSnapshotJob(
     roomId: string,
+    roomEventsId: string,
   ): Promise<FnResult<void>> {
     try {
       const jobId = `idle-snapshot-${roomId}`;
@@ -816,7 +819,7 @@ export class RoomsGatewayService {
 
       await this.idleSnapshotsQueue.add(
         'idle-snapshots',
-        { roomId },
+        { roomEventsId },
         { jobId, delay: MINUTES_5_MS },
       );
 

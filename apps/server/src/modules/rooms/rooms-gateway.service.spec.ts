@@ -25,7 +25,11 @@ import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 
 import { DAYS_1 } from '../../common/constants';
 
-import { WS_ERROR_CODES, WS_EVENTS } from './utils/constants';
+import {
+  IDLE_SNAPSHOT_QUEUE,
+  WS_ERROR_CODES,
+  WS_EVENTS,
+} from './utils/constants';
 import { makeRoomDrawEventsCacheKey } from './utils/fns';
 import { BullModule, getQueueToken } from '@nestjs/bullmq';
 
@@ -152,7 +156,7 @@ describe('RoomsGatewayService', () => {
         AppConfigModule,
         JwtModule,
         BullModule.registerQueue({
-          name: 'rooms',
+          name: IDLE_SNAPSHOT_QUEUE,
         }),
       ],
       providers: [
@@ -176,7 +180,7 @@ describe('RoomsGatewayService', () => {
       .useValue(mockBinaryService)
       .overrideProvider(JwtService)
       .useValue(mockJwtService)
-      .overrideProvider(getQueueToken('rooms'))
+      .overrideProvider(getQueueToken(IDLE_SNAPSHOT_QUEUE))
       .useValue(mockBullService)
       .compile();
 
@@ -421,8 +425,8 @@ describe('RoomsGatewayService', () => {
         expect.any(Number),
       );
       expect(mockDatabaseService.snapshots.create).toHaveBeenCalled();
-      expect(mockBullService.remove).toHaveBeenCalledTimes(2);
       expect(mockBullService.add).toHaveBeenCalled();
+      expect(mockBullService.remove).toHaveBeenCalledTimes(2);
     });
   });
 
