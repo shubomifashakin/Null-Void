@@ -20,6 +20,17 @@ const connection = new IORedis.Redis({
 const worker = new Worker(
   "idle-snapshots",
   async (job: Job<{ roomEventsId: string; roomId: string }>) => {
+    //acquire a lock on pending events
+    const acquiredLock = await connection.set(
+      job.data.roomEventsId,
+      "locked",
+      "EX",
+      20, //FIXME: SHOULD BE THE SAME AS the onee i set on backend
+      "NX"
+    );
+
+    if (!acquiredLock) return;
+
     const pendingEvents = await connection.hgetall(job.data.roomEventsId);
 
     //get previous snapshot
