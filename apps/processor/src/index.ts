@@ -158,7 +158,6 @@ async function takeSnapshot(
 }
 
 worker.on("failed", (job, error) => {
-  //FIXME: ADD METRICS
   logger.error({ message: "Job failed", job, error });
 });
 
