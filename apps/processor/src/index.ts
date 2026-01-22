@@ -73,7 +73,8 @@ const worker = new Worker(
     connection,
     name: "idle-snapshots-worker",
     removeOnComplete: { count: 0 },
-    metrics: { maxDataPoints: MetricsTime.ONE_WEEK },
+    removeOnFail: { count: 10 },
+    metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     autorun: true,
   }
 );
