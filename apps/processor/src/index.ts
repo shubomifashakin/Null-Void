@@ -1,7 +1,10 @@
 import { Worker, Job, MetricsTime } from "bullmq";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 
 import dotenv from "dotenv";
+
+import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants.js";
+import { makeLockKey, makeRoomSnapshotCacheKey } from "./utils/fns.js";
 
 dotenv.config();
 
@@ -10,7 +13,7 @@ const redisHost = process.env.REDIS_HOST!;
 
 if (!redisHost || !redisPort) throw new Error("Redis config is Null");
 
-const connection = new IORedis.Redis({
+const connection = new Redis({
   maxRetriesPerRequest: null,
   port: redisPort,
   host: redisHost,
@@ -18,7 +21,7 @@ const connection = new IORedis.Redis({
 });
 
 const worker = new Worker(
-  "idle-snapshots",
+  IDLE_SNAPSHOT_QUEUE,
   async (job: Job<{ roomEventsKey: string; roomId: string }>) => {
     if (!job.data?.roomEventsKey || !job.data?.roomId) {
       throw new Error("Invalid job data");
@@ -26,7 +29,7 @@ const worker = new Worker(
 
     //acquire a lock on pending events
     const acquiredLock = await connection.set(
-      `lock:${job.data.roomEventsKey}`,
+      makeLockKey(job.data.roomEventsKey),
       "locked",
       "EX",
       20, //FIXME: SHOULD BE THE SAME AS the onee i set on backend
@@ -43,7 +46,7 @@ const worker = new Worker(
 
     //get previous snapshot
     const previousSnapshot = await connection.getBuffer(
-      `room:${job.data.roomId}:snapshots`
+      makeRoomSnapshotCacheKey(job.data.roomId)
     );
 
     console.log("previousSnapshot", previousSnapshot);
