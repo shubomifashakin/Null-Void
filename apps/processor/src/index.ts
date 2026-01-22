@@ -81,6 +81,10 @@ const worker = new Worker(
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     autorun: true,
     concurrency: 5,
+    limiter: {
+      max: 10,
+      duration: 2000,
+    },
   }
 );
 
