@@ -2,6 +2,7 @@ import { Worker, Job, MetricsTime } from "bullmq";
 import { v4 as uuid } from "uuid";
 
 import pgClient from "./lib/pg";
+import logger from "./lib/logger";
 import connection from "./lib/redis";
 import { DrawEvent, DrawEventList } from "./lib/draw_event";
 
@@ -150,25 +151,28 @@ async function takeSnapshot(
 }
 
 worker.on("failed", (job, error) => {
-  console.error(`Job ${job?.id} failed with error: ${error.message}`);
+  //FIXME: ADD METRIC
+  logger.error({ message: "Job failed", job, error });
 });
 
 worker.on("ready", () => {
-  console.log("worker is ready");
+  logger.info({ message: "Worker is ready" });
 });
 
 worker.on("completed", (job) => {
-  console.log(`Job ${job.id} has been completed`);
+  logger.info({ message: "Job completed", job });
 });
 
 process.on("SIGINT", async () => {
   await worker.close();
   await pgClient.end();
+  logger.flush();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
   await worker.close();
   await pgClient.end();
+  logger.flush();
   process.exit(0);
 });

@@ -17,6 +17,8 @@
     "dotenv": "^16.6.1",
     "ioredis": "^5.9.1",
     "pg": "^8.17.2",
+    "pino": "^10.2.1",
+    "pino-roll": "^4.0.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
