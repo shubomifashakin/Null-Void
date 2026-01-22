@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:shared": "cd shared && npm run build",
+    "dev:shared": "cd shared && npm run dev",
     "dev:server": "cd apps/server && npm run start:dev",
     "dev:website": "cd apps/website && npm run dev",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:website\""
+    "dev:processor": "cd apps/processor && npm run dev",
+    "build": "npm run build:shared && npm run build:server && npm run build:website"
   },
   "workspaces": [
-    "packages/*",
+    "shared",
     "apps/*"
   ],
   "keywords": [],

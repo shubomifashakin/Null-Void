@@ -19,7 +19,8 @@
     "pg": "^8.17.2",
     "pino": "^10.2.1",
     "pino-roll": "^4.0.0",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "@null-void/shared": "*"
   },
   "devDependencies": {
     "@protobuf-ts/plugin": "^2.11.1",

@@ -46,7 +46,8 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^6.6.0",
     "rxjs": "^7.8.1",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "@null-void/shared": "*"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
