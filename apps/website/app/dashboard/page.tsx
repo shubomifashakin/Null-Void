@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Activity, useState } from "react";
 
 import RoomsList from "@/components/rooms-list";
 import InvitesList from "@/components/invites-list";
@@ -38,8 +38,13 @@ export default function Page() {
           </button>
         </div>
 
-        {activeTab === "rooms" && <RoomsList />}
-        {activeTab === "invites" && <InvitesList />}
+        <Activity mode={activeTab === "rooms" ? "visible" : "hidden"}>
+          <RoomsList />
+        </Activity>
+
+        <Activity mode={activeTab === "invites" ? "visible" : "hidden"}>
+          <InvitesList />
+        </Activity>
       </main>
     </div>
   );
