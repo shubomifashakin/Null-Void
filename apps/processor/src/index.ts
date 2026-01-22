@@ -93,7 +93,10 @@ async function getPreviousSnapshot(
       return decodeFromBinary(previousSnapshot);
     }
 
-    const result = await pgClient.query(
+    const result = await pgClient.query<{
+      payload: DrawEvent[];
+      timestamp: string;
+    }>(
       'SELECT payload, timestamp FROM "Snapshots" WHERE room_id = $1 ORDER BY timestamp DESC LIMIT 1',
       [roomId]
     );
@@ -110,8 +113,8 @@ async function getPreviousSnapshot(
       success: true,
       error: null,
       data: {
-        events: result.rows[0].payload,
-        timestamp: result.rows[0].timestamp,
+        events: result.rows[0]?.payload!,
+        timestamp: result.rows[0]?.timestamp!,
       },
     };
   } catch (error) {
