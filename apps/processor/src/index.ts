@@ -1,24 +1,18 @@
 import { Worker, Job, MetricsTime } from "bullmq";
-import { Redis } from "ioredis";
 
-import dotenv from "dotenv";
+import connection from "./lib/redis";
+import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants";
+import {
+  decodeFromBinary,
+  encodeToBinary,
+  makeLockKey,
+  makeRoomSnapshotCacheKey,
+  mergeSnapshotsWithPendingEvents,
+} from "./utils/fns.js";
 
-import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants.js";
-import { makeLockKey, makeRoomSnapshotCacheKey } from "./utils/fns.js";
+import { DrawEvent, DrawEventList } from "./lib/draw_event";
 
-dotenv.config();
-
-const redisPort = parseInt(process.env.REDIS_PORT!);
-const redisHost = process.env.REDIS_HOST!;
-
-if (!redisHost || !redisPort) throw new Error("Redis config is Null");
-
-const connection = new Redis({
-  maxRetriesPerRequest: null,
-  port: redisPort,
-  host: redisHost,
-  name: "idle-snapshots-worker",
-});
+import { FnResult, makeError } from "../types/fnResult";
 
 const worker = new Worker(
   IDLE_SNAPSHOT_QUEUE,
@@ -37,31 +31,43 @@ const worker = new Worker(
     );
 
     if (!acquiredLock) {
-      console.debug(`Failed to acquire lock for ${job.data.roomEventsKey}`);
-
-      return;
+      return console.debug(
+        `Failed to acquire lock for ${job.data.roomEventsKey}`
+      );
     }
 
     const pendingEvents = await connection.hgetall(job.data.roomEventsKey);
 
-    //get previous snapshot
-    const previousSnapshot = await connection.getBuffer(
-      makeRoomSnapshotCacheKey(job.data.roomId)
+    const pendingEventsArray = Object.values(pendingEvents).map(
+      (event) => JSON.parse(event) as DrawEvent
     );
 
-    console.log("previousSnapshot", previousSnapshot);
+    if (!pendingEventsArray.length) {
+      return console.debug(`No pending events for ${job.data.roomEventsKey}`);
+    }
 
-    //decode the previous snapshot if present
+    const previousSnapshot = await getPreviousSnapshot(job.data.roomId);
+
+    if (!previousSnapshot.success) {
+      throw previousSnapshot.error;
+    }
 
     //merge pending events and previous events to make new snapshot
+    const mergedEvents = mergeSnapshotsWithPendingEvents(
+      previousSnapshot.data?.events || [],
+      pendingEventsArray
+    );
 
-    //encode the new snapshot as binary
+    const snapshotTaken = await takeSnapshot(mergedEvents, job.data.roomId);
 
-    //store the encoded snapshot in redis
+    if (!snapshotTaken.success) {
+      throw snapshotTaken.error;
+    }
 
-    // store the json snapshot in the database
+    //delete pending events
+    await connection.del(job.data.roomEventsKey);
 
-    console.log("pendingEvents", pendingEvents);
+    await connection.del(makeLockKey(job.data.roomEventsKey));
   },
   {
     connection,
@@ -71,6 +77,49 @@ const worker = new Worker(
     autorun: true,
   }
 );
+
+async function getPreviousSnapshot(
+  roomId: string
+): Promise<FnResult<DrawEventList | null>> {
+  try {
+    const previousSnapshot = await connection.getBuffer(
+      makeRoomSnapshotCacheKey(roomId)
+    );
+
+    if (previousSnapshot) {
+      return decodeFromBinary(previousSnapshot);
+    }
+
+    //FIXME: get from database and return
+
+    return { success: true, error: null, data: null };
+  } catch (error) {
+    return { success: false, error: makeError(error), data: null };
+  }
+}
+
+async function takeSnapshot(
+  events: DrawEvent[],
+  roomId: string
+): Promise<FnResult<null>> {
+  try {
+    const encodedSnapshot = await encodeToBinary(events, Date.now());
+
+    if (!encodedSnapshot.success) {
+      throw encodedSnapshot.error;
+    }
+
+    await connection.set(
+      makeRoomSnapshotCacheKey(roomId),
+      encodedSnapshot.data
+    );
+
+    //FIXME: store the json snapshot in the database
+    return { success: true, error: null, data: null };
+  } catch (error) {
+    return { success: false, error: makeError(error), data: null };
+  }
+}
 
 worker.on("failed", (job, error) => {
   //FIXME: LOG THE ERROR

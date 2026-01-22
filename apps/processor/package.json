@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx --watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-protos": "protoc --ts_out src/lib --proto_path proto proto/draw_event.proto"
   },
   "keywords": [],
   "author": "",
@@ -14,11 +15,12 @@
   "dependencies": {
     "bullmq": "^5.66.5",
     "dotenv": "^16.6.1",
-    "ioredis": "^5.9.1",
-    "node-cron": "^4.2.1"
+    "ioredis": "^5.9.1"
   },
   "devDependencies": {
+    "@protobuf-ts/plugin": "^2.11.1",
     "@types/node": "^22.19.7",
+    "protoc": "^33.4.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

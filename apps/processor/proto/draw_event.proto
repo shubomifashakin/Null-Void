@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package draw;
+
+message Point {
+  double x = 1;
+  double y = 2;
+}
+
+message FillStyle {
+  string color = 1;
+  double opacity = 2;
+}
+
+message DrawEventBase {
+  string id = 1;
+  string strokeColor = 2;
+  int32 strokeWidth = 3;
+  string timestamp = 4;
+  string type = 5;
+}
+
+message LineEvent {
+  string id = 1;
+  string strokeColor = 2;
+  int32 strokeWidth = 3;
+  string timestamp = 4;
+  string type = 5;
+  Point from = 6;
+  Point to = 7;
+}
+
+message CircleEvent {
+  string id = 1;
+  string strokeColor = 2;
+  int32 strokeWidth = 3;
+  string timestamp = 4;
+  string type = 5;
+  double radius = 6;
+  Point center = 7;
+  optional FillStyle fillStyle = 8;
+}
+
+message PolygonEvent {
+  string id = 1;
+  string strokeColor = 2;
+  int32 strokeWidth = 3;
+  string timestamp = 4;
+  string type = 5;
+  repeated Point points = 6;
+  optional FillStyle fillStyle = 7;
+}
+
+
+message DrawEvent{
+  string id = 1;
+  string strokeColor = 2;
+  int32 strokeWidth = 3;
+  string timestamp = 4;
+  string type = 5;
+
+  //for PolygonEvent
+  repeated Point points = 6;
+  optional FillStyle fillStyle = 7;
+
+  //for LineEvent
+  optional Point from = 8;
+  optional Point to = 9;
+
+  //for CircleEvent
+  optional double radius = 10;
+  optional Point center = 11;
+}
+
+message DrawEventList {
+  repeated DrawEvent events = 1;
+  string timestamp = 2;
+}
