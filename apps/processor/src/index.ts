@@ -164,16 +164,17 @@ worker.on("completed", (job) => {
   logger.info({ message: "Job completed", job });
 });
 
-process.on("SIGINT", async () => {
+async function handleShutdown() {
   await worker.close();
   await pgClient.end();
   logger.flush();
   process.exit(0);
+}
+
+process.on("SIGINT", async () => {
+  await handleShutdown();
 });
 
 process.on("SIGTERM", async () => {
-  await worker.close();
-  await pgClient.end();
-  logger.flush();
-  process.exit(0);
+  await handleShutdown();
 });
