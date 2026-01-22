@@ -33,9 +33,9 @@ const worker = new Worker(
     );
 
     if (!acquiredLock) {
-      return console.debug(
-        `Failed to acquire lock for ${job.data.roomEventsKey}`
-      );
+      return logger.debug({
+        message: `Failed to acquire lock for ${job.data.roomEventsKey}`,
+      });
     }
 
     const pendingEvents = await connection.hgetall(job.data.roomEventsKey);
@@ -45,7 +45,9 @@ const worker = new Worker(
     );
 
     if (!pendingEventsArray.length) {
-      return console.debug(`No pending events for ${job.data.roomEventsKey}`);
+      return logger.debug({
+        message: `No pending events for ${job.data.roomEventsKey}`,
+      });
     }
 
     const previousSnapshot = await getPreviousSnapshot(job.data.roomId);
