@@ -75,13 +75,6 @@ export default function SettingsPage() {
                 </label>
                 <div className="flex items-center gap-4">
                   <Image src={""} alt={""} className="w-16 h-16 rounded-full" />
-
-                  <Button
-                    variant="outline"
-                    className="border-border text-foreground hover:bg-background bg-transparent"
-                  >
-                    Change Photo
-                  </Button>
                 </div>
               </div>
 
