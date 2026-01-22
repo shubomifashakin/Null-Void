@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   DropdownMenu,
@@ -10,21 +14,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { logout } from "@/data-service/mutations";
 
 export function UserMenu() {
   const router = useRouter();
-
   const [isOpen, setIsOpen] = useState(false);
+
   const user = {
     name: "Fashakin Olashubomi",
     email: "nelsonstretch34@gmail.com",
-    image: "",
+    image:
+      "https://tse2.mm.bing.net/th/id/OIP.G37tgeQqSNt7v2oPfj9ltQHaE7?rs=1&pid=ImgDetMain&o=7&rm=3",
     id: "1234",
   };
 
-  //FIXME: USE MUTATION
-  function handleLogout() {}
+  const { mutate, isPending } = useMutation({
+    mutationFn: logout,
+    mutationKey: ["logout"],
+    onSuccess: () => {
+      router.push("/");
+    },
+
+    onError: (error) => {
+      if (error.cause === 401) {
+        return router.push("/");
+      }
+
+      if (error.cause === 404) {
+        return router.push("/404");
+      }
+
+      if (error.cause === 429) {
+        toast.error("Too many request");
+      }
+
+      toast.error("Something went wrong");
+    },
+  });
+
+  function handleLogout() {
+    mutate();
+  }
 
   function handleNavigateToSettings() {
     router.push("/settings");
@@ -63,6 +93,7 @@ export function UserMenu() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
+          disabled={isPending}
           onClick={handleLogout}
           className="cursor-pointer text-destructive focus:text-destructive"
         >
