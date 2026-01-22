@@ -225,6 +225,15 @@ export class RoomsGatewayService {
         },
       });
 
+      const removedIdleSnapshot = await this.removeIdleSnapshotJob(roomId);
+
+      if (!removedIdleSnapshot.success) {
+        this.logger.warn({
+          message: `Failed to remove idle snapshot job for room ${roomId}`,
+          error: removedIdleSnapshot.error,
+        });
+      }
+
       const unlocked = await this.queueRedisService.deleteFromCache(
         makeLockKey(roomDrawEventsCacheKey),
       );
@@ -233,15 +242,6 @@ export class RoomsGatewayService {
         this.logger.error({
           message: `Failed to remove lock on draw events for room ${roomId}`,
           error: unlocked.error,
-        });
-      }
-
-      const removedIdleSnapshot = await this.removeIdleSnapshotJob(roomId);
-
-      if (!removedIdleSnapshot.success) {
-        this.logger.warn({
-          message: `Failed to remove idle snapshot job for room ${roomId}`,
-          error: removedIdleSnapshot.error,
         });
       }
     } catch (error: unknown) {
