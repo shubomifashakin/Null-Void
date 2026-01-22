@@ -16,8 +16,6 @@ import { DrawEvent, DrawEventList } from "./lib/draw_event";
 import { FnResult, makeError } from "../types/fnResult";
 import pgClient from "./lib/pg";
 
-pgClient.connect();
-
 const worker = new Worker(
   IDLE_SNAPSHOT_QUEUE,
   async (job: Job<{ roomEventsKey: string; roomId: string }>) => {
