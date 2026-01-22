@@ -23,7 +23,6 @@ const worker = new Worker(
       throw new Error("Invalid job data");
     }
 
-    //acquire a lock on pending events
     const acquiredLock = await connection.set(
       makeLockKey(job.data.roomEventsKey),
       "locked",
@@ -75,7 +74,7 @@ const worker = new Worker(
     connection,
     name: "idle-snapshots-worker",
     removeOnComplete: { count: 0 },
-    removeOnFail: { count: 10 },
+    removeOnFail: { count: 20 },
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     autorun: true,
   }
