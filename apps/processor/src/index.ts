@@ -162,10 +162,6 @@ worker.on("completed", (job) => {
   console.log(`Job ${job.id} has been completed`);
 });
 
-worker.on("active", () => {
-  console.debug("worker is active");
-});
-
 process.on("SIGINT", async () => {
   await worker.close();
   await pgClient.end();
