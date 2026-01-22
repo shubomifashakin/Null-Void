@@ -174,7 +174,8 @@ worker.on("error", (error) => {
   logger.error({ message: "Worker error", error });
 });
 
-async function handleShutdown() {
+async function handleShutdown(signal: string) {
+  logger.info({ message: `Received ${signal}, shutting down server` });
   await worker.close();
   await pgClient.end();
   logger.flush();
@@ -182,9 +183,9 @@ async function handleShutdown() {
 }
 
 process.on("SIGINT", async () => {
-  await handleShutdown();
+  await handleShutdown("SIGINT");
 });
 
 process.on("SIGTERM", async () => {
-  await handleShutdown();
+  await handleShutdown("SIGTERM");
 });
