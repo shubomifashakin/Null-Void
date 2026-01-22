@@ -1,4 +1,5 @@
 import { Worker, Job, MetricsTime } from "bullmq";
+import { v4 as uuid } from "uuid";
 
 import connection from "./lib/redis";
 import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants";
@@ -13,6 +14,9 @@ import {
 import { DrawEvent, DrawEventList } from "./lib/draw_event";
 
 import { FnResult, makeError } from "../types/fnResult";
+import pgClient from "./lib/pg";
+
+pgClient.connect();
 
 const worker = new Worker(
   IDLE_SNAPSHOT_QUEUE,
@@ -91,9 +95,27 @@ async function getPreviousSnapshot(
       return decodeFromBinary(previousSnapshot);
     }
 
-    //FIXME: get from database and return
+    const result = await pgClient.query(
+      'SELECT payload, timestamp FROM "Snapshots" WHERE room_id = $1 ORDER BY timestamp DESC LIMIT 1',
+      [roomId]
+    );
 
-    return { success: true, error: null, data: null };
+    if (!result.rows.length) {
+      return {
+        success: true,
+        error: null,
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      error: null,
+      data: {
+        events: result.rows[0].payload,
+        timestamp: result.rows[0].timestamp,
+      },
+    };
   } catch (error) {
     return { success: false, error: makeError(error), data: null };
   }
@@ -104,7 +126,8 @@ async function takeSnapshot(
   roomId: string
 ): Promise<FnResult<null>> {
   try {
-    const encodedSnapshot = await encodeToBinary(events, Date.now());
+    const timestamp = new Date();
+    const encodedSnapshot = await encodeToBinary(events, timestamp.getTime());
 
     if (!encodedSnapshot.success) {
       throw encodedSnapshot.error;
@@ -115,7 +138,11 @@ async function takeSnapshot(
       encodedSnapshot.data
     );
 
-    //FIXME: store the json snapshot in the database
+    await pgClient.query(
+      'INSERT INTO "Snapshots" (id, room_id, payload, timestamp, created_at, updated_at) VALUES ($1, $2, $3::jsonb, $4, $5, $6)',
+      [uuid(), roomId, JSON.stringify(events), timestamp, timestamp, timestamp]
+    );
+
     return { success: true, error: null, data: null };
   } catch (error) {
     return { success: false, error: makeError(error), data: null };
@@ -123,7 +150,6 @@ async function takeSnapshot(
 }
 
 worker.on("failed", (job, error) => {
-  //FIXME: LOG THE ERROR
   console.error(`Job ${job?.id} failed with error: ${error.message}`);
 });
 
@@ -141,10 +167,12 @@ worker.on("active", () => {
 
 process.on("SIGINT", async () => {
   await worker.close();
+  await pgClient.end();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
   await worker.close();
+  await pgClient.end();
   process.exit(0);
 });
