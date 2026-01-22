@@ -3,7 +3,7 @@ import { Attachment, Resend } from 'resend';
 
 import { AppConfigService } from '../app-config/app-config.service';
 
-import { FnResult } from 'types/fnResult';
+import { FnResult } from '../../types/fnResult';
 
 @Injectable()
 export class MailerService extends Resend {

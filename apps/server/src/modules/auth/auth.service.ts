@@ -21,7 +21,7 @@ import {
   MINUTES_1,
   TOKEN,
 } from '../../common/constants';
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 
 @Injectable()
 export class AuthService {

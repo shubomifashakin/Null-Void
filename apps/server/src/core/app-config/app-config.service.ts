@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 
 @Injectable()
 export class AppConfigService {

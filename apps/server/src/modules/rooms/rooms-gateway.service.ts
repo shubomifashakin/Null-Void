@@ -40,7 +40,7 @@ import {
   makeRoomUsersIdCacheKey,
 } from './utils/fns';
 
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 import { Roles } from '../../../generated/prisma/enums';
 
 import { DAYS_1, MINUTES_5_MS } from '../../common/constants';

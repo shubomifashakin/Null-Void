@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DrawEvent, DrawEventList } from '../../core/protos/draw_event';
 
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 
 @Injectable()
 export class BinaryEncodingService {

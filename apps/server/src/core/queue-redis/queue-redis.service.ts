@@ -6,7 +6,7 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 
 import { createClient, RedisClientType, RESP_TYPES, SetOptions } from 'redis';
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 
 @Injectable()
 export class QueueRedisService

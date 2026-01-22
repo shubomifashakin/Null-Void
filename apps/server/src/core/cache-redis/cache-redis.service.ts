@@ -5,7 +5,7 @@ import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage
 import { createClient, RedisClientType, RESP_TYPES, SetOptions } from 'redis';
 
 import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
-import { FnResult, makeError } from '../../../types/fnResult';
+import { FnResult, makeError } from '../../types/fnResult';
 import { AppConfigService } from '../app-config/app-config.service';
 
 @Injectable()
