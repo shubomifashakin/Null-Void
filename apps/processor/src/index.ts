@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import pgClient from "./lib/pg";
 import logger from "./lib/logger";
 import connection from "./lib/redis";
+import { LOCK_TTL } from "./lib/config";
 import { DrawEvent, DrawEventList } from "./lib/draw_event";
 
 import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants";
@@ -28,7 +29,7 @@ const worker = new Worker(
       makeLockKey(job.data.roomEventsKey),
       "locked",
       "EX",
-      20, //FIXME: SHOULD BE THE SAME AS the onee i set on backend
+      LOCK_TTL,
       "NX"
     );
 
