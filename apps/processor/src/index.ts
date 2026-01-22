@@ -170,6 +170,10 @@ worker.on("completed", (job) => {
   logger.info({ message: "Job completed", job });
 });
 
+worker.on("error", (error) => {
+  logger.error({ message: "Worker error", error });
+});
+
 async function handleShutdown() {
   await worker.close();
   await pgClient.end();
