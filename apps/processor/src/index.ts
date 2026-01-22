@@ -78,6 +78,7 @@ const worker = new Worker(
     removeOnFail: { count: 20 },
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     autorun: true,
+    concurrency: 5,
   }
 );
 
