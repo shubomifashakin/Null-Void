@@ -137,5 +137,7 @@ model Snapshots {
 
   timestamp DateTime
 
-  @@index(name: "snapshots_room_id_idx", fields: [room_id,timestamp])
+  @@unique(name: "snapshots_room_id_timestamp_key", fields: [room_id, timestamp])
+
+  @@index(name: "snapshots_room_id_idx", fields: [room_id, timestamp])
 }
