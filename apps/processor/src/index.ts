@@ -1,7 +1,10 @@
 import { Worker, Job, MetricsTime } from "bullmq";
 import { v4 as uuid } from "uuid";
 
+import pgClient from "./lib/pg";
 import connection from "./lib/redis";
+import { DrawEvent, DrawEventList } from "./lib/draw_event";
+
 import { IDLE_SNAPSHOT_QUEUE } from "./utils/constants";
 import {
   decodeFromBinary,
@@ -9,12 +12,9 @@ import {
   makeLockKey,
   makeRoomSnapshotCacheKey,
   mergeSnapshotsWithPendingEvents,
-} from "./utils/fns.js";
-
-import { DrawEvent, DrawEventList } from "./lib/draw_event";
+} from "./utils/fns";
 
 import { FnResult, makeError } from "../types/fnResult";
-import pgClient from "./lib/pg";
 
 const worker = new Worker(
   IDLE_SNAPSHOT_QUEUE,
