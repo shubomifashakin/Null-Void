@@ -1,4 +1,4 @@
-import { FnResult, makeError } from "../../types/fnResult";
+import { FnResult, makeError } from "../types/fnResult";
 import { DrawEvent, DrawEventList } from "../lib/draw_event";
 
 export function makeRoomCacheKey(roomId: string): string {

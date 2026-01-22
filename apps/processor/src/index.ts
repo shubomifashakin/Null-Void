@@ -16,7 +16,7 @@ import {
   mergeSnapshotsWithPendingEvents,
 } from "./utils/fns";
 
-import { FnResult, makeError } from "../types/fnResult";
+import { FnResult, makeError } from "./types/fnResult";
 
 const worker = new Worker(
   IDLE_SNAPSHOT_QUEUE,
