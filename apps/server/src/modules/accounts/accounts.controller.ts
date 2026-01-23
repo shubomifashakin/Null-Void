@@ -1,11 +1,15 @@
 import { type Response, type Request } from 'express';
 
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  Param,
+  ParseUUIDPipe,
   Patch,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -17,6 +21,8 @@ import { UpdateAccountDto } from './dtos/update-account.dto';
 import { TOKEN } from '../../common/constants';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { AppConfigService } from '../../core/app-config/app-config.service';
+
+import { UpdateInviteDto } from './dtos/update-invite.dto';
 
 @UseGuards(AuthGuard)
 @Controller('accounts')
@@ -58,5 +64,28 @@ export class AccountsController {
     });
 
     return { message: 'success' };
+  }
+
+  @Get('invites')
+  getInvites(@Req() req: Request, @Query('cursor') cursor?: string) {
+    return this.accountsService.getInvites(req.user.id, cursor);
+  }
+
+  @Patch('invites/:inviteId')
+  updateInvite(
+    @Req() req: Request,
+    @Body() body: UpdateInviteDto,
+    @Param(
+      'inviteId',
+      new ParseUUIDPipe({
+        version: '4',
+        exceptionFactory: () => {
+          throw new BadRequestException('Invalid inviteId');
+        },
+      }),
+    )
+    inviteId: string,
+  ) {
+    return this.accountsService.updateInvite(inviteId, body.status);
   }
 }
