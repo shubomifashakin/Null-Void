@@ -48,7 +48,7 @@ export async function fetchRooms({ cursor }: { cursor?: string }) {
 
   if (!request.ok) {
     const error = (await request.json()) as { message: string };
-    throw new Error(error.message);
+    throw new Error(error.message, { cause: request.status });
   }
 
   const response = (await request.json()) as {
@@ -68,7 +68,41 @@ export async function logout() {
 
   if (!request.ok) {
     const error = (await request.json()) as { message: string };
-    throw new Error(error.message);
+    throw new Error(error.message, { cause: request.status });
+  }
+
+  const response = await request.json();
+  return response;
+}
+
+export async function deleteAccount() {
+  const request = await fetch(`${baseUrl}/accounts/me`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!request.ok) {
+    const error = (await request.json()) as { message: string };
+    throw new Error(error.message, { cause: request.status });
+  }
+
+  const response = await request.json();
+  return response;
+}
+
+export async function updateAccountInfo({ name }: { name: string }) {
+  const request = await fetch(`${baseUrl}/accounts/me`, {
+    method: "PATCH",
+    credentials: "include",
+    body: JSON.stringify({ name }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!request.ok) {
+    const error = (await request.json()) as { message: string };
+    throw new Error(error.message, { cause: request.status });
   }
 
   const response = await request.json();

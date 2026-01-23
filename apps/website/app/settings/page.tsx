@@ -5,39 +5,89 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+
+import { ArrowLeft } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { deleteAccount, updateAccountInfo } from "@/data-service/mutations";
 
 export default function SettingsPage() {
+  const router = useRouter();
+
+  //FIXME: GET THE USERS INFO FROM STATE AND FUNCTION TO REFETCH
+
   const [name, setName] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const router = useRouter();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
     setHasChanges(e.target.value !== "");
   };
 
+  const { mutate: deleteMyAccount, isPending: isDeleting } = useMutation({
+    mutationFn: deleteAccount,
+
+    onSuccess: () => {
+      router.push("/");
+    },
+
+    onError: (error) => {
+      if (error.cause === 403) {
+        toast.error("Unauthorized");
+
+        return router.push("/");
+      }
+
+      if (error.cause === 429) {
+        return toast.error("Too many requests. Please try again later.");
+      }
+
+      toast.error("Something went wrong. Please try again.");
+    },
+  });
+
+  const { mutate: updateMyAccountInfo, isPending: isUpdating } = useMutation({
+    mutationFn: updateAccountInfo,
+
+    onSuccess: () => {
+      toast.success("Account updated successfully");
+      //FIXME: REFETCH USER INFO
+    },
+
+    onError: (error) => {
+      if (error.cause === 400) {
+        return toast.error(error.message);
+      }
+
+      if (error.cause === 403) {
+        toast.error("Unauthorized");
+
+        return router.push("/");
+      }
+
+      if (error.cause === 429) {
+        return toast.error("Too many requests. Please try again later.");
+      }
+
+      toast.error("Something went wrong. Please try again.");
+    },
+  });
+
   function handleGoBack() {
     router.back();
   }
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-    setHasChanges(false);
-    // Show success message
-    alert("Changes saved successfully!");
-  };
+  function handleDeleteAccount() {
+    deleteMyAccount();
+  }
 
-  const handleDeleteAccount = () => {
-    // Mock delete account
-    alert("Account deleted");
-  };
+  function handleUpdateAccountInfo() {
+    updateMyAccountInfo({ name });
+  }
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -50,7 +100,7 @@ export default function SettingsPage() {
                 onClick={handleGoBack}
                 className="border-border text-foreground hover:bg-background bg-transparent"
               >
-                ← Back
+                <ArrowLeft size={10} /> Back
               </Button>
               <h1 className="text-lg font-bold text-foreground">Settings</h1>
             </div>
@@ -59,26 +109,29 @@ export default function SettingsPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Account Settings Tab */}
         <div className="space-y-6">
-          {/* Profile Section */}
           <Card className="p-6 bg-card border border-border">
             <h2 className="text-lg font-semibold text-foreground mb-6">
               Account Information
             </h2>
 
             <div className="space-y-6">
-              {/* Profile Picture */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
                   Profile Picture
                 </label>
+
                 <div className="flex items-center gap-4">
-                  <Image src={""} alt={""} className="w-16 h-16 rounded-full" />
+                  <div className="relative size-16 rounded-full overflow-hidden">
+                    <Image
+                      fill
+                      alt={"Profile Picture"}
+                      src={"https://avatars.githubusercontent.com/u/12345?v=4"}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Name Field */}
               <div>
                 <label
                   htmlFor="name"
@@ -86,6 +139,7 @@ export default function SettingsPage() {
                 >
                   Name
                 </label>
+
                 <input
                   id="name"
                   type="text"
@@ -95,7 +149,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Email Field (Read-only) */}
               <div>
                 <label
                   htmlFor="email"
@@ -116,7 +169,6 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              {/* Save Button */}
               {hasChanges && (
                 <div className="flex gap-2 justify-end pt-4">
                   <Button
@@ -129,19 +181,19 @@ export default function SettingsPage() {
                   >
                     Cancel
                   </Button>
+
                   <Button
-                    onClick={handleSave}
-                    disabled={isSaving}
+                    disabled={isUpdating}
+                    onClick={handleUpdateAccountInfo}
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isUpdating ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               )}
             </div>
           </Card>
 
-          {/* Danger Zone */}
           <Card className="p-6 bg-destructive/5 border border-destructive/20 gap-y-4">
             <h2 className="text-lg font-semibold text-foreground">
               Danger Zone
@@ -152,32 +204,42 @@ export default function SettingsPage() {
               action cannot be undone.
             </p>
 
-            {!showDeleteConfirm ? (
+            {!showDeleteConfirm && (
               <Button
                 variant="destructive"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 Delete Account
               </Button>
-            ) : (
+            )}
+
+            {showDeleteConfirm && (
               <div className="space-y-4 p-4 bg-background border border-destructive/20 rounded-lg">
                 <p className="text-sm font-medium text-foreground">
                   Are you sure you want to delete your account?
                 </p>
+
                 <p className="text-xs text-muted-foreground">
                   This will permanently delete your account and all your data.
                   This action cannot be undone.
                 </p>
+
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
+                    disabled={isDeleting}
                     onClick={() => setShowDeleteConfirm(false)}
                     className="border-border text-foreground hover:bg-background"
                   >
                     Cancel
                   </Button>
-                  <Button variant="destructive" onClick={handleDeleteAccount}>
-                    Delete Account
+
+                  <Button
+                    variant="destructive"
+                    disabled={isDeleting}
+                    onClick={handleDeleteAccount}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete Account"}
                   </Button>
                 </div>
               </div>
