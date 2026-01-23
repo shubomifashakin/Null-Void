@@ -1,5 +1,6 @@
-import { AccountInfo } from "@/types/accountInfo";
 import { Room } from "@/types/room";
+import { Invites } from "@/types/invites";
+import { AccountInfo } from "@/types/accountInfo";
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
@@ -118,6 +119,62 @@ export async function getAccountInfo() {
   const response = (await request.json()) as AccountInfo;
 
   return response;
+}
+
+export async function getInvites({ cursor }: { cursor?: string }) {
+  const url = new URL(baseUrl + "/accounts/invites");
+
+  if (cursor) {
+    url.searchParams.append("cursor", cursor);
+  }
+
+  const request = await fetchWithAuth(url.toString(), {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!request.ok) {
+    const error = (await request.json()) as { message: string };
+    throw new Error(error.message, { cause: request.status });
+  }
+
+  const response = (await request.json()) as {
+    data: Invites[];
+    cursor?: string;
+    hasNextPage: boolean;
+  };
+
+  return response;
+}
+
+export async function updateInviteStatus({
+  inviteId,
+  status,
+}: {
+  inviteId: string;
+  status: "ACCEPTED" | "REJECTED";
+}) {
+  const response = await fetchWithAuth(
+    `${baseUrl}/accounts/invites/${inviteId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = (await response.json()) as { message: string };
+    throw new Error(error.message, { cause: response.status });
+  }
+
+  const data = (await response.json()) as {
+    message: string;
+  };
+
+  return data;
 }
 
 export async function fetchWithAuth(

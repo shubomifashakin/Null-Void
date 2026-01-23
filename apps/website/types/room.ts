@@ -1,7 +1,4 @@
-export enum Role {
-  ADMIN = "ADMIN",
-  MEMBER = "MEMBER",
-}
+export type Role = "ADMIN" | "MEMBER";
 
 export interface Room {
   role: Role;
