@@ -1,13 +1,29 @@
 "use client";
 
-import { Activity, useState } from "react";
+import { Activity } from "react";
+
+import { useRouter } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import RoomsList from "@/components/rooms-list";
 import InvitesList from "@/components/invites-list";
 import DashboardHeader from "@/components/dashboard-header";
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState<"rooms" | "invites">("rooms");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") || "rooms";
+
+  function setActiveTab(tab: "rooms" | "invites") {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+
+    const newUrl = new URL(pathname, window.location.href);
+    newUrl.search = params.toString();
+
+    router.push(newUrl.toString());
+  }
 
   return (
     <div className="min-h-screen bg-background">
