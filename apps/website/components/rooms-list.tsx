@@ -47,12 +47,13 @@ export default function RoomsList() {
 
   const {
     data,
-    status,
     refetch,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
     isFetchNextPageError,
+    isLoadingError,
+    isLoading,
   } = useInfiniteQuery({
     queryKey: ["rooms"],
     queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
@@ -152,7 +153,7 @@ export default function RoomsList() {
         </Card>
       )}
 
-      {status === "error" && (
+      {isLoadingError && (
         <Card className="p-6 bg-card border-0 shadow-none items-center">
           <p className="text-destructive">Failed to load rooms</p>
 
@@ -168,88 +169,84 @@ export default function RoomsList() {
         </Card>
       )}
 
-      {status === "pending" && (
+      {isLoading && (
         <Card className="p-6 bg-card border-0 shadow-none items-center">
           <p className="text-muted-foreground text-sm">Loading rooms...</p>
         </Card>
       )}
 
-      {status === "success" &&
-        data &&
-        data.pages.length &&
-        data.pages.flat().length && (
-          <div className="space-y-4">
-            {data.pages
-              .flatMap((page) => page.data)
-              .map((room) => (
-                <Card
-                  key={room.id}
-                  onClick={() => router.push(`/rooms/${room.id}`)}
-                  className="p-6 bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {room.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {room.description}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-                      <span className="capitalize">
-                        {room.role.toLowerCase()}
-                      </span>
-                      <span>
-                        {new Date(room.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+      {data && data.pages.length && data.pages.flat().length && (
+        <div className="space-y-4">
+          {data.pages
+            .flatMap((page) => page.data)
+            .map((room) => (
+              <Card
+                key={room.id}
+                onClick={() => router.push(`/rooms/${room.id}`)}
+                className="p-6 bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {room.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {room.description}
+                    </p>
                   </div>
-                </Card>
-              ))}
 
-            {isFetchingNextPage && (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground text-sm">
-                  Loading rooms...
-                </p>
-              </div>
-            )}
+                  <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                    <span className="capitalize">
+                      {room.role.toLowerCase()}
+                    </span>
+                    <span>{new Date(room.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </Card>
+            ))}
 
-            {isFetchNextPageError && (
-              <div className="text-center py-4">
-                <p className="text-destructive text-sm">
-                  Failed to load more rooms
-                </p>
+          {isFetchingNextPage && (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground text-sm">Loading rooms...</p>
+            </div>
+          )}
 
-                <Button onClick={() => refetch()}>Retry</Button>
-              </div>
-            )}
+          {isFetchNextPageError && (
+            <Card className="p-6 bg-card border-0 shadow-none items-center">
+              <p className="text-destructive">Failed to load rooms</p>
 
-            {hasNextPage && !isFetchingNextPage && (
-              <div className="flex justify-center pt-8">
+              <div>
                 <Button
-                  onClick={() => fetchNextPage()}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  size={"lg"}
+                  variant={"destructive"}
+                  onClick={() => refetch()}
                 >
-                  Load More
+                  Retry
                 </Button>
               </div>
-            )}
-          </div>
-        )}
+            </Card>
+          )}
 
-      {status === "success" &&
-        data &&
-        data.pages.length &&
-        !data.pages.flat().length && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-sm">
-              No rooms yet. Create one to get started!
-            </p>
-          </div>
-        )}
+          {hasNextPage && !isFetchingNextPage && !isFetchNextPageError && (
+            <div className="flex justify-center pt-8">
+              <Button
+                onClick={() => fetchNextPage()}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Load More
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {data && data.pages.length && !data.pages.flat().length && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-sm">
+            No rooms yet. Create one to get started!
+          </p>
+        </div>
+      )}
     </div>
   );
 }
