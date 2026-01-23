@@ -102,7 +102,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 onClick={handleGoBack}
-                className="border-border text-foreground hover:bg-background bg-transparent"
+                className="border-border cursor-pointer text-foreground hover:bg-background bg-transparent"
               >
                 <ArrowLeft size={10} /> Back
               </Button>
@@ -253,6 +253,7 @@ function AccountInfo({
         {!showDeleteConfirm && (
           <Button
             variant="destructive"
+            className="cursor-pointer"
             onClick={() => setShowDeleteConfirm(true)}
           >
             Delete Account
@@ -275,7 +276,7 @@ function AccountInfo({
                 variant="outline"
                 disabled={isDeleting}
                 onClick={() => setShowDeleteConfirm(false)}
-                className="border-border text-foreground hover:bg-background"
+                className="border-border text-foreground cursor-pointer hover:bg-background"
               >
                 Cancel
               </Button>
@@ -283,6 +284,7 @@ function AccountInfo({
               <Button
                 variant="destructive"
                 disabled={isDeleting}
+                className="cursor-pointer"
                 onClick={handleDeleteAccount}
               >
                 {isDeleting ? "Deleting..." : "Delete Account"}
