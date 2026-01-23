@@ -62,6 +62,8 @@ export default function RoomsList() {
     initialPageParam: undefined,
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.cursor! : undefined,
+
+    select: (data) => data.pages.flatMap((page) => page.data),
   });
 
   function handleIsCreatingRoom() {
@@ -175,35 +177,31 @@ export default function RoomsList() {
         </Card>
       )}
 
-      {data && data.pages.length && data.pages.flat().length && (
+      {data && data.length > 0 && (
         <div className="space-y-4">
-          {data.pages
-            .flatMap((page) => page.data)
-            .map((room) => (
-              <Card
-                key={room.id}
-                onClick={() => router.push(`/rooms/${room.id}`)}
-                className="p-6 bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {room.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {room.description}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-                    <span className="capitalize">
-                      {room.role.toLowerCase()}
-                    </span>
-                    <span>{new Date(room.createdAt).toLocaleDateString()}</span>
-                  </div>
+          {data.map((room) => (
+            <Card
+              key={room.id}
+              onClick={() => router.push(`/rooms/${room.id}`)}
+              className="p-6 bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {room.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {room.description}
+                  </p>
                 </div>
-              </Card>
-            ))}
+
+                <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                  <span className="capitalize">{room.role.toLowerCase()}</span>
+                  <span>{new Date(room.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </Card>
+          ))}
 
           {isFetchingNextPage && (
             <div className="text-center py-4">
@@ -240,7 +238,7 @@ export default function RoomsList() {
         </div>
       )}
 
-      {data && data.pages.length && !data.pages.flat().length && (
+      {data && !data.length && (
         <div className="text-center py-12">
           <p className="text-muted-foreground text-sm">
             No rooms yet. Create one to get started!
