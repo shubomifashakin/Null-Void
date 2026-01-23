@@ -190,6 +190,7 @@ export default function RoomsList() {
                   <h3 className="text-lg font-semibold text-foreground">
                     {room.name}
                   </h3>
+
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {room.description}
                   </p>
@@ -197,6 +198,7 @@ export default function RoomsList() {
 
                 <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                   <span className="capitalize">{room.role.toLowerCase()}</span>
+
                   <span>{new Date(room.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>

@@ -13,7 +13,10 @@ export async function createRoom({
 }) {
   const request = await fetchWithAuth(`${baseUrl}/rooms`, {
     method: "POST",
-    body: JSON.stringify({ name, description }),
+    body: JSON.stringify({
+      name: name.trim(),
+      description: description.trim(),
+    }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -90,7 +93,7 @@ export async function updateAccountInfo({ name }: { name: string }) {
   const request = await fetchWithAuth(`${baseUrl}/accounts/me`, {
     method: "PATCH",
     credentials: "include",
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name: name.trim() }),
     headers: {
       "Content-Type": "application/json",
     },

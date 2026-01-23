@@ -195,6 +195,8 @@ function AccountInfo({
               id="name"
               type="text"
               value={name}
+              minLength={3}
+              maxLength={30}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
