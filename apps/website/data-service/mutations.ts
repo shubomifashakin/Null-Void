@@ -1,6 +1,6 @@
 import { Room } from "@/types/room";
 
-const baseUrl = process.env.BACKEND_URL!;
+const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
 export async function createRoom({
   name,
@@ -35,7 +35,7 @@ export async function createRoom({
 }
 
 export async function fetchRooms({ cursor }: { cursor?: string }) {
-  const url = new URL(`${baseUrl}/rooms`);
+  const url = new URL(baseUrl + "/rooms");
 
   if (cursor) {
     url.searchParams.append("cursor", cursor);
@@ -52,7 +52,7 @@ export async function fetchRooms({ cursor }: { cursor?: string }) {
   }
 
   const response = (await request.json()) as {
-    rooms: Room[];
+    data: Room[];
     cursor?: string;
     hasNextPage: boolean;
   };

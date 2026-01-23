@@ -23,8 +23,7 @@ export function UserMenu() {
   const user = {
     name: "Fashakin Olashubomi",
     email: "nelsonstretch34@gmail.com",
-    image:
-      "https://tse2.mm.bing.net/th/id/OIP.G37tgeQqSNt7v2oPfj9ltQHaE7?rs=1&pid=ImgDetMain&o=7&rm=3",
+    image: "https://avatars.githubusercontent.com/u/12345?v=4",
     id: "1234",
   };
 
@@ -64,11 +63,14 @@ export function UserMenu() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors">
-          <Image
-            src={user.image}
-            alt={user.name}
-            className="w-8 h-8 rounded-full"
-          />
+          <div className="rounded-full w-8 h-8 overflow-hidden relative">
+            <Image
+              fill
+              alt={user.name}
+              src={user.image || ""}
+              className="w-full h-full object-cover"
+            />
+          </div>
           <span className="text-sm font-medium text-foreground hidden sm:inline">
             {user.name}
           </span>
