@@ -18,7 +18,7 @@ async function bootstrap() {
     cors: {
       credentials: true,
       origin: [process.env.FRONTEND_URL!],
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     },
     bufferLogs: true,
   });
