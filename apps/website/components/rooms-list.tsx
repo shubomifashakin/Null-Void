@@ -87,7 +87,7 @@ export default function RoomsList() {
       <div className="flex justify-end">
         <Button
           onClick={handleIsCreatingRoom}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          className="bg-primary cursor-pointer text-primary-foreground hover:bg-primary/90"
         >
           {isCreatingRoom ? "Cancel" : "+ Create Room"}
         </Button>
@@ -138,7 +138,7 @@ export default function RoomsList() {
                 variant="outline"
                 disabled={isPending}
                 onClick={handleIsCreatingRoom}
-                className="border-border text-foreground hover:bg-background"
+                className="border-border text-foreground hover:bg-background cursor-pointer"
               >
                 Cancel
               </Button>
@@ -146,7 +146,7 @@ export default function RoomsList() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-primary cursor-pointer text-primary-foreground hover:bg-primary/90"
               >
                 {isPending ? "Creating..." : "Create"}
               </Button>

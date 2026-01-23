@@ -17,7 +17,7 @@ export default function Page() {
         <div className="flex gap-2 border-b border-border mb-8">
           <button
             onClick={() => setActiveTab("rooms")}
-            className={`px-4 py-2 font-medium text-sm transition-colors ${
+            className={`px-4 cursor-pointer py-2 font-medium text-sm transition-colors ${
               activeTab === "rooms"
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -28,7 +28,7 @@ export default function Page() {
 
           <button
             onClick={() => setActiveTab("invites")}
-            className={`px-4 py-2 font-medium text-sm transition-colors ${
+            className={`px-4 cursor-pointer py-2 font-medium text-sm transition-colors ${
               activeTab === "invites"
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
