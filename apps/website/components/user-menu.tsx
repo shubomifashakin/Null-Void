@@ -5,7 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { LoaderCircle } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import {
   DropdownMenu,
@@ -14,18 +15,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { logout } from "@/data-service/mutations";
+import { logout, getAccountInfo } from "@/data-service/mutations";
 
+//FIXME: correclty implement
 export function UserMenu() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  const user = {
-    name: "Fashakin Olashubomi",
-    email: "nelsonstretch34@gmail.com",
-    image: "https://avatars.githubusercontent.com/u/12345?v=4",
-    id: "1234",
-  };
+  const { data, status, error } = useQuery({
+    staleTime: Infinity,
+    queryFn: getAccountInfo,
+    queryKey: ["account-info"],
+  });
 
   const { mutate, isPending } = useMutation({
     mutationFn: logout,
@@ -63,24 +64,30 @@ export function UserMenu() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors">
-          <div className="rounded-full w-8 h-8 overflow-hidden relative">
-            <Image
-              fill
-              alt={user.name}
-              src={user.image || ""}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <span className="text-sm font-medium text-foreground hidden sm:inline">
-            {user.name}
-          </span>
+          {status === "success" && (
+            <>
+              <div className="rounded-full w-8 h-8 overflow-hidden relative">
+                <Image
+                  fill
+                  src={data?.picture || ""}
+                  alt={data?.name || "User"}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-sm font-medium text-foreground hidden sm:inline">
+                {data?.name}
+              </span>
+            </>
+          )}
+
+          {status === "pending" && <LoaderCircle className="animate-spin" />}
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-48">
         <div className="px-2 py-1.5">
-          <p className="text-sm font-semibold text-foreground">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
+          <p className="text-sm font-semibold text-foreground">{data?.name}</p>
+          <p className="text-xs text-muted-foreground">{data?.email}</p>
         </div>
 
         <DropdownMenuSeparator />

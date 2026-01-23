@@ -1,3 +1,4 @@
+import { AccountInfo } from "@/types/accountInfo";
 import { Room } from "@/types/room";
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
@@ -114,13 +115,7 @@ export async function getAccountInfo() {
     throw new Error(error.message, { cause: request.status });
   }
 
-  const response = (await request.json()) as {
-    name: string;
-    id: string;
-    email: string;
-    picture: string | null;
-    created_at: Date;
-  };
+  const response = (await request.json()) as AccountInfo;
 
   return response;
 }
