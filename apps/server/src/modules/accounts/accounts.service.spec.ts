@@ -1,5 +1,5 @@
 import { JwtService } from '@nestjs/jwt';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
@@ -22,6 +22,10 @@ const mockDatabaseService = {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+  },
+  invite: {
+    findUniqueOrThrow: jest.fn(),
+    update: jest.fn(),
   },
 };
 
@@ -170,6 +174,35 @@ describe('AccountsService', () => {
         makeAccountKey('test-user-id'),
       );
     });
+
+    it('should update the invite', async () => {
+      mockDatabaseService.invite.findUniqueOrThrow.mockResolvedValue({
+        status: 'PENDING',
+      });
+      mockDatabaseService.invite.update.mockResolvedValue(true);
+
+      const inviteId = 'test-invite-id';
+      await service.updateInvite(inviteId, 'ACCEPTED');
+
+      expect(mockDatabaseService.invite.findUniqueOrThrow).toHaveBeenCalledWith(
+        {
+          where: {
+            id: inviteId,
+          },
+          select: {
+            status: true,
+          },
+        },
+      );
+      expect(mockDatabaseService.invite.update).toHaveBeenCalledWith({
+        where: {
+          id: inviteId,
+        },
+        data: {
+          status: 'ACCEPTED',
+        },
+      });
+    });
   });
 
   describe('Unsuccessful Tests', () => {
@@ -211,6 +244,18 @@ describe('AccountsService', () => {
 
       await expect(service.deleteAccount('test-user-id')).rejects.toThrow(
         PrismaClientKnownRequestError,
+      );
+    });
+
+    it('should not update the invite because it was already updated', async () => {
+      mockDatabaseService.invite.findUniqueOrThrow.mockResolvedValue({
+        status: 'ACCEPTED',
+      });
+      mockDatabaseService.invite.update.mockResolvedValue(true);
+
+      const inviteId = 'test-invite-id';
+      await expect(service.updateInvite(inviteId, 'ACCEPTED')).rejects.toThrow(
+        BadRequestException,
       );
     });
   });
