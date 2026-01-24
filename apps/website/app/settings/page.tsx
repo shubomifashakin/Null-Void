@@ -227,15 +227,15 @@ function AccountInfo({
               <Button
                 variant="outline"
                 onClick={handleCancelUpdate}
-                className="border-border text-foreground hover:bg-background"
+                className="border-border text-foreground cursor-pointer hover:bg-background"
               >
                 Cancel
               </Button>
 
               <Button
-                disabled={isUpdating}
+                disabled={isUpdating || isDeleting}
                 onClick={() => handleUpdateAccountInfo({ name })}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
               >
                 {isUpdating ? "Saving..." : "Save Changes"}
               </Button>
@@ -285,7 +285,7 @@ function AccountInfo({
 
               <Button
                 variant="destructive"
-                disabled={isDeleting}
+                disabled={isDeleting || isUpdating}
                 className="cursor-pointer"
                 onClick={handleDeleteAccount}
               >
