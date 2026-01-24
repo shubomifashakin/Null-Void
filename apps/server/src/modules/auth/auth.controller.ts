@@ -68,7 +68,7 @@ export class AuthController {
       domain: this.configService.DOMAIN.data,
     });
 
-    res.redirect(302, this.configService.FRONTEND_URL.data);
+    res.redirect(302, `${this.configService.FRONTEND_URL.data}/dashboard`);
   }
 
   @Post('logout')

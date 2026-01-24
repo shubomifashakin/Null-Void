@@ -167,7 +167,7 @@ describe('AuthController', () => {
       expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
       expect(mockResponse.redirect).toHaveBeenCalledWith(
         302,
-        expect.stringContaining('test-frontend-url'),
+        expect.stringContaining('test-frontend-url' + '/dashboard'),
       );
     });
 
