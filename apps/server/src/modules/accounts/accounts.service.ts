@@ -131,6 +131,9 @@ export class AccountsService {
       where: {
         email: usersEmail.email,
         status: 'PENDING',
+        expires_at: {
+          gt: new Date(),
+        },
       },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,

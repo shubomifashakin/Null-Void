@@ -125,10 +125,7 @@ export default function InvitesList() {
 
                   <div className="flex-1">
                     <div className="flex items-center gap-x-1.5">
-                      <p className="font-semibold text-foreground">
-                        Join{" "}
-                        <span className="text-primary">{invite.roomName}</span>
-                      </p>
+                      <p className="font-semibold ">{invite.roomName}</p>
 
                       <span className="text-sm text-muted-foreground capitalize">
                         {" "}
@@ -139,7 +136,8 @@ export default function InvitesList() {
                     <p className="text-sm text-muted-foreground">
                       Invited by{" "}
                       <span className="font-medium">{invite.invitersName}</span>{" "}
-                      • {new Date(invite.createdAt).toLocaleDateString()}
+                      • Expires{" "}
+                      {new Date(invite.expiresAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
