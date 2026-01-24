@@ -6,17 +6,19 @@ const queryClientProvider = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        if (error.cause === 400) {
-          return false;
-        }
-
-        if (error.cause === 429) {
+        if (
+          error.cause === 400 ||
+          error.cause === 401 ||
+          error.cause === 403 ||
+          error.cause === 404 ||
+          error.cause === 429
+        ) {
           return false;
         }
 
         return failureCount < 3;
       },
-      retryDelay: 5000,
+      retryDelay: 3000,
     },
   },
 });
