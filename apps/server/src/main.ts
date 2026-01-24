@@ -12,6 +12,7 @@ import { QueueRedisService } from './core/queue-redis/queue-redis.service';
 import { RedisIoAdapter } from './core/redis-io-adapter/redis-io-adapter';
 
 import { PrismaKnownErrorFilter } from './common/filters/prisma-known-error.filter';
+import { AppConfigService } from './core/app-config/app-config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -23,7 +24,11 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
-  const redisIoAdapter = new RedisIoAdapter(app.get(QueueRedisService), app);
+  const redisIoAdapter = new RedisIoAdapter(
+    app.get(QueueRedisService),
+    app,
+    app.get(AppConfigService),
+  );
   await redisIoAdapter.connectToRedis();
 
   app.useWebSocketAdapter(redisIoAdapter);
