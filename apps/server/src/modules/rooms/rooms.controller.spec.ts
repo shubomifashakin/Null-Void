@@ -332,7 +332,7 @@ describe('RoomsController', () => {
         html: generateInviteMail({
           inviterName: invitersInfo.name,
           roomName: inviteInfo.room.name,
-          inviteLink: `${mockConfigService.FRONTEND_URL.data}/invites/${inviteInfo.id}`,
+          inviteLink: `${mockConfigService.FRONTEND_URL.data}/dashboard?tab=invites`,
           expiryDate: inviteInfo.expires_at,
         }),
       }),
