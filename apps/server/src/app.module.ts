@@ -111,13 +111,27 @@ import { AppConfigService } from './core/app-config/app-config.service';
       },
       assignResponse: false,
     }),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      signOptions: {
-        expiresIn: '10m',
-        algorithm: DEFAULT_JWT_ALG,
+      imports: [AppConfigModule],
+      useFactory: (configService: AppConfigService) => {
+        return {
+          signOptions: {
+            expiresIn: '10m',
+            algorithm: DEFAULT_JWT_ALG,
+          },
+          verifyOptions: {
+            algorithms: [DEFAULT_JWT_ALG],
+          },
+          secretOrKeyProvider() {
+            return configService.JWT_SECRET.data!;
+          },
+          secret: configService.JWT_SECRET.data!,
+          privateKey: configService.JWT_SECRET.data!,
+          publicKey: configService.JWT_PUBLIC_KEY.data!,
+        };
       },
-      secret: process.env.JWT_SECRET!,
+      inject: [AppConfigService],
     }),
     BullModule.forRootAsync({
       imports: [AppConfigModule],

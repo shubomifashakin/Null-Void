@@ -18,7 +18,7 @@ export const SECONDS_10_MS = SECONDS_10 * 1000;
 export const SECONDS_20 = 20;
 export const SECONDS_20_MS = SECONDS_20 * 1000;
 
-export const DEFAULT_JWT_ALG: Algorithm = 'HS256';
+export const DEFAULT_JWT_ALG: Algorithm = 'RS256';
 
 export const TOKEN = {
   ACCESS: {

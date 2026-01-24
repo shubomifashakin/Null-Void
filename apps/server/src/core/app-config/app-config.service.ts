@@ -107,6 +107,20 @@ export class AppConfigService {
     }
   }
 
+  get JWT_PUBLIC_KEY(): FnResult<string> {
+    try {
+      const jwtPublicKey = this.config.getOrThrow<string>('JWT_PUBLIC_KEY');
+
+      return { success: true, data: jwtPublicKey, error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
   get BASE_URL(): FnResult<string> {
     try {
       const baseUrl = this.config.getOrThrow<string>('BASE_URL');
