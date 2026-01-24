@@ -147,7 +147,7 @@ export default function InvitesList() {
                     variant="outline"
                     disabled={isPending}
                     onClick={() => handleDecline(invite.id)}
-                    className="border-border text-foreground hover:bg-background"
+                    className="border-border text-foreground cursor-pointer hover:bg-background"
                   >
                     Decline
                   </Button>
@@ -155,7 +155,7 @@ export default function InvitesList() {
                   <Button
                     disabled={isPending}
                     onClick={() => handleAccept(invite.id)}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
                   >
                     Accept
                   </Button>
