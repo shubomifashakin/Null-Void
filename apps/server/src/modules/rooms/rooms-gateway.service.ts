@@ -562,6 +562,15 @@ export class RoomsGatewayService {
         return;
       }
 
+      if (userId === clientInfo.userId) {
+        this.logger.debug({ message: 'User tried removing themself' });
+
+        return client.emit(WS_EVENTS.ROOM_ERROR, {
+          message: 'Cannot remove yourself',
+          code: WS_ERROR_CODES.BAD_REQUEST,
+        });
+      }
+
       const socketOfUserToBeRemoved = await this.getUserSocket(
         server,
         userId,

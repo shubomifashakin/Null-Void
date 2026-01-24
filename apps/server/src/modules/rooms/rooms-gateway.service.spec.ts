@@ -859,6 +859,30 @@ describe('RoomsGatewayService', () => {
   });
 
   describe('remove events', () => {
+    it('should not handle the remove event because user tried removing themself', async () => {
+      const roomId = 'room-1';
+      const userId = 'test-user-id';
+      const userToRemove = userId;
+
+      mockSocket.handshake.query.roomId = roomId;
+      mockSocket.data = {
+        userId,
+        role: 'ADMIN',
+        name: 'Test User',
+        joinedAt: new Date(),
+        picture: null,
+      };
+
+      await service.handleRemove(mockServer, mockSocket, userToRemove);
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.ROOM_ERROR, {
+        message: expect.any(String),
+        code: WS_ERROR_CODES.BAD_REQUEST,
+      });
+
+      expect(mockServer.in).not.toHaveBeenCalled();
+    });
+
     it('should handle the remove event', async () => {
       const roomId = 'room-1';
       const userId = 'test-user-id';
