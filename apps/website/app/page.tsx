@@ -40,8 +40,10 @@ export default function Page() {
         </div>
 
         <p className="text-sm text-muted-foreground pt-8">
-          Made with <span className="text-primary">❤️</span> by Fashakin
-          Olashubomi
+          Made with <span className="text-primary">❤️</span> by{" "}
+          <a href="https://545plea.xyz" target="_blank">
+            Fashakin Olashubomi
+          </a>
         </p>
       </div>
     </main>
