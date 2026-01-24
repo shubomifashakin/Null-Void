@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
 
   if (payload) return NextResponse.next();
 
-  const response = await fetch(backendUrl + "auth/refresh", {
+  const response = await fetch(backendUrl + "/auth/refresh", {
     method: "GET",
     credentials: "include",
   });
