@@ -1,7 +1,9 @@
 "use client";
 
-import { RoomInfoPayload } from "@null-void/shared";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { RoomInfoPayload } from "@null-void/shared";
 
 interface RoomInfoPanelProps {
   isAdmin: boolean;
@@ -9,62 +11,98 @@ interface RoomInfoPanelProps {
   onUpdate: (name: string, description: string) => void;
 }
 
+interface Inputs {
+  name: string;
+  description: string;
+}
+
 export default function RoomInfoPanel({
   room,
   isAdmin,
   onUpdate,
 }: RoomInfoPanelProps) {
-  const [name, setName] = useState(room.name);
   const [isEditing, setIsEditing] = useState(false);
-  const [description, setDescription] = useState(room.description);
 
-  function handleSave() {
-    onUpdate(name.trim(), description.trim());
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<Inputs>({ defaultValues: room });
+
+  function onSubmit(data: Inputs) {
+    onUpdate(data.name.trim(), data.description.trim());
     setIsEditing(false);
   }
 
   function handleCancel() {
-    setName(room.name);
-    setDescription(room.description);
+    reset();
     setIsEditing(false);
   }
 
   if (isEditing && isAdmin) {
     return (
-      <div className="border border-border rounded p-4 bg-background space-y-3">
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-2">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="border border-border rounded p-4 bg-background space-y-3"
+      >
+        <div className="space-y-1">
+          <label className="block text-xs font-semibold text-foreground">
             Room Name
           </label>
 
+          {errors.name?.message && (
+            <p className="text-xs text-destructive">{errors.name.message}</p>
+          )}
+
           <input
             type="text"
-            value={name}
-            minLength={3}
-            maxLength={20}
-            onChange={(e) => setName(e.target.value)}
+            {...register("name", {
+              required: { value: true, message: "Name is required" },
+              minLength: {
+                value: 3,
+                message: "Must be at least 3 characters long",
+              },
+              maxLength: {
+                value: 20,
+                message: "Must be at most 20 characters long",
+              },
+            })}
             className="w-full px-3 py-2 text-sm bg-card border border-border rounded focus:outline-none focus:border-primary"
           />
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-2">
+        <div className="space-y-1">
+          <label className="block text-xs font-semibold text-foreground ">
             Description
           </label>
 
+          {errors.description?.message && (
+            <p className="text-xs text-destructive">
+              {errors.description.message}
+            </p>
+          )}
+
           <textarea
             rows={3}
-            minLength={5}
-            maxLength={100}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            {...register("description", {
+              required: { value: true, message: "Description is required" },
+              minLength: {
+                value: 5,
+                message: "Description must be at least 5 characters long",
+              },
+              maxLength: {
+                value: 100,
+                message: "Description must be at most 100 characters long",
+              },
+            })}
             className="w-full px-3 py-2 text-sm bg-card border border-border rounded focus:outline-none focus:border-primary resize-none"
           />
         </div>
 
         <div className="flex gap-2">
           <button
-            onClick={handleSave}
+            type="submit"
             className="flex-1 px-3 cursor-pointer py-2 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
           >
             Save
@@ -77,7 +115,7 @@ export default function RoomInfoPanel({
             Cancel
           </button>
         </div>
-      </div>
+      </form>
     );
   }
 
