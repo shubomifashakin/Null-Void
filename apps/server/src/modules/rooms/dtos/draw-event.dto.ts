@@ -1,5 +1,15 @@
 import { Type } from 'class-transformer';
 import {
+  type Points,
+  type DrawEventBase,
+  type LineEvent,
+  type CircleEvent,
+  type PolygonEvent,
+  type FillStyle,
+  type DrawEvent as SharedDrawEvent,
+} from '@null-void/shared';
+
+import {
   IsArray,
   IsIn,
   IsNumber,
@@ -14,44 +24,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export interface Points {
-  x: number;
-  y: number;
-}
-
-export interface FillStyle {
-  color: string;
-  opacity: number;
-}
-
-interface DrawEventBase {
-  type: 'line' | 'circle' | 'polygon';
-  strokeColor: string;
-  strokeWidth: number;
-  timestamp: string;
-  id: string;
-}
-
-export interface LineEvent extends DrawEventBase {
-  type: 'line';
-  from: Points;
-  to: Points;
-}
-
-export interface CircleEvent extends DrawEventBase {
-  type: 'circle';
-  radius: number;
-  center: Points;
-  fillStyle?: FillStyle;
-}
-
-export interface PolygonEvent extends DrawEventBase {
-  type: 'polygon';
-  points: Points[];
-  fillStyle?: FillStyle;
-}
-
-export type DrawEvent = LineEvent | CircleEvent | PolygonEvent;
+export type DrawEvent = SharedDrawEvent;
 
 export class PointsDto implements Points {
   @IsNumber()
