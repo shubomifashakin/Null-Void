@@ -904,6 +904,7 @@ describe('RoomsGatewayService', () => {
         picture: null,
       };
 
+      const removedUserEmit = jest.fn();
       mockServer.fetchSockets.mockResolvedValue([
         {
           data: {
@@ -911,7 +912,8 @@ describe('RoomsGatewayService', () => {
             userId: userToRemove,
           },
           disconnect: () => {},
-        } as Pick<Socket, 'data' | 'disconnect'>,
+          emit: removedUserEmit,
+        } as unknown as Pick<Socket, 'data' | 'disconnect' | 'emit'>,
       ]);
 
       mockDatabaseService.roomMember.findUnique.mockResolvedValue({
@@ -929,6 +931,13 @@ describe('RoomsGatewayService', () => {
 
       expect(mockServer.in).toHaveBeenCalledWith(roomId);
       expect(mockServer.fetchSockets).toHaveBeenCalled();
+
+      expect(removedUserEmit).toHaveBeenCalledWith(
+        WS_EVENTS.ROOM_NOTIFICATION,
+        {
+          message: `You were removed from the room`,
+        },
+      );
 
       expect(mockServer.to).toHaveBeenCalledWith(roomId);
       expect(mockServer.emit).toHaveBeenCalledWith(

@@ -16,6 +16,7 @@ import {
 
 import {
   CircleEventDto,
+  DrawEventPayload,
   LineEventDto,
   PolygonEventDto,
 } from './dtos/draw-event.dto';
@@ -112,7 +113,7 @@ export class RoomsGatewayService {
       client.to(roomId).emit(WS_EVENTS.USER_DRAW, {
         ...data,
         userId: clientInfo.userId,
-      });
+      } satisfies DrawEventPayload & { userId: string });
 
       //reschedule idle snapshot job
       const rescheduleIdleSnapshotJob = await this.rescheduleIdleSnapshotJob(
