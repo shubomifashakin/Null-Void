@@ -68,7 +68,7 @@ export default function InvitePanel({
 
     onSuccess: () => {
       reset();
-      toast.info("Invitation sent successfully!");
+      toast.info("Invitation sent!");
 
       queryClient.invalidateQueries({ queryKey: ["room-invites"] });
     },
