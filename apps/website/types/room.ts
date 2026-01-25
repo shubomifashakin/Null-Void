@@ -1,5 +1,6 @@
-export type Role = "ADMIN" | "MEMBER";
+import type { Role as UserRole } from "@null-void/shared";
 
+export type Role = UserRole;
 export interface Room {
   role: Role;
   id: string;
