@@ -32,6 +32,8 @@ export type UndoDrawPayload = {
   code: number;
 };
 
+export type Role = "ADMIN" | "VIEWER" | "EDITOR";
+
 export type RoomInfoPayload = {
   name: string;
   description: string;
@@ -39,7 +41,7 @@ export type RoomInfoPayload = {
 
 export type UserInfoPayload = {
   name: string;
-  role: "ADMIN" | "VIEWER" | "EDITOR";
+  role: Role;
   userId: string;
   picture: string | null;
   joinedAt: Date;
@@ -82,3 +84,42 @@ export type UserMovePayload = {
   timestamp: string;
   isPenDown: boolean;
 };
+
+export interface Points {
+  x: number;
+  y: number;
+}
+
+export interface FillStyle {
+  color: string;
+  opacity: number;
+}
+
+export interface DrawEventBase {
+  type: "line" | "circle" | "polygon";
+  strokeColor: string;
+  strokeWidth: number;
+  timestamp: string;
+  id: string;
+}
+
+export interface LineEvent extends DrawEventBase {
+  type: "line";
+  from: Points;
+  to: Points;
+}
+
+export interface CircleEvent extends DrawEventBase {
+  type: "circle";
+  radius: number;
+  center: Points;
+  fillStyle?: FillStyle;
+}
+
+export interface PolygonEvent extends DrawEventBase {
+  type: "polygon";
+  points: Points[];
+  fillStyle?: FillStyle;
+}
+
+export type DrawEvent = LineEvent | CircleEvent | PolygonEvent;
