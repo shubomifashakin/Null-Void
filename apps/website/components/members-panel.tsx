@@ -29,12 +29,10 @@ export default function MembersPanel({
             key={member.userId}
             className="flex items-center justify-between gap-2 p-3 bg-background rounded border border-border hover:border-primary/30 transition-colors"
           >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-medium text-foreground truncate">
-                  {member.name}
-                </p>
-              </div>
+            <div className="flex-1 min-w-0 space-y-2">
+              <p className="text-xs font-medium text-foreground truncate">
+                {member.name}
+              </p>
 
               <p
                 className={`text-xs px-2 py-0.5 rounded w-fit mt-1 ${getRoleColor(member.role)}`}
