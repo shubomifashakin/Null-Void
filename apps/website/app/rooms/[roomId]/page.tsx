@@ -9,7 +9,6 @@ import { ArrowLeft } from "lucide-react";
 
 import {
   DrawEvent,
-  Role,
   RoomErrorPayload,
   RoomInfoPayload,
   RoomNotificationPayload,
@@ -24,6 +23,7 @@ import {
 } from "@null-void/shared";
 
 import RoomCanvas from "@/components/room-canvas";
+import InvitePanel from "@/components/invite-panel";
 import RoomLoading from "@/components/rooms-loading";
 import ToolbarPanel from "@/components/toolbar-panel";
 import MembersPanel from "@/components/members-panel";
@@ -47,59 +47,39 @@ export default function Page() {
   const [drawEvents, setDrawEvents] = useState<DrawEvent[]>([]);
   const [connectedUsers, setConnectedUsers] = useState<UserInfoPayload[]>([]);
 
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<Role>();
-
   const [selectedTool, setSelectedTool] = useState<
     "cursor" | "circle" | "polygon" | "line"
   >("cursor");
 
   const [activeTab, setActiveTab] = useState<"info" | "invites">("info");
 
-  const pendingInvites = [
-    {
-      id: "1",
-      email: "john@example.com",
-      role: "editor" as const,
-      sentAt: "2 hours ago",
-    },
-    {
-      id: "2",
-      email: "jane@example.com",
-      role: "viewer" as const,
-      sentAt: "1 day ago",
-    },
-  ];
-
   function handleRemoveMember(userId: string) {
-    if (userInfo?.role !== "ADMIN") return;
+    if (userInfo?.role !== "ADMIN" || !socket) return;
 
-    console.log("Remove member:", userId);
+    socket.emit(WS_EVENTS.USER_REMOVE, { userId });
   }
 
   function handleGoBack() {
     router.back();
   }
 
-  function handleRevokeInvite(inviteId: string) {
-    if (userInfo?.role !== "ADMIN") return;
-    console.log("Revoke invite:", inviteId);
-  }
-
-  function handleSendInvite() {
-    if (userInfo?.role !== "ADMIN") return;
-
-    console.log("Send invite to:", inviteEmail, "with role:", inviteRole);
-  }
+  const handleConnect = useCallback(() => {
+    setConnected(true);
+  }, []);
 
   function handleLeaveRoom() {
-    //emit the leave event
+    if (!socket) return;
+
+    socket.emit(WS_EVENTS.ROOM_LEAVE, { userId: userInfo?.userId });
   }
 
   function handleUpdateRoom(name: string, description: string) {
-    if (userInfo?.role !== "ADMIN") return;
+    if (userInfo?.role !== "ADMIN" || !socket) return;
 
-    console.log("Update room:", name, description);
+    socket.emit(WS_EVENTS.ROOM_INFO, {
+      name,
+      description,
+    } satisfies RoomInfoPayload);
   }
 
   function handleCanvasState(event) {
@@ -193,7 +173,7 @@ export default function Page() {
     function () {
       if (!socket) return;
 
-      socket.on("connect_error", (error) => {
+      socket.on("connect_error", () => {
         if (socket.active) {
           setReconnecting(true);
         } else {
@@ -202,9 +182,7 @@ export default function Page() {
         }
       });
 
-      socket.on("connect", () => {
-        console.log("connected");
-      });
+      socket.on("connect", handleConnect);
 
       socket.on(WS_EVENTS.CANVAS_STATE, handleCanvasState);
 
@@ -236,8 +214,8 @@ export default function Page() {
 
       return () => {
         socket.off("connect_error");
-        socket.off("connect");
-        socket.off("disconnect");
+        socket.off("connect", handleConnect);
+        socket.off("disconnect", handleCurrentUserDisconnected);
         socket.off(WS_EVENTS.ROOM_INFO, handleRoomInfo);
         socket.off(WS_EVENTS.ROOM_ERROR, handleRoomError);
         socket.off(WS_EVENTS.ROOM_NOTIFICATION, handleRoomNotification);
@@ -258,6 +236,7 @@ export default function Page() {
       handleUserJoined,
       handleRoomNotification,
       handleUserPromoted,
+      handleConnect,
       handleUserList,
     ]
   );
@@ -286,10 +265,11 @@ export default function Page() {
       </div>
 
       <div className="w-64 border-l border-border bg-card flex flex-col">
-        <CurrentUserPanel user={userInfo!} onLeaveRoom={handleGoBack} />
+        <CurrentUserPanel user={userInfo!} onLeaveRoom={handleLeaveRoom} />
 
         <div className="px-4 py-3 border-b border-border flex gap-2">
           <button
+            title="Info"
             onClick={() => setActiveTab("info")}
             className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
               activeTab === "info"
@@ -301,6 +281,7 @@ export default function Page() {
           </button>
 
           <button
+            title="Invites"
             onClick={() => setActiveTab("invites")}
             className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
               activeTab === "invites"
@@ -321,85 +302,17 @@ export default function Page() {
                 isAdmin={userInfo!.role! === "ADMIN"}
               />
 
-              <div className="border-t border-border pt-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3">
-                  Members ({connectedUsers.length})
-                </h3>
-
-                <MembersPanel
-                  members={connectedUsers}
-                  isAdmin={userInfo!.role === "ADMIN"}
-                  onRemoveMember={handleRemoveMember}
-                />
-              </div>
+              <MembersPanel
+                members={connectedUsers}
+                totalConnectedUsers={connectedUsers.length}
+                isAdmin={userInfo!.role === "ADMIN"}
+                onRemoveMember={handleRemoveMember}
+              />
             </div>
           </Activity>
 
           <Activity mode={activeTab === "invites" ? "visible" : "hidden"}>
-            <div className="p-4">
-              <div className="space-y-4">
-                {userInfo!.role === "ADMIN" && (
-                  <div className="border border-border rounded p-3 bg-background">
-                    <input
-                      type="email"
-                      value={inviteEmail}
-                      placeholder="Enter email to invite..."
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-2"
-                    />
-
-                    <select className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-2">
-                      <option value={"VIEWER"}>Viewer</option>
-
-                      <option value={"EDITOR"}>Editor</option>
-
-                      <option value={"ADMIN"}>Admin</option>
-                    </select>
-
-                    <button
-                      onClick={handleSendInvite}
-                      className="w-full px-3 py-2 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                    >
-                      Send Invite
-                    </button>
-                  </div>
-                )}
-
-                {pendingInvites.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase">
-                      Pending
-                    </h4>
-
-                    {pendingInvites.map((invite) => (
-                      <div
-                        key={invite.id}
-                        className="flex items-center justify-between gap-2 p-3 bg-background rounded mb-2 border border-border"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-foreground truncate">
-                            {invite.email}
-                          </p>
-
-                          <p className="text-xs text-muted-foreground">
-                            {invite.role}
-                          </p>
-                        </div>
-
-                        {userInfo!.role === "ADMIN" && (
-                          <button
-                            onClick={() => handleRevokeInvite(invite.id)}
-                            className="text-xs px-2 py-1 text-destructive hover:bg-destructive/10 rounded transition-colors"
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <InvitePanel roomId={roomId} isAdmin={userInfo!.role === "ADMIN"} />
           </Activity>
         </div>
       </div>

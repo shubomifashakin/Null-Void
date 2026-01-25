@@ -19,7 +19,7 @@ export default function RoomInfoPanel({
   const [description, setDescription] = useState(room.description);
 
   function handleSave() {
-    onUpdate(name, description);
+    onUpdate(name.trim(), description.trim());
     setIsEditing(false);
   }
 
@@ -40,6 +40,8 @@ export default function RoomInfoPanel({
           <input
             type="text"
             value={name}
+            minLength={3}
+            maxLength={20}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-card border border-border rounded focus:outline-none focus:border-primary"
           />
@@ -51,24 +53,26 @@ export default function RoomInfoPanel({
           </label>
 
           <textarea
+            rows={3}
+            minLength={5}
+            maxLength={100}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-card border border-border rounded focus:outline-none focus:border-primary resize-none"
-            rows={3}
           />
         </div>
 
         <div className="flex gap-2">
           <button
             onClick={handleSave}
-            className="flex-1 px-3 py-2 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+            className="flex-1 px-3 cursor-pointer py-2 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
           >
             Save
           </button>
 
           <button
             onClick={handleCancel}
-            className="flex-1 px-3 py-2 text-xs font-medium text-foreground bg-background border border-border rounded hover:bg-card transition-colors"
+            className="flex-1 px-3 cursor-pointer py-2 text-xs font-medium text-foreground bg-background border border-border rounded hover:bg-card transition-colors"
           >
             Cancel
           </button>
@@ -80,9 +84,10 @@ export default function RoomInfoPanel({
   return (
     <div className="border border-border rounded p-4 bg-background space-y-3">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
+        <div className="flex-1 space-y-1">
           <h2 className="text-sm font-semibold text-foreground">{room.name}</h2>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+
+          <p className="text-xs text-muted-foreground line-clamp-2">
             {room.description}
           </p>
         </div>
@@ -90,7 +95,7 @@ export default function RoomInfoPanel({
         {isAdmin && (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-xs px-2 py-1 text-primary hover:bg-primary/10 rounded transition-colors whitespace-nowrap"
+            className="text-xs px-2 py-1 cursor-pointer text-primary hover:bg-primary/10 rounded transition-colors whitespace-nowrap"
           >
             Edit
           </button>
