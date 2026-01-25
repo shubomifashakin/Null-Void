@@ -1,6 +1,7 @@
 import { Room } from "@/types/room";
-import { Invites } from "@/types/invites";
+import { Invites, InviteStatus } from "@/types/invites";
 import { AccountInfo } from "@/types/accountInfo";
+import { Role } from "@null-void/shared";
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
@@ -178,6 +179,105 @@ export async function updateInviteStatus({
   };
 
   return data;
+}
+
+export async function sendInvite({
+  role,
+  email,
+  roomId,
+}: {
+  role: Role;
+  email: string;
+  roomId: string;
+}) {
+  const response = await fetchWithAuth(`${baseUrl}/rooms/${roomId}/invites`, {
+    method: "POST",
+    body: JSON.stringify({ email, role }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const error = (await response.json()) as { message: string };
+    throw new Error(error.message, { cause: response.status });
+  }
+
+  const data = (await response.json()) as {
+    message: string;
+  };
+
+  return data;
+}
+
+export async function revokeInvite({
+  roomId,
+  inviteId,
+}: {
+  inviteId: string;
+  roomId: string;
+}) {
+  const response = await fetchWithAuth(
+    `${baseUrl}/rooms/${roomId}/invites/${inviteId}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = (await response.json()) as { message: string };
+    throw new Error(error.message, { cause: response.status });
+  }
+
+  const data = (await response.json()) as {
+    message: string;
+  };
+
+  return data;
+}
+
+export async function getRoomInvites({
+  cursor,
+  roomId,
+}: {
+  cursor?: string;
+  roomId: string;
+}) {
+  const url = new URL(baseUrl + `/rooms/${roomId}/invites`);
+
+  if (cursor) {
+    url.searchParams.append("cursor", cursor);
+  }
+
+  const request = await fetchWithAuth(url.toString(), {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!request.ok) {
+    const error = (await request.json()) as { message: string };
+    throw new Error(error.message, { cause: request.status });
+  }
+
+  const response = (await request.json()) as {
+    data: {
+      id: string;
+      role: Role;
+      email: string;
+      status: InviteStatus;
+      expiresAt: Date;
+      invitersName: string;
+      invitersId: string;
+      createdAt: Date;
+    }[];
+    cursor?: string;
+    hasNextPage: boolean;
+  };
+
+  return response;
 }
 
 export async function fetchWithAuth(
