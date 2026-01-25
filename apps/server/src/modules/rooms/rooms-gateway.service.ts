@@ -639,6 +639,10 @@ export class RoomsGatewayService {
 
       const usersInfo = socketOfUserToBeRemoved.data.data;
 
+      socketOfUserToBeRemoved.data.emit(WS_EVENTS.ROOM_NOTIFICATION, {
+        message: 'You were removed from the room',
+      } satisfies RoomNotificationPayload);
+
       //disconnect that user, triggers disconnect block
       socketOfUserToBeRemoved.data.disconnect(true);
 
