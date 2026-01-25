@@ -1,9 +1,9 @@
-import { useState } from "react";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
 
@@ -14,9 +14,16 @@ import {
   revokeInvite,
   sendInvite,
 } from "@/data-service/mutations";
+
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+
 import { getRoleColor } from "@/lib/utils";
+
+type Inputs = {
+  role: Role;
+  email: string;
+};
 
 export default function InvitePanel({
   roomId,
@@ -27,8 +34,12 @@ export default function InvitePanel({
 }) {
   const queryClient = useQueryClient();
 
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role | undefined>();
+  const {
+    reset,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Inputs>();
 
   const {
     data,
@@ -56,9 +67,8 @@ export default function InvitePanel({
     mutationKey: ["invite-user"],
 
     onSuccess: () => {
+      reset();
       toast.info("Invitation sent successfully!");
-      setEmail("");
-      setRole(undefined);
 
       queryClient.invalidateQueries({ queryKey: ["room-invites"] });
     },
@@ -99,10 +109,10 @@ export default function InvitePanel({
     },
   });
 
-  function handleInvite() {
-    if (!email || !role || !roomId) return;
+  function onSubmit(data: Inputs) {
+    if (!roomId) return;
 
-    mutate({ email, role, roomId });
+    mutate({ email: data.email, role: data.role, roomId });
   }
 
   function handleRevokeInvite(inviteId: string) {
@@ -113,34 +123,65 @@ export default function InvitePanel({
     <div className="p-4">
       <div className="space-y-4">
         {isAdmin && (
-          <div className="border border-border rounded p-3 bg-background">
-            <input
-              type="email"
-              value={email}
-              placeholder="Enter email to invite..."
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-2"
-            />
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="border border-border space-y-1 rounded p-3 bg-background"
+          >
+            <div className="space-y-1">
+              {errors.email?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
 
-            <select
-              onChange={(e) => setRole(e.target.value as Role)}
-              className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-2"
-            >
-              <option value={"VIEWER"}>Viewer</option>
+              <input
+                required
+                type="email"
+                placeholder="Enter email to invite..."
+                {...register("email", {
+                  required: { value: true, message: "Email is required" },
+                })}
+                className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-1"
+              />
+            </div>
 
-              <option value={"EDITOR"}>Editor</option>
+            <div className="space-y-1">
+              {errors.role?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.role?.message}
+                </p>
+              )}
 
-              <option value={"ADMIN"}>Admin</option>
-            </select>
+              <select
+                required
+                {...register("role", {
+                  required: { value: true, message: "Role is required" },
+                  validate: (value) =>
+                    ["VIEWER", "EDITOR", "ADMIN"].includes(value) ||
+                    "Select a valid role",
+                })}
+                className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-1"
+              >
+                <option value="DEFAULT" disabled selected hidden>
+                  Select a role
+                </option>
+
+                <option value={"VIEWER"}>Viewer</option>
+
+                <option value={"EDITOR"}>Editor</option>
+
+                <option value={"ADMIN"}>Admin</option>
+              </select>
+            </div>
 
             <button
-              onClick={handleInvite}
-              disabled={!email || !role || !roomId || isPending}
+              type="submit"
+              disabled={isPending}
               className="w-full px-3 py-2 cursor-pointer text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
             >
-              Send Invite
+              {isPending ? "Sending..." : "Send Invite"}
             </button>
-          </div>
+          </form>
         )}
 
         {isLoadingError && (
