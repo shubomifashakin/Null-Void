@@ -31,26 +31,26 @@ export default function CurrentUserPanel({
   return (
     <div className="p-4 border-b border-border space-y-3 bg-background">
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase">
+        <p className="text-xs font-semibold text-muted-foreground capitalize">
           You
         </p>
 
-        <h3 className="text-sm font-semibold text-foreground mt-1">
-          {user.name}
-        </h3>
-      </div>
+        <div className="flex gap-x-3 items-center">
+          <h3 className="text-sm font-semibold text-foreground mt-1">
+            {user.name}
+          </h3>
 
-      <div>
-        <span
-          className={`inline-block text-xs px-2 py-1 rounded ${getRoleColor(user.role)}`}
-        >
-          {user.role}
-        </span>
+          <span
+            className={`inline-block text-xs px-2 py-1 rounded ${getRoleColor(user.role)}`}
+          >
+            {user.role}
+          </span>
+        </div>
       </div>
 
       <button
         onClick={onLeaveRoom}
-        className="w-full px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 border border-destructive/30 rounded transition-colors"
+        className="w-full cursor-pointer px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 border border-destructive/30 rounded transition-colors"
       >
         Leave Room
       </button>
