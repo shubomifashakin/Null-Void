@@ -533,6 +533,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
 
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
@@ -541,6 +542,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
 
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
@@ -618,6 +620,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_JOINED, {
@@ -625,6 +628,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
         users: [],
@@ -716,6 +720,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
       expect(mockSocket.to).toHaveBeenCalledWith(roomId);
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_JOINED, {
@@ -723,6 +728,7 @@ describe('RoomsGatewayService', () => {
         role: 'ADMIN',
         userId,
         picture: null,
+        joinedAt: expect.any(Date),
       });
       expect(mockSocket.emit).toHaveBeenCalledWith(WS_EVENTS.USER_LIST, {
         users: [],

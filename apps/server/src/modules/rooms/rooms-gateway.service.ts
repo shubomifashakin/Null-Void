@@ -41,21 +41,27 @@ import {
 } from './utils/fns';
 
 import { FnResult, makeError } from '../../types/fnResult';
-import { Roles } from '../../../generated/prisma/enums';
 
 import { DAYS_1, MINUTES_5_MS } from '../../common/constants';
 
 import { DrawEvent } from '../../core/protos/draw_event';
 import { DatabaseService } from '../../core/database/database.service';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
+import {
+  RoomErrorPayload,
+  RoomInfoPayload,
+  RoomNotificationPayload,
+  RoomReadyPayload,
+  UndoDrawPayload,
+  UserDisconnectedPayload,
+  UserInfoPayload,
+  UserJoinedPayload,
+  UserListPayload,
+  UserMovePayload,
+  UserPromotedPayload,
+} from '@null-void/shared';
 
-interface UserData {
-  userId: string;
-  role: Roles;
-  name: string;
-  picture: string | null;
-  joinedAt: Date;
-}
+type UserData = UserInfoPayload;
 
 @Injectable()
 export class RoomsGatewayService {
@@ -100,7 +106,7 @@ export class RoomsGatewayService {
         return client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
           code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
           id: data.id,
-        });
+        } satisfies UndoDrawPayload);
       }
 
       client.to(roomId).emit(WS_EVENTS.USER_DRAW, {
@@ -352,14 +358,15 @@ export class RoomsGatewayService {
       await client.join(roomId);
 
       const joinedAt = Date.now();
-
-      client.data = {
+      const connectedUserInfo: UserInfoPayload = {
         userId: userInfo.userId,
         role: userIsMember.role,
         name: userIsMember.user.name,
         picture: userIsMember.user.picture,
         joinedAt: new Date(joinedAt),
-      } satisfies UserData;
+      };
+
+      client.data = connectedUserInfo;
 
       const addedUserToCurrentlyActiveUsers =
         await this.addUserToCurrentlyActiveUsersList(
@@ -380,7 +387,7 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.ROOM_INFO, {
         name: userIsMember.room.name,
         description: userIsMember.room.description,
-      });
+      } satisfies RoomInfoPayload);
 
       //send the users own info in the room tot the user
       client.emit(WS_EVENTS.USER_INFO, {
@@ -388,7 +395,8 @@ export class RoomsGatewayService {
         role: userIsMember.role,
         userId: userInfo.userId,
         picture: userIsMember.user.picture,
-      });
+        joinedAt: new Date(joinedAt),
+      } satisfies UserInfoPayload);
 
       this.logger.debug({
         message: `User ${userInfo.userId} joined room ${roomId}`,
@@ -400,12 +408,13 @@ export class RoomsGatewayService {
         role: userIsMember.role,
         userId: userInfo.userId,
         picture: userIsMember.user.picture,
-      });
+        joinedAt: new Date(),
+      } satisfies UserJoinedPayload);
 
       //send the previous users in the room to the newly connected client
       client.emit(WS_EVENTS.USER_LIST, {
         users: usersCurrentlyInRoom.data,
-      });
+      } satisfies UserListPayload);
 
       const roomDrawEventsCacheKey = makeRoomDrawEventsCacheKey(roomId);
       const allPendingDrawEvents =
@@ -454,7 +463,7 @@ export class RoomsGatewayService {
         ready: true,
         timestamp: Date.now(),
         roomId,
-      });
+      } satisfies RoomReadyPayload);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling connection',
@@ -508,7 +517,7 @@ export class RoomsGatewayService {
 
       server.to(roomId).emit(WS_EVENTS.ROOM_INFO, {
         ...updatedRoomInfo,
-      });
+      } satisfies RoomInfoPayload);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error updating room info',
@@ -518,7 +527,7 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to update room info',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
-      });
+      } satisfies RoomErrorPayload);
     }
   }
 
@@ -544,7 +553,7 @@ export class RoomsGatewayService {
       //send a message to other connected users that the user disconnected
       client.to(roomId).emit(WS_EVENTS.USER_DISCONNECTED, {
         userId: clientInfo.userId,
-      });
+      } satisfies UserDisconnectedPayload);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling disconnection',
@@ -568,7 +577,7 @@ export class RoomsGatewayService {
         return client.emit(WS_EVENTS.ROOM_ERROR, {
           message: 'Cannot remove yourself',
           code: WS_ERROR_CODES.BAD_REQUEST,
-        });
+        } satisfies RoomErrorPayload);
       }
 
       const socketOfUserToBeRemoved = await this.getUserSocket(
@@ -637,7 +646,7 @@ export class RoomsGatewayService {
       if (usersInfo?.name) {
         server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
           message: `${usersInfo.name} was removed`,
-        });
+        } satisfies RoomNotificationPayload);
       }
     } catch (error: unknown) {
       this.logger.error({
@@ -648,7 +657,7 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to remove user',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
-      });
+      } satisfies RoomErrorPayload);
     }
   }
 
@@ -687,14 +696,14 @@ export class RoomsGatewayService {
 
       client.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
         message: `${clientInfo.name} left`,
-      });
+      } satisfies RoomNotificationPayload);
 
       client.disconnect(true);
     } catch (error: unknown) {
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to leave room',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
-      });
+      } satisfies RoomErrorPayload);
 
       this.logger.error({
         message: 'Failed to leave room',
@@ -763,11 +772,11 @@ export class RoomsGatewayService {
       server.to(roomId).emit(WS_EVENTS.USER_PROMOTED, {
         role: dto.role,
         userId: dto.userId,
-      });
+      } satisfies UserPromotedPayload);
 
       server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
         message: `${clientInfo.name} promoted ${dto.userId} to ${dto.role}`,
-      });
+      } satisfies RoomNotificationPayload);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Failed to promote user',
@@ -779,7 +788,7 @@ export class RoomsGatewayService {
           client.emit(WS_EVENTS.ROOM_ERROR, {
             message: 'User not found',
             code: WS_ERROR_CODES.NOT_FOUND,
-          });
+          } satisfies RoomErrorPayload);
 
           return;
         }
@@ -788,7 +797,7 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to promote user',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
-      });
+      } satisfies RoomErrorPayload);
     }
   }
 
@@ -804,7 +813,7 @@ export class RoomsGatewayService {
       client.to(roomId).emit(WS_EVENTS.USER_MOVE, {
         ...dto,
         userId: clientInfo.userId,
-      });
+      } satisfies UserMovePayload);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Failed to handle user move',

@@ -26,3 +26,59 @@ export function makeError(error: unknown): Error {
 
   return new Error(String(error));
 }
+
+export type UndoDrawPayload = {
+  id: string;
+  code: number;
+};
+
+export type RoomInfoPayload = {
+  name: string;
+  description: string;
+};
+
+export type UserInfoPayload = {
+  name: string;
+  role: "ADMIN" | "VIEWER" | "EDITOR";
+  userId: string;
+  picture: string | null;
+  joinedAt: Date;
+};
+
+export type UserJoinedPayload = UserInfoPayload;
+
+export type UserListPayload = {
+  users: UserInfoPayload[];
+};
+
+export type RoomReadyPayload = {
+  ready: boolean;
+  timestamp: number;
+  roomId: string;
+};
+
+export type RoomErrorPayload = {
+  message: string;
+  code: number;
+};
+
+export type UserDisconnectedPayload = {
+  userId: string;
+};
+
+export type RoomNotificationPayload = {
+  message: string;
+};
+
+export type UserPromotedPayload = {
+  role: "ADMIN" | "VIEWER" | "EDITOR";
+  userId: string;
+};
+
+export type UserMovePayload = {
+  userId: string;
+  x: number;
+  y: number;
+  timestamp: string;
+  isPenDown: boolean;
+};
