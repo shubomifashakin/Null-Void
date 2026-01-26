@@ -34,6 +34,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     site: "https://null-void.545plea.xyz",
   },
+  authors: [{ name: "Fashakin Olashubomi", url: "545plea.xyz" }],
 };
 
 export default function RootLayout({
