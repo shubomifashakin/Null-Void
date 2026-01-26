@@ -38,12 +38,12 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/\n/g, ''))
+  @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
   JWT_SECRET: string;
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/\n/g, ''))
+  @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
   JWT_PUBLIC_KEY: string;
 
   @IsString()

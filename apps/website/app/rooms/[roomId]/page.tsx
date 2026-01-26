@@ -34,12 +34,13 @@ import CurrentUserPanel from "@/components/current-user-panel";
 
 import { useSockets } from "@/hooks/useSockets";
 
+type Panels = "invites" | "info";
+
 export default function Page() {
   const router = useRouter();
+  const { socket } = useSockets();
   const { roomId } = useParams<{ roomId: string }>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const { socket } = useSockets();
 
   const {
     userInfo,
@@ -67,7 +68,7 @@ export default function Page() {
     "cursor" | "circle" | "polygon" | "line"
   >("cursor");
 
-  const [activeTab, setActiveTab] = useState<"info" | "invites">("info");
+  const [activeTab, setActiveTab] = useState<Panels>("info");
 
   function handleRemoveMember(userId: string) {
     if (userInfo?.role !== "ADMIN" || !socket) return;
@@ -305,31 +306,7 @@ export default function Page() {
       <div className="w-64 border-l border-border bg-card flex flex-col">
         <CurrentUserPanel user={userInfo!} onLeaveRoom={handleLeaveRoom} />
 
-        <div className="px-4 py-3 border-b border-border flex gap-2">
-          <button
-            title="Info"
-            onClick={() => setActiveTab("info")}
-            className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
-              activeTab === "info"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Info
-          </button>
-
-          <button
-            title="Invites"
-            onClick={() => setActiveTab("invites")}
-            className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
-              activeTab === "invites"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Invites
-          </button>
-        </div>
+        <PanelControls activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <div className="flex-1 overflow-y-auto">
           <Activity mode={activeTab === "info" ? "visible" : "hidden"}>
@@ -354,6 +331,42 @@ export default function Page() {
           </Activity>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PanelControls({
+  activeTab,
+  setActiveTab,
+}: {
+  activeTab: Panels;
+  setActiveTab: (val: Panels) => void;
+}) {
+  return (
+    <div className="px-4 py-3 border-b border-border flex gap-2">
+      <button
+        title="Info"
+        onClick={() => setActiveTab("info")}
+        className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
+          activeTab === "info"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Info
+      </button>
+
+      <button
+        title="Invites"
+        onClick={() => setActiveTab("invites")}
+        className={`flex-1 px-3 py-2 text-xs cursor-pointer font-medium rounded transition-colors ${
+          activeTab === "invites"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Invites
+      </button>
     </div>
   );
 }
