@@ -18,10 +18,10 @@ export default function Page() {
         </div>
 
         <div className="pt-8">
-          <a href="http://localhost:4000/api/v1/auth" target="_blank">
+          <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth`}>
             <Button
               size="lg"
-              className="bg-primary text-primary-foreground  hover:bg-primary/90 px-8 py-6 text-lg rounded-lg"
+              className="bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 px-8 py-6 text-lg rounded-lg"
             >
               <svg
                 className="w-5 h-5 mr-2"
