@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, useCallback, useEffect, useState } from "react";
+import { Activity, useCallback, useEffect, useRef, useState } from "react";
 
 import { useParams, useRouter } from "next/navigation";
 
@@ -37,6 +37,7 @@ import { useSockets } from "@/hooks/useSockets";
 export default function Page() {
   const router = useRouter();
   const { roomId } = useParams<{ roomId: string }>();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const { socket } = useSockets();
 
@@ -298,7 +299,7 @@ export default function Page() {
           onToolChange={setSelectedTool}
         />
 
-        <RoomCanvas tool={selectedTool} roomId={roomId} />
+        <RoomCanvas tool={selectedTool} canvasRef={canvasRef} />
       </div>
 
       <div className="w-64 border-l border-border bg-card flex flex-col">

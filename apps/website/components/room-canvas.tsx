@@ -2,11 +2,11 @@
 
 import React from "react";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface RoomCanvasProps {
   tool: "cursor" | "circle" | "polygon" | "line";
-  roomId: string;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
 interface DrawingState {
@@ -15,8 +15,7 @@ interface DrawingState {
   startY: number;
 }
 
-export default function RoomCanvas({ tool, roomId }: RoomCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export default function RoomCanvas({ tool, canvasRef }: RoomCanvasProps) {
   const [drawingState, setDrawingState] = useState<DrawingState>({
     isDrawing: false,
     startX: 0,
@@ -38,7 +37,7 @@ export default function RoomCanvas({ tool, roomId }: RoomCanvasProps) {
     window.addEventListener("resize", resizeCanvas);
 
     return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
+  }, [canvasRef]);
 
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
     if (tool === "cursor") return;
