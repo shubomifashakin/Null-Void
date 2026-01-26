@@ -22,6 +22,8 @@ import {
   WS_EVENTS,
 } from "@null-void/shared";
 
+import { useRoomState } from "@/stores/room-state";
+
 import RoomCanvas from "@/components/room-canvas";
 import InvitePanel from "@/components/invite-panel";
 import RoomLoading from "@/components/rooms-loading";
@@ -38,14 +40,27 @@ export default function Page() {
 
   const { socket } = useSockets();
 
-  const [connected, setConnected] = useState(false);
-  const [serverReady, setServerReady] = useState(false);
-  const [clientReady, setClientReady] = useState(true);
-  const [reconnecting, setReconnecting] = useState(false);
-  const [roomInfo, setRoomInfo] = useState<RoomInfoPayload>();
-  const [userInfo, setUserInfo] = useState<UserInfoPayload>();
-  const [drawEvents, setDrawEvents] = useState<DrawEvent[]>([]);
-  const [connectedUsers, setConnectedUsers] = useState<UserInfoPayload[]>([]);
+  const {
+    userInfo,
+    connectedUsers,
+    roomInfo,
+    reconnecting,
+    clientReady,
+    serverReady,
+    setConnected,
+    setDrawEvents,
+    setServerReady,
+    setClientReady,
+    setRoomInfo,
+    setUserInfo,
+    setReconnecting,
+    setConnectedUsers,
+    addConnectedUser,
+    addDrawEvent,
+    removeDrawEvent,
+    removeConnectedUser,
+    updateConnectedUserRole,
+  } = useRoomState();
 
   const [selectedTool, setSelectedTool] = useState<
     "cursor" | "circle" | "polygon" | "line"
@@ -65,7 +80,7 @@ export default function Page() {
 
   const handleConnect = useCallback(() => {
     setConnected(true);
-  }, []);
+  }, [setConnected]);
 
   function handleLeaveRoom() {
     if (!socket) return;
@@ -82,34 +97,49 @@ export default function Page() {
     } satisfies RoomInfoPayload);
   }
 
-  function handleCanvasState(event) {
-    console.log(event, "canvas state");
-    //loop through each event and draw on canvas
-    setDrawEvents(event.state);
+  const handleCanvasState = useCallback(
+    (event: { state: DrawEvent[] }) => {
+      setDrawEvents(event.state);
 
-    //FIXME: AFTEr looping through all events, set the client state to ready
-  }
+      //FIXME: IMPLEMENT LOGIC
+      for (let x = 0; x < event.state.length; x++) {}
 
-  function handleUndoDraw(event: UndoDrawPayload) {
-    //when message is received remove the draw event from
-    console.log(event);
-  }
+      setClientReady(true);
+    },
+    [setClientReady, setDrawEvents]
+  );
 
-  function handleRoomReady() {
+  const handleUndoDraw = useCallback(
+    (event: UndoDrawPayload) => {
+      //when message is received remove the draw event from
+      removeDrawEvent(event.id);
+
+      //FIXME: REMOVE THE DRAW FROM THE CANVAS
+    },
+    [removeDrawEvent]
+  );
+
+  const handleRoomReady = useCallback(() => {
     setServerReady(true);
-  }
+  }, [setServerReady]);
 
-  function handleRoomInfo(event: RoomInfoPayload) {
-    setRoomInfo(event);
-  }
+  const handleRoomInfo = useCallback(
+    (event: RoomInfoPayload) => {
+      setRoomInfo(event);
+    },
+    [setRoomInfo]
+  );
 
   function handleRoomError(event: RoomErrorPayload) {
     toast.error(event.message);
   }
 
-  function handleUserInfo(event: UserInfoPayload) {
-    setUserInfo(event);
-  }
+  const handleUserInfo = useCallback(
+    (event: UserInfoPayload) => {
+      setUserInfo(event);
+    },
+    [setUserInfo]
+  );
 
   function handleUserMove(event: UserMovePayload) {
     //FIXME: move the mouse to the new position
@@ -118,35 +148,34 @@ export default function Page() {
 
   const handleUserJoined = useCallback(
     (event: UserJoinedPayload) => {
-      setConnectedUsers([...connectedUsers, event]);
+      addConnectedUser(event);
     },
-    [connectedUsers]
+    [addConnectedUser]
   );
 
-  const handleUserList = useCallback((event: UserListPayload) => {
-    setConnectedUsers(event.users);
-  }, []);
+  const handleUserList = useCallback(
+    (event: UserListPayload) => {
+      setConnectedUsers(event.users);
+    },
+    [setConnectedUsers]
+  );
 
   const handleDrawEvent = useCallback(
     (event: DrawEvent) => {
       //FIXME: append the drawing to the list, needs acknowledgment
       console.log("draw event", event);
 
-      setDrawEvents([...drawEvents, event]);
+      addDrawEvent(event);
       //FIXME: DRAW ON THE CANVAS
     },
-    [drawEvents]
+    [addDrawEvent]
   );
 
   const handleUserPromoted = useCallback(
     (event: UserPromotedPayload) => {
-      setConnectedUsers(
-        connectedUsers.map((user) =>
-          user.userId === event.userId ? { ...user, role: event.role } : user
-        )
-      );
+      updateConnectedUserRole(event);
     },
-    [connectedUsers]
+    [updateConnectedUserRole]
   );
 
   const handleRoomNotification = useCallback(
@@ -158,12 +187,21 @@ export default function Page() {
 
   const handleRoomMemberDisconnected = useCallback(
     (event: UserDisconnectedPayload) => {
-      setConnectedUsers(
-        connectedUsers.filter((user) => user.userId !== event.userId)
-      );
+      removeConnectedUser(event.userId);
     },
-    [connectedUsers]
+    [removeConnectedUser]
   );
+
+  const handleConnectError = useCallback(() => {
+    if (!socket) return;
+
+    if (socket.active) {
+      setReconnecting(true);
+    } else {
+      setConnected(false);
+      setReconnecting(false);
+    }
+  }, [socket, setReconnecting, setConnected]);
 
   const handleCurrentUserDisconnected = useCallback(() => {
     router.push("/dashboard");
@@ -173,14 +211,7 @@ export default function Page() {
     function () {
       if (!socket) return;
 
-      socket.on("connect_error", () => {
-        if (socket.active) {
-          setReconnecting(true);
-        } else {
-          setConnected(false);
-          setReconnecting(false);
-        }
-      });
+      socket.on("connect_error", handleConnectError);
 
       socket.on("connect", handleConnect);
 
@@ -238,6 +269,12 @@ export default function Page() {
       handleUserPromoted,
       handleConnect,
       handleUserList,
+      handleCanvasState,
+      handleRoomInfo,
+      handleRoomReady,
+      handleUserInfo,
+      handleConnectError,
+      handleUndoDraw,
     ]
   );
 
