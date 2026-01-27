@@ -1,15 +1,19 @@
 import { Request } from 'express';
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { MailerModule } from './core/mailer/mailer.module';
 import { CacheRedisModule } from './core/cache-redis/cache-redis.module';
 import { QueueRedisModule } from './core/queue-redis/queue-redis.module';
 import { DatabaseModule } from './core/database/database.module';
 import { AppConfigModule } from './core/app-config/app-config.module';
+import { AppConfigService } from './core/app-config/app-config.service';
+import { CacheRedisService } from './core/cache-redis/cache-redis.service';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
@@ -17,7 +21,6 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 
 import { validateConfig } from './common/utils';
 import { DEFAULT_JWT_ALG } from './common/constants';
-import { AppConfigService } from './core/app-config/app-config.service';
 
 @Module({
   imports: [
@@ -156,6 +159,38 @@ import { AppConfigService } from './core/app-config/app-config.service';
         };
       },
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [CacheRedisModule],
+      inject: [CacheRedisService],
+      useFactory: (cache: CacheRedisService) => {
+        return {
+          throttlers: [
+            {
+              ttl: 10,
+              limit: 10,
+              name: 'default',
+            },
+          ],
+          errorMessage: 'Too many requests',
+          generateKey: (ctx, _, throttlerName) => {
+            const req = ctx.switchToHttp().getRequest<Request>();
+            const key =
+              req?.user?.id || req?.ip || req?.ips?.[0] || 'unknown-ip';
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const route = req.route?.path || req.path;
+
+            return `${throttlerName}:${route}:${key}`.toLowerCase();
+          },
+
+          storage: {
+            async increment(key, ttl, limit, blockDuration) {
+              return await cache.increment(key, ttl, limit, blockDuration);
+            },
+          },
+        };
+      },
+    }),
     RoomsModule,
     DatabaseModule,
     MailerModule,
@@ -164,7 +199,7 @@ import { AppConfigService } from './core/app-config/app-config.service';
     CacheRedisModule,
     QueueRedisModule,
   ],
-  providers: [],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
   controllers: [],
 })
 export class AppModule {}

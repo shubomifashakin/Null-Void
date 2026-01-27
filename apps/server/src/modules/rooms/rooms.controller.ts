@@ -1,4 +1,5 @@
 import { type Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import {
   Body,
   Controller,
@@ -30,6 +31,7 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @HttpCode(200)
+  @Throttle({ default: { limit: 3, ttl: 2.5 } })
   @Post()
   createRoom(@Req() req: Request, @Body() dto: CreateRoomDto) {
     return this.roomsService.createRoom(req.user.id, dto);
@@ -50,6 +52,7 @@ export class RoomsController {
 
   @Roles('ADMIN')
   @UseGuards(IsMemberGuard, RoomRoleGuard)
+  @Throttle({ default: { limit: 3, ttl: 2.5 } })
   @HttpCode(200)
   @Delete(':roomId')
   deleteRoom(@Param('roomId') id: string) {
@@ -65,6 +68,7 @@ export class RoomsController {
 
   @Roles('ADMIN')
   @UseGuards(IsMemberGuard, RoomRoleGuard)
+  @Throttle({ default: { limit: 3, ttl: 2.5 } })
   @HttpCode(200)
   @Post(':roomId/invites')
   inviteUser(
@@ -77,6 +81,7 @@ export class RoomsController {
 
   @Roles('ADMIN')
   @UseGuards(IsMemberGuard, RoomRoleGuard)
+  @Throttle({ default: { limit: 3, ttl: 2.5 } })
   @HttpCode(200)
   @Delete(':roomId/invites/:inviteId')
   revokeInvite(

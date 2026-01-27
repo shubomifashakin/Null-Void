@@ -1,5 +1,6 @@
 import { type Response, type Request } from 'express';
 
+import { Throttle } from '@nestjs/throttler';
 import {
   BadRequestException,
   Body,
@@ -43,6 +44,7 @@ export class AccountsController {
   }
 
   @Delete('me')
+  @Throttle({ default: { limit: 3, ttl: 2.5 } })
   async deleteAccount(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,

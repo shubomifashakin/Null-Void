@@ -31,6 +31,7 @@
     "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.1.11",
+    "@null-void/shared": "*",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@socket.io/redis-adapter": "^8.3.0",
@@ -46,8 +47,7 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^6.6.0",
     "rxjs": "^7.8.1",
-    "uuid": "^10.0.0",
-    "@null-void/shared": "*"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
