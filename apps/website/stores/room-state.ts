@@ -6,6 +6,10 @@ import {
 } from "@null-void/shared";
 import { create } from "zustand";
 
+export type UserInfoWithRef = UserInfoPayload & {
+  ref: React.RefObject<HTMLDivElement | null>;
+};
+
 interface RoomState {
   connected: boolean;
   serverReady: boolean;
@@ -14,20 +18,20 @@ interface RoomState {
   roomInfo: RoomInfoPayload;
   userInfo: UserInfoPayload;
   drawEvents: DrawEvent[];
-  connectedUsers: UserInfoPayload[];
+  connectedUsers: Record<string, UserInfoWithRef>;
 
   setConnected: (connected: boolean) => void;
   setServerReady: (serverReady: boolean) => void;
   setClientReady: (clientReady: boolean) => void;
   addDrawEvent: (event: DrawEvent) => void;
   removeDrawEvent: (drawId: string) => void;
-  addConnectedUser: (user: UserInfoPayload) => void;
+  addConnectedUser: (user: UserInfoWithRef) => void;
   removeConnectedUser: (userId: string) => void;
   setReconnecting: (reconnecting: boolean) => void;
   setRoomInfo: (roomInfo: RoomInfoPayload) => void;
   setUserInfo: (userInfo: UserInfoPayload) => void;
   setDrawEvents: (drawEvents: DrawEvent[]) => void;
-  setConnectedUsers: (connectedUsers: UserInfoPayload[]) => void;
+  setConnectedUsers: (connectedUsers: UserInfoWithRef[]) => void;
   updateConnectedUserRole: (user: UserPromotedPayload) => void;
   reset: () => void;
 }
@@ -40,7 +44,7 @@ const initialState = {
   roomInfo: {} as RoomInfoPayload,
   userInfo: {} as UserInfoPayload,
   drawEvents: [],
-  connectedUsers: [],
+  connectedUsers: {} as Record<string, UserInfoWithRef>,
 };
 
 export const useRoomState = create<RoomState>((set) => ({
@@ -53,13 +57,27 @@ export const useRoomState = create<RoomState>((set) => ({
   setRoomInfo: (roomInfo: RoomInfoPayload) => set({ roomInfo }),
   setUserInfo: (userInfo: UserInfoPayload) => set({ userInfo }),
   setDrawEvents: (drawEvents: DrawEvent[]) => set({ drawEvents }),
-  setConnectedUsers: (connectedUsers: UserInfoPayload[]) =>
-    set({ connectedUsers }),
+
+  setConnectedUsers: (connectedUsers) =>
+    set({
+      connectedUsers: connectedUsers.reduce(
+        (acc, user) => {
+          acc[user.userId] = user;
+          return acc;
+        },
+        {} as Record<string, UserInfoWithRef>
+      ),
+    }),
 
   updateConnectedUserRole: (user) => {
     set((state) => ({
-      connectedUsers: state.connectedUsers.map((u) =>
-        u.userId === user.userId ? { ...u, role: user.role } : u
+      connectedUsers: Object.fromEntries(
+        Object.entries(state.connectedUsers).map(([userId, userObj]) => {
+          if (userId === user.userId) {
+            return [userId, { ...userObj, role: user.role }];
+          }
+          return [userId, userObj];
+        })
       ),
     }));
   },
@@ -75,14 +93,15 @@ export const useRoomState = create<RoomState>((set) => ({
       drawEvents: [...state.drawEvents, event],
     })),
 
-  addConnectedUser: (user: UserInfoPayload) =>
+  addConnectedUser: (user) =>
     set((state) => ({
-      connectedUsers: [...state.connectedUsers, user],
+      connectedUsers: { ...state.connectedUsers, [user.userId]: user },
     })),
+
   removeConnectedUser: (userId: string) =>
     set((state) => ({
-      connectedUsers: state.connectedUsers.filter(
-        (user) => user.userId !== userId
+      connectedUsers: Object.fromEntries(
+        Object.entries(state.connectedUsers).filter(([key]) => key !== userId)
       ),
     })),
 

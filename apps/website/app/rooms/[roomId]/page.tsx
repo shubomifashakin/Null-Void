@@ -1,6 +1,13 @@
 "use client";
 
-import { Activity, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Activity,
+  createRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { useParams, useRouter } from "next/navigation";
 
@@ -144,20 +151,32 @@ export default function Page() {
   );
 
   function handleUserMove(event: UserMovePayload) {
-    //FIXME: move the mouse to the new position
-    console.log(event);
+    const foundUser = Object.values(connectedUsers).find(
+      (user) => user.userId === event.userId
+    );
+
+    if (!foundUser?.ref?.current) return;
+
+    foundUser.ref.current.style.visibility = "visible";
+    foundUser.ref.current.style.setProperty("--x", `${event.x}px`);
+    foundUser.ref.current.style.setProperty("--y", `${event.y}px`);
   }
 
   const handleUserJoined = useCallback(
     (event: UserJoinedPayload) => {
-      addConnectedUser(event);
+      addConnectedUser({ ...event, ref: createRef<HTMLDivElement>() });
     },
     [addConnectedUser]
   );
 
   const handleUserList = useCallback(
     (event: UserListPayload) => {
-      setConnectedUsers(event.users);
+      setConnectedUsers(
+        event.users.map((user) => ({
+          ...user,
+          ref: createRef<HTMLDivElement>()!,
+        }))
+      );
     },
     [setConnectedUsers]
   );
@@ -192,6 +211,24 @@ export default function Page() {
       removeConnectedUser(event.userId);
     },
     [removeConnectedUser]
+  );
+
+  const handleCanvasMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!socket) return;
+
+      const now = Date.now();
+
+      const payload = {
+        x: e.clientX,
+        y: e.clientY,
+        isPenDown: false,
+        timestamp: now.toString(),
+      } as UserMovePayload;
+
+      socket.volatile.emit(WS_EVENTS.USER_MOVE, payload);
+    },
+    [socket]
   );
 
   const handleConnectError = useCallback(() => {
@@ -300,7 +337,12 @@ export default function Page() {
           onToolChange={setSelectedTool}
         />
 
-        <RoomCanvas tool={selectedTool} canvasRef={canvasRef} />
+        <RoomCanvas
+          tool={selectedTool}
+          canvasRef={canvasRef}
+          handleMouseMove={handleCanvasMouseMove}
+          connectedUsers={Object.values(connectedUsers)}
+        />
       </div>
 
       <div className="w-64 border-l border-border bg-card flex flex-col">
@@ -318,10 +360,10 @@ export default function Page() {
               />
 
               <MembersPanel
-                members={connectedUsers}
-                totalConnectedUsers={connectedUsers.length}
+                members={Object.values(connectedUsers)}
                 isAdmin={userInfo!.role === "ADMIN"}
                 onRemoveMember={handleRemoveMember}
+                totalConnectedUsers={Object.keys(connectedUsers).length}
               />
             </div>
           </Activity>
