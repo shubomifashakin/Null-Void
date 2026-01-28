@@ -18,6 +18,7 @@ import { CacheRedisService } from './core/cache-redis/cache-redis.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { HealthModule } from './modules/health/health.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 
 import { validateConfig } from './common/utils';
@@ -193,6 +194,7 @@ import { DEFAULT_JWT_ALG } from './common/constants';
       },
     }),
     RoomsModule,
+    MetricsModule,
     DatabaseModule,
     MailerModule,
     AccountsModule,
