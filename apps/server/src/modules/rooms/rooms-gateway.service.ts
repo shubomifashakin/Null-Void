@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
-import { Counter } from 'prom-client';
+import { Counter, Histogram } from 'prom-client';
 
 import { isUUID } from 'class-validator';
 
@@ -71,6 +71,7 @@ type UserData = UserInfoPayload;
 export class RoomsGatewayService {
   private readonly logger = new Logger(RoomsGatewayService.name);
   private readonly errorCounter: Counter<string>;
+  private readonly connectionDuration: Histogram<string>;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -85,6 +86,12 @@ export class RoomsGatewayService {
       'rooms_errors_total',
       'Total number of errors',
       ['room', 'error_type'],
+    );
+    this.connectionDuration = this.prometheusService.createHistogram(
+      'room_connection_duration_seconds',
+      'Time taken for socket connection to fully complete',
+      ['room'],
+      [0.1, 0.5, 1, 2, 5, 10],
     );
   }
 
@@ -287,6 +294,7 @@ export class RoomsGatewayService {
 
   async handleConnection(client: Socket) {
     const roomId = client.handshake.query?.roomId as string;
+    const connectionStart = Date.now();
     try {
       if (!roomId) {
         this.logger.warn({
@@ -500,6 +508,11 @@ export class RoomsGatewayService {
       client.emit(WS_EVENTS.CANVAS_STATE, {
         state: mergedSnapShotsAndPendingEvents,
       });
+
+      const connectionEnd = Date.now();
+      const duration = (connectionEnd - connectionStart) / 1000;
+
+      this.connectionDuration.observe({ room: roomId }, duration);
 
       client.emit(WS_EVENTS.ROOM_READY, {
         ready: true,
