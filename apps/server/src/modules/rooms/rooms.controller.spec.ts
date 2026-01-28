@@ -16,6 +16,7 @@ import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
@@ -123,6 +124,7 @@ describe('RoomsController', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),

@@ -20,6 +20,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
 import { BullModule } from '@nestjs/bullmq';
@@ -114,6 +115,7 @@ describe('RoomsService', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),

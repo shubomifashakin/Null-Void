@@ -22,6 +22,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { DAYS_1 } from '../../common/constants';
 
@@ -155,6 +156,7 @@ describe('RoomsGatewayService', () => {
         QueueRedisModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),
