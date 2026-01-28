@@ -28,7 +28,7 @@ import { DEFAULT_JWT_ALG } from './common/constants';
   imports: [
     ConfigModule.forRoot({
       isGlobal: false,
-      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      envFilePath: '.env',
       validate(config) {
         validateConfig(config);
 
