@@ -158,8 +158,8 @@ export default function Page() {
     if (!foundUser?.ref?.current) return;
 
     foundUser.ref.current.style.visibility = "visible";
-    foundUser.ref.current.style.setProperty("--x", `${event.x}px`);
-    foundUser.ref.current.style.setProperty("--y", `${event.y}px`);
+    foundUser.ref.current.style.setProperty("--x", `${event.x}vw`);
+    foundUser.ref.current.style.setProperty("--y", `${event.y}vh`);
   }
 
   const handleUserJoined = useCallback(
@@ -220,8 +220,8 @@ export default function Page() {
       const now = Date.now();
 
       const payload = {
-        x: e.clientX,
-        y: e.clientY,
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100,
         isPenDown: false,
         timestamp: now.toString(),
       } as UserMovePayload;
