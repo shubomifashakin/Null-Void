@@ -18,13 +18,13 @@ export default function RoomCanvas({
   connectedUsers,
 }: RoomCanvasProps) {
   return (
-    <div className="flex-1 overflow-hidden bg-white">
+    <div className="flex-1 p-2 overflow-auto bg-white">
       <Cursors users={connectedUsers} />
 
       <canvas
         ref={canvasRef}
         onMouseMove={(e) => handleMouseMove(e as unknown as MouseEvent)}
-        className={`w-full h-full block ${tool !== "cursor" ? "cursor-crosshair" : "cursor-default"}`}
+        className={`block border w-full h-full ${tool !== "cursor" ? "cursor-crosshair" : "cursor-default"}`}
       />
     </div>
   );
