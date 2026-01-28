@@ -14,6 +14,7 @@ import { MailerModule } from '../../core/mailer/mailer.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 @Module({
   controllers: [RoomsController],
@@ -23,6 +24,7 @@ import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
     DatabaseModule,
     MailerModule,
     AppConfigModule,
+    PrometheusModule,
     BullModule.registerQueue({
       name: IDLE_SNAPSHOT_QUEUE,
     }),

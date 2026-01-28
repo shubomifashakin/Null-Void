@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
+import { Counter } from 'prom-client';
+
 import { isUUID } from 'class-validator';
 
 import { Queue } from 'bullmq';
@@ -47,6 +49,7 @@ import { DAYS_1, MINUTES_5_MS } from '../../common/constants';
 
 import { DrawEvent } from '../../core/protos/draw_event';
 import { DatabaseService } from '../../core/database/database.service';
+import { PrometheusService } from '../../core/prometheus/prometheus.service';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 import {
   RoomErrorPayload,
@@ -67,6 +70,7 @@ type UserData = UserInfoPayload;
 @Injectable()
 export class RoomsGatewayService {
   private readonly logger = new Logger(RoomsGatewayService.name);
+  private readonly errorCounter: Counter<string>;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -75,14 +79,21 @@ export class RoomsGatewayService {
     private readonly binaryEncodingService: BinaryEncodingService,
     @InjectQueue(IDLE_SNAPSHOT_QUEUE)
     private readonly idleSnapshotsQueue: Queue,
-  ) {}
+    private readonly prometheusService: PrometheusService,
+  ) {
+    this.errorCounter = this.prometheusService.createCounter(
+      'rooms_errors_total',
+      'Total number of errors',
+      ['room', 'error_type'],
+    );
+  }
 
   async handleDraw(
     client: Socket,
     data: PolygonEventDto | LineEventDto | CircleEventDto,
   ) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
       if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
@@ -102,6 +113,11 @@ export class RoomsGatewayService {
         this.logger.error({
           message: `Failed to append draw event to draw events list for room:${roomId}`,
           error: appendedToDrawEventList.error,
+        });
+
+        this.errorCounter.inc({
+          room: roomId,
+          error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
         });
 
         return client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
@@ -246,12 +262,22 @@ export class RoomsGatewayService {
       );
 
       if (!unlocked.success) {
+        this.errorCounter.inc({
+          room: roomId,
+          error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        });
+
         this.logger.error({
           message: `Failed to remove lock on draw events for room ${roomId}`,
           error: unlocked.error,
         });
       }
     } catch (error: unknown) {
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       this.logger.error({
         message: 'Failed to handle draw event',
         error,
@@ -260,8 +286,8 @@ export class RoomsGatewayService {
   }
 
   async handleConnection(client: Socket) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
       if (!roomId) {
         this.logger.warn({
           message: `roomId is not specified`,
@@ -283,6 +309,11 @@ export class RoomsGatewayService {
       const cookies = client.handshake.headers.cookie;
 
       if (!cookies) {
+        this.errorCounter.inc({
+          room: roomId,
+          error_type: WS_ERROR_CODES.UNAUTHORIZED,
+        });
+
         this.logger.debug({
           message: 'No cookies found disconnecting',
         });
@@ -293,6 +324,11 @@ export class RoomsGatewayService {
       const accessToken = this.getAccessTokenFromCookies(client);
 
       if (!accessToken) {
+        this.errorCounter.inc({
+          room: roomId,
+          error_type: WS_ERROR_CODES.UNAUTHORIZED,
+        });
+
         this.logger.debug({
           message: 'No access token found disconnecting',
         });
@@ -348,6 +384,11 @@ export class RoomsGatewayService {
         await this.getAllCurrentlyActiveUsersInRoom(roomId);
 
       if (!usersCurrentlyInRoom.success) {
+        this.errorCounter.inc({
+          room: roomId,
+          error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        });
+
         this.logger.error({
           message: `Failed to get users in room ${roomId}`,
           error: usersCurrentlyInRoom.error,
@@ -466,6 +507,11 @@ export class RoomsGatewayService {
         roomId,
       } satisfies RoomReadyPayload);
     } catch (error: unknown) {
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       this.logger.error({
         message: 'Error handling connection',
         error,
@@ -480,8 +526,8 @@ export class RoomsGatewayService {
     client: Socket,
     dto: UpdateRoomDto,
   ) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
       if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
@@ -520,6 +566,11 @@ export class RoomsGatewayService {
         ...updatedRoomInfo,
       } satisfies RoomInfoPayload);
     } catch (error: unknown) {
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       this.logger.error({
         message: 'Error updating room info',
         error,
@@ -533,8 +584,8 @@ export class RoomsGatewayService {
   }
 
   async handleDisconnect(client: Socket) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
       if (!roomId || !clientInfo.userId) return;
@@ -556,6 +607,11 @@ export class RoomsGatewayService {
         userId: clientInfo.userId,
       } satisfies UserDisconnectedPayload);
     } catch (error: unknown) {
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       this.logger.error({
         message: 'Error handling disconnection',
         error,
@@ -659,6 +715,11 @@ export class RoomsGatewayService {
         error,
       });
 
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       client.emit(WS_EVENTS.ROOM_ERROR, {
         message: 'Failed to remove user',
         code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
@@ -667,9 +728,8 @@ export class RoomsGatewayService {
   }
 
   async handleLeave(client: Socket) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
-
       const clientInfo = client.data as UserData;
 
       if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
@@ -714,12 +774,17 @@ export class RoomsGatewayService {
         message: 'Failed to leave room',
         error,
       });
+
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async handlePromote(server: Server, client: Socket, dto: PromoteDto) {
+    const roomId = client.handshake.query?.roomId as string;
     try {
-      const roomId = client.handshake.query?.roomId as string;
       const clientInfo = client.data as UserData;
 
       if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
@@ -783,6 +848,11 @@ export class RoomsGatewayService {
         message: `${clientInfo.name} promoted ${dto.userId} to ${dto.role}`,
       } satisfies RoomNotificationPayload);
     } catch (error: unknown) {
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+
       this.logger.error({
         message: 'Failed to promote user',
         error,
@@ -807,9 +877,9 @@ export class RoomsGatewayService {
   }
 
   handleUserMove(client: Socket, dto: MouseMoveDto) {
+    const roomId = client.handshake.query.roomId as string;
     try {
       const clientInfo = client.data as UserData;
-      const roomId = client.handshake.query.roomId as string;
 
       if (!this.validateSocketState(client, roomId, clientInfo?.userId)) {
         return;
@@ -823,6 +893,11 @@ export class RoomsGatewayService {
       this.logger.error({
         message: 'Failed to handle user move',
         error,
+      });
+
+      this.errorCounter.inc({
+        room: roomId,
+        error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
   }
