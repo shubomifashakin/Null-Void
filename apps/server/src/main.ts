@@ -41,8 +41,9 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
-    prefix: 'api/v',
   });
+
+  app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
 
   app.useGlobalPipes(
     new ValidationPipe({
