@@ -46,18 +46,19 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
 
-  const config = new DocumentBuilder()
-    .setTitle('Null Void API')
-    .setDescription(
-      'The api documentation for Null-Void, a website where users can draw and sketch together.',
-    )
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addCookieAuth('access_token')
-    .build();
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Null Void API')
+      .setDescription(
+        'The api documentation for Null-Void, a website where users can draw and sketch together.',
+      )
+      .setVersion('1.0')
+      .addCookieAuth('access_token')
+      .build();
 
-  const documentFactory = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, documentFactory);
+    const documentFactory = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, documentFactory);
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
