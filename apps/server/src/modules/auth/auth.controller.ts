@@ -1,3 +1,4 @@
+import { SkipThrottle } from '@nestjs/throttler';
 import { type Request, type Response } from 'express';
 import {
   Controller,
@@ -10,6 +11,12 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
 
@@ -25,6 +32,11 @@ export class AuthController {
     private readonly configService: AppConfigService,
   ) {}
 
+  @ApiOperation({
+    summary: 'To authorize the user',
+    description: 'Redirects to the authorization page',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to authorization page' })
   @Get()
   async authorize(@Res() res: Response) {
     const url = await this.authService.authorize();
@@ -32,6 +44,22 @@ export class AuthController {
     res.redirect(url);
   }
 
+  @SkipThrottle()
+  @ApiOperation({
+    summary: 'OAuth callback handler',
+    description: 'Handles OAuth callback and sets auth cookies',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: true,
+    description: 'OAuth state parameter',
+  })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    description: 'OAuth authorization code',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to dashboard' })
   @Get('callback')
   async callback(
     @Res() res: Response,
@@ -71,6 +99,10 @@ export class AuthController {
     res.redirect(302, `${this.configService.FRONTEND_URL.data}/dashboard`);
   }
 
+  @ApiOperation({
+    summary: 'To logout the user',
+  })
+  @ApiResponse({ status: 200, description: 'Logout successful' })
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -102,6 +134,13 @@ export class AuthController {
     return { message: 'success' };
   }
 
+  @ApiOperation({
+    summary: 'To refresh the user tokens',
+  })
+  @ApiCookieAuth('refresh_token')
+  @ApiResponse({ status: 200, description: 'Tokens refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Get('refresh')
   @HttpCode(200)
   async refresh(

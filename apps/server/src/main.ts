@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import cookieParser from 'cookie-parser';
 
@@ -44,6 +45,19 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
+
+  const config = new DocumentBuilder()
+    .setTitle('Null Void API')
+    .setDescription(
+      'The api documentation for Null-Void, a website where users can draw and sketch together.',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .addCookieAuth('access_token')
+    .build();
+
+  const documentFactory = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, documentFactory);
 
   app.useGlobalPipes(
     new ValidationPipe({
