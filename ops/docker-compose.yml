@@ -2,6 +2,8 @@ services:
   postgres:
     image: postgres:latest
     container_name: null_void_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
     networks:
       - paytrail_network
     environment:
@@ -13,11 +15,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   null_void_1:
     image: myapp/server:latest
     container_name: null_void_1
-    restart: unless_stopped
+    restart: unless-stopped
+    mem_limit: 512m
+    volumes:
+      - ./logs/null_void_1:/app/logs
+    depends_on:
+      - postgres
+      - cache_redis
+      - queue_redis
     networks:
       - paytrail_network
     healthcheck:
@@ -41,7 +51,14 @@ services:
   null_void_2:
     image: myapp/server:latest
     container_name: null_void_2
-    restart: unless_stopped
+    restart: unless-stopped
+    mem_limit: 512m
+    volumes:
+      - ./logs/null_void_2:/app/logs
+    depends_on:
+      - postgres
+      - cache_redis
+      - queue_redis
     networks:
       - paytrail_network
     healthcheck:
@@ -62,6 +79,21 @@ services:
     ports:
       - "5000:4000"
 
+  null_void_queue:
+    image: myapp/processor:latest
+    container_name: null_void_queue
+    restart: unless-stopped
+    volumes:
+      - ./logs/null_void_queue:/app/logs
+    depends_on:
+      - postgres
+      - cache_redis
+      - queue_redis
+    networks:
+      - paytrail_network
+    env_file:
+      - ../apps/processor/.env
+
   cache_redis:
     image: redis:latest
     container_name: null_void_cache_redis
@@ -76,6 +108,7 @@ services:
       timeout: 5s
       retries: 5
     mem_limit: 256m
+    restart: unless-stopped
 
   queue_redis:
     image: redis:latest
@@ -91,6 +124,7 @@ services:
       timeout: 5s
       retries: 5
     mem_limit: 512m
+    restart: unless-stopped
 
 networks:
   paytrail_network:
@@ -100,3 +134,4 @@ networks:
 volumes:
   cache_redis_data:
   queue_redis_data:
+  postgres_data:
