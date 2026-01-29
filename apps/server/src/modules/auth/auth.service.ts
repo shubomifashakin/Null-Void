@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import * as crypto from 'crypto';
-
 import { v4 as uuid } from 'uuid';
 
 import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
@@ -83,7 +81,7 @@ export class AuthService {
   }
 
   async authorize() {
-    const state = crypto.randomBytes(32).toString('hex');
+    const state = uuid();
 
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
