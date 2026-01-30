@@ -5,6 +5,12 @@
 This project is a distributed collaborative drawing system built as a monorepo. It demonstrates how to design and scale real‑time applications using modern backend technologies.
 At its core, the system enables multiple users to collaborate live on a shared canvas, with features like cursor tracking, draw events, and room snapshots. The architecture is designed for scalability, fault tolerance, and performance, making it a strong example of distributed systems engineering. **It focuses more on backend architecture and distributed systems patterns than frontend design.**
 
+## Architecture
+
+![System Architecture](./docs/architecture-diagram.png)
+
+_Figure: Distributed architecture showing frontend, backend, Redis layers, and background processing._
+
 ## Features
 
 - Real‑time collaboration via WebSockets (live cursor tracking, draw events and many more...)
