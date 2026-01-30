@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   null_void_1:
-    image: myapp/server:latest
+    image: null_void_server:latest
     container_name: null_void_1
     restart: unless-stopped
     mem_limit: 512m
@@ -44,12 +44,12 @@ services:
       timeout: 10s
       retries: 5
     env_file:
-      - ../apps/server/.env
+      - .env.server
     ports:
       - "4000:4000"
 
   null_void_2:
-    image: myapp/server:latest
+    image: null_void_server:latest
     container_name: null_void_2
     restart: unless-stopped
     mem_limit: 512m
@@ -75,16 +75,16 @@ services:
       timeout: 10s
       retries: 5
     env_file:
-      - ../apps/server/.env
+      - .env.server
     ports:
       - "5000:4000"
 
-  null_void_queue:
-    image: myapp/processor:latest
-    container_name: null_void_queue
+  null_void_queue_processor:
+    image: null_void_processor:latest
+    container_name: null_void_queue_processor
     restart: unless-stopped
     volumes:
-      - ./logs/null_void_queue:/app/logs
+      - ./logs/null_void_queue_processor:/app/logs
     depends_on:
       - postgres
       - cache_redis
@@ -92,7 +92,7 @@ services:
     networks:
       - paytrail_network
     env_file:
-      - ../apps/processor/.env
+      - .env.processor
 
   cache_redis:
     image: redis:latest
