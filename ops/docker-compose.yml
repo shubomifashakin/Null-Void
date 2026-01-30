@@ -44,7 +44,7 @@ services:
       timeout: 10s
       retries: 5
     env_file:
-      - ../apps/server/.env
+      - .env.server
     ports:
       - "4000:4000"
 
@@ -75,16 +75,16 @@ services:
       timeout: 10s
       retries: 5
     env_file:
-      - ../apps/server/.env
+      - .env.server
     ports:
       - "5000:4000"
 
-  null_void_queue:
+  null_void_queue_processor:
     image: myapp/processor:latest
-    container_name: null_void_queue
+    container_name: null_void_queue_processor
     restart: unless-stopped
     volumes:
-      - ./logs/null_void_queue:/app/logs
+      - ./logs/null_void_queue_processor:/app/logs
     depends_on:
       - postgres
       - cache_redis
@@ -92,7 +92,7 @@ services:
     networks:
       - paytrail_network
     env_file:
-      - ../apps/processor/.env
+      - .env.processor
 
   cache_redis:
     image: redis:latest
