@@ -23,7 +23,8 @@ _Figure: Distributed architecture showing frontend, backend, Redis layers, and b
 
 ```
 null-void/
-├── ADRS/                   # Architecture Decision Records
+├── docs/                   # Documentation
+│   ├── ADRs/               # Architecture Decision Records
 ├── apps/
 │   ├── server/              # Main NestJS server application
 │   │   ├── prisma/          # Prisma schema and migrations
