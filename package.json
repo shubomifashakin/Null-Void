@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "build:shared": "cd shared && npm run build",
+    "build:server": "cd apps/server && npm run build",
+    "build:processor": "cd apps/processor && npm run build",
     "dev:shared": "cd shared && npm run dev",
     "dev:server": "cd apps/server && npm run start:dev",
     "dev:website": "cd apps/website && npm run dev",
     "dev:processor": "cd apps/processor && npm run dev",
-    "build": "npm run build:shared && npm run build:server && npm run build:website"
+    "build": "npm run build:shared && npm run build:server && npm run build:processor"
   },
   "workspaces": [
     "shared",
