@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   null_void_1:
-    image: myapp/server:latest
+    image: null_void_server:latest
     container_name: null_void_1
     restart: unless-stopped
     mem_limit: 512m
@@ -49,7 +49,7 @@ services:
       - "4000:4000"
 
   null_void_2:
-    image: myapp/server:latest
+    image: null_void_server:latest
     container_name: null_void_2
     restart: unless-stopped
     mem_limit: 512m
@@ -80,7 +80,7 @@ services:
       - "5000:4000"
 
   null_void_queue_processor:
-    image: myapp/processor:latest
+    image: null_void_processor:latest
     container_name: null_void_queue_processor
     restart: unless-stopped
     volumes:
