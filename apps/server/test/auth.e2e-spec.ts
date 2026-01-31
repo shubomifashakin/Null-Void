@@ -154,7 +154,7 @@ describe('AuthController (e2e)', () => {
 
     const req = await request(app.getHttpServer())
       .get('/auth/refresh')
-      .set('Cookie', [`refreshToken=${refreshToken}`]);
+      .set('Cookie', [`refresh_token=${refreshToken}`]);
 
     expect(req.statusCode).toBe(200);
     expect(req.body).toEqual({ message: 'success' });
@@ -189,8 +189,8 @@ describe('AuthController (e2e)', () => {
     const req = await request(app.getHttpServer())
       .post('/auth/logout')
       .set('Cookie', [
-        `refreshToken=${refreshToken}`,
-        `accessToken=${accessToken}`,
+        `refresh_token=${refreshToken}`,
+        `access_token=${accessToken}`,
       ]);
 
     expect(req.statusCode).toBe(200);
