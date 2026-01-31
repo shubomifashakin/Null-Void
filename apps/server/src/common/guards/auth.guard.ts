@@ -50,7 +50,10 @@ export class AuthGuard implements CanActivate {
           makeBlacklistedKey(claims.jti),
         );
         if (!blacklisted.success) {
-          this.logger.error(blacklisted.error);
+          this.logger.error({
+            message: 'Failed to get blacklisted token from redis',
+            error: blacklisted.error,
+          });
 
           //this might be too strict, whatif redis goes down, do we allow access???
           throw new UnauthorizedException('Unauthorized');
@@ -63,8 +66,11 @@ export class AuthGuard implements CanActivate {
         request.user = { id: claims.userId };
 
         return true;
-      } catch (error) {
-        this.logger.error(error);
+      } catch (error: unknown) {
+        this.logger.error({
+          message: 'Failed to verify access token',
+          error,
+        });
 
         throw new UnauthorizedException('Unauthorized');
       }
