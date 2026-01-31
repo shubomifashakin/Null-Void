@@ -9,6 +9,7 @@ import { PrismaKnownErrorFilter } from '../src/common/filters/prisma-known-error
 import { DatabaseService } from '../src/core/database/database.service';
 import { JwtService } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { CacheRedisService } from '../src/core/cache-redis/cache-redis.service';
 
 const mockJwtService = {
   signAsync: jest.fn(),
@@ -22,6 +23,18 @@ const myLoggerMock = {
   warn: jest.fn(),
   debug: jest.fn(),
   logError: jest.fn(),
+};
+
+//mocked because throtler uses cache
+const mockCacheRedisService = {
+  increment: jest.fn().mockResolvedValue({
+    success: true,
+    totalHits: 1,
+    timeToExpire: 1000,
+  }),
+  getFromCache: jest.fn().mockResolvedValue({ success: true, data: null }),
+  setInCache: jest.fn().mockResolvedValue({ success: true }),
+  deleteFromCache: jest.fn().mockResolvedValue({ success: true }),
 };
 
 const testEmail = 'test-accounts@example.com';
@@ -49,6 +62,8 @@ describe('AccountsController (e2e)', () => {
       )
       .overrideGuard(ThrottlerGuard)
       .useValue({ canActivate: () => true })
+      .overrideProvider(CacheRedisService)
+      .useValue(mockCacheRedisService)
       .compile();
 
     app = moduleFixture.createNestApplication();
