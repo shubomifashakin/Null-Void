@@ -5,6 +5,7 @@ import {
   ExecutionContext,
   Injectable,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
@@ -32,27 +33,32 @@ export class AuthGuard implements CanActivate {
           | string
           | undefined;
 
-        if (!accessToken) return false;
+        if (!accessToken) {
+          throw new UnauthorizedException('Unauthorized');
+        }
 
         const claims = await this.jwtService.verifyAsync<{
           jti: string;
           userId: string;
         }>(accessToken);
 
-        if (!claims) return false;
+        if (!claims) {
+          throw new UnauthorizedException('Unauthorized');
+        }
 
         const blacklisted = await this.redisService.getFromCache<boolean>(
           makeBlacklistedKey(claims.jti),
         );
-
         if (!blacklisted.success) {
           this.logger.error(blacklisted.error);
 
           //this might be too strict, whatif redis goes down, do we allow access???
-          return false;
+          throw new UnauthorizedException('Unauthorized');
         }
 
-        if (blacklisted.data) return false;
+        if (blacklisted.data) {
+          throw new UnauthorizedException('Unauthorized');
+        }
 
         request.user = { id: claims.userId };
 
@@ -60,10 +66,10 @@ export class AuthGuard implements CanActivate {
       } catch (error) {
         this.logger.error(error);
 
-        return false;
+        throw new UnauthorizedException('Unauthorized');
       }
     }
 
-    return false;
+    throw new UnauthorizedException('Unauthorized');
   }
 }
