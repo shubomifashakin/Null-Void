@@ -56,7 +56,10 @@ export class RoomsService {
     );
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({
+        message: 'Failed to cache room',
+        error,
+      });
     }
 
     return { id: room.id };
@@ -136,7 +139,10 @@ export class RoomsService {
     );
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({
+        message: 'Failed to cache room',
+        error,
+      });
     }
 
     return { message: 'success' };
@@ -154,7 +160,10 @@ export class RoomsService {
     );
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({
+        message: 'Failed to delete room from cache',
+        error,
+      });
     }
 
     return { message: 'success' };
@@ -210,7 +219,10 @@ export class RoomsService {
         });
 
         if (!success) {
-          this.logger.error(error);
+          this.logger.error({
+            message: 'Failed to send invite email',
+            error,
+          });
 
           throw new InternalServerErrorException(
             MESSAGES.INTERNAL_SERVER_ERROR,

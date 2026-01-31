@@ -38,7 +38,7 @@ export class AccountsService {
     if (success && data) return data;
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({ message: 'Failed to get user from cache', error });
     }
 
     const user = (await this.databaseService.user.findUnique({
@@ -64,7 +64,10 @@ export class AccountsService {
     );
 
     if (!cached.success) {
-      this.logger.error(cached.error);
+      this.logger.error({
+        message: 'Failed to cache user',
+        error: cached.error,
+      });
     }
 
     return user;
@@ -91,7 +94,10 @@ export class AccountsService {
     );
 
     if (!cached.success) {
-      this.logger.error(cached.error);
+      this.logger.error({
+        message: 'Failed to cache user',
+        error: cached.error,
+      });
     }
 
     return { message: 'success' };
@@ -109,7 +115,10 @@ export class AccountsService {
     );
 
     if (!cached.success) {
-      this.logger.error(cached.error);
+      this.logger.error({
+        message: 'Failed to delete user from cache',
+        error: cached.error,
+      });
     }
 
     return { message: 'success' };

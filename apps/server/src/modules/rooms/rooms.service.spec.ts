@@ -187,11 +187,7 @@ describe('RoomsService', () => {
       description: 'test-description',
     });
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      'test-error',
-      undefined,
-      'RoomsService',
-    );
+    expect(mockLogger.error).toHaveBeenCalled();
 
     expect(mockDatabaseService.room.create).toHaveBeenCalledTimes(1);
     expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);

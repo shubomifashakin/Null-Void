@@ -76,7 +76,10 @@ export class AuthController {
         this.configService.FRONTEND_URL.error ||
         this.configService.DOMAIN.error;
 
-      this.logger.error(message);
+      this.logger.error({
+        message: 'Failed to get frontend URL or domain',
+        error: message,
+      });
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -113,7 +116,10 @@ export class AuthController {
     if (!this.configService.DOMAIN.success) {
       const message = this.configService.DOMAIN.error;
 
-      this.logger.error(message);
+      this.logger.error({
+        message: 'Failed to get domain',
+        error: message,
+      });
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -153,7 +159,10 @@ export class AuthController {
     if (!this.configService.DOMAIN.success) {
       const message = this.configService.DOMAIN.error;
 
-      this.logger.error(message);
+      this.logger.error({
+        message: 'Failed to get domain',
+        error: message,
+      });
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
