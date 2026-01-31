@@ -8,10 +8,8 @@ import { DatabaseService } from '../src/core/database/database.service';
 import { PrismaKnownErrorFilter } from '../src/common/filters/prisma-known-error.filter';
 import cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
-
-jest.mock('uuid', () => ({
-  v4: jest.fn().mockReturnValue('test-uuid-1234'),
-}));
+import { CacheRedisService } from '../src/core/cache-redis/cache-redis.service';
+import { makeOauthStateKey } from '../src/common/utils';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -29,19 +27,26 @@ const myLoggerMock = {
   logError: jest.fn(),
 };
 
+const testEmail = 'test-auth@example.com';
+const testRefreshTokenId = 'test-refresh-token-id';
+const testAccessTokenId = 'test-access-token-id';
+
+const refreshToken = 'test-refresh-token';
+const accessToken = 'test-access-token';
+
 describe('AuthController (e2e)', () => {
   let app: INestApplication<App>;
   let databaseService: DatabaseService;
-  let cookies: string[] = [];
+  let redisService: CacheRedisService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(JwtService)
-      .useValue(mockJwtService)
       .overrideProvider(Logger)
       .useValue(myLoggerMock)
+      .overrideProvider(JwtService)
+      .useValue(mockJwtService)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -55,12 +60,26 @@ describe('AuthController (e2e)', () => {
       }),
     );
 
+    app.useLogger(app.get(Logger));
+
     app.use(cookieParser());
     app.useGlobalFilters(new PrismaKnownErrorFilter());
 
     await app.init();
 
     databaseService = moduleFixture.get(DatabaseService);
+    // jwtService = moduleFixture.get(JwtService);
+    redisService = moduleFixture.get(CacheRedisService);
+  });
+
+  beforeEach(async () => {
+    await databaseService.user.deleteMany({
+      where: { email: testEmail },
+    });
+
+    await databaseService.refreshToken.deleteMany({
+      where: { token_id: testRefreshTokenId },
+    });
   });
 
   afterAll(async () => {
@@ -68,11 +87,21 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/auth').expect(302);
+  it('/ (GET)', async () => {
+    const res = await request(app.getHttpServer()).get('/auth');
+
+    expect(res.status).toBe(302);
   });
 
   it('/callback (GET)', async () => {
+    const state = 'test-uuid-1234';
+
+    await redisService.setInCache(
+      makeOauthStateKey(state),
+      { timestamp: Date.now() },
+      60 * 1000,
+    );
+
     mockFetch.mockResolvedValue({
       json: jest.fn().mockResolvedValue({
         scope: 'test-scope',
@@ -83,7 +112,7 @@ describe('AuthController (e2e)', () => {
     });
 
     mockJwtService.decode.mockReturnValue({
-      email: 'test-email@email.com',
+      email: testEmail,
       sub: 'test-sub',
       name: 'test-name',
       picture: 'test-picture',
@@ -96,26 +125,36 @@ describe('AuthController (e2e)', () => {
       .mockResolvedValueOnce('test-refresh-token');
 
     const req = await request(app.getHttpServer()).get(
-      '/auth/callback?state=test-uuid-1234&code=123',
+      `/auth/callback?state=${state}&code=123`,
     );
 
     expect(req.statusCode).toBe(302);
-
-    cookies = req.headers['set-cookie'] as unknown as string[];
   });
 
   it('/refresh (GET)', async () => {
-    mockJwtService.decode.mockReturnValue({
-      jti: 'test-uuid-1234',
+    const user = await databaseService.user.create({
+      data: {
+        email: testEmail,
+        name: 'test-name',
+        picture: 'test-picture',
+      },
     });
 
-    mockJwtService.signAsync
-      .mockResolvedValueOnce('test-access-token')
-      .mockResolvedValueOnce('test-refresh-token');
+    await databaseService.refreshToken.create({
+      data: {
+        token_id: testRefreshTokenId,
+        user_id: user.id,
+        expires_at: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    mockJwtService.decode.mockReturnValue({
+      jti: testRefreshTokenId,
+    });
 
     const req = await request(app.getHttpServer())
       .get('/auth/refresh')
-      .set('Cookie', cookies);
+      .set('Cookie', [`refreshToken=${refreshToken}`]);
 
     expect(req.statusCode).toBe(200);
     expect(req.body).toEqual({ message: 'success' });
@@ -123,17 +162,36 @@ describe('AuthController (e2e)', () => {
   });
 
   it('/logout (POST)', async () => {
-    mockJwtService.decode.mockReturnValue({
-      jti: 'test-uuid-1234',
+    const user = await databaseService.user.create({
+      data: {
+        email: testEmail,
+        name: 'test-name',
+        picture: 'test-picture',
+      },
     });
 
-    mockJwtService.signAsync
-      .mockResolvedValueOnce('test-access-token')
-      .mockResolvedValueOnce('test-refresh-token');
+    await databaseService.refreshToken.create({
+      data: {
+        token_id: testRefreshTokenId,
+        user_id: user.id,
+        expires_at: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    mockJwtService.decode
+      .mockReturnValue({
+        jti: testRefreshTokenId,
+      })
+      .mockReturnValueOnce({
+        jti: testAccessTokenId,
+      });
 
     const req = await request(app.getHttpServer())
       .post('/auth/logout')
-      .set('Cookie', cookies);
+      .set('Cookie', [
+        `refreshToken=${refreshToken}`,
+        `accessToken=${accessToken}`,
+      ]);
 
     expect(req.statusCode).toBe(200);
     expect(req.body).toEqual({ message: 'success' });
