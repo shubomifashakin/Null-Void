@@ -86,6 +86,8 @@ const mockConfigService = {
   MAILER_FROM: { success: true, data: 'test-mailer-from' },
   FRONTEND_URL: { success: true, data: 'test-frontend-url' },
   DOMAIN: { success: true, data: 'test-domain' },
+  SERVICE_NAME: { success: true, data: 'test-service' },
+  ENVIRONMENT: { success: true, data: 'test-environment' },
 };
 
 const mockLogger = {

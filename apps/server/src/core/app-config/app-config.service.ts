@@ -189,4 +189,18 @@ export class AppConfigService {
       };
     }
   }
+
+  get ENVIRONMENT(): FnResult<string> {
+    try {
+      const environment = this.config.getOrThrow<string>('NODE_ENV');
+
+      return { success: true, data: environment.trim(), error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
 }

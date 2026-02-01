@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import * as client from 'prom-client';
+import { AppConfigService } from '../app-config/app-config.service';
 
 @Injectable()
 export class PrometheusService {
   private readonly registry: client.Registry;
 
-  constructor() {
+  constructor(private readonly configService: AppConfigService) {
     this.registry = new client.Registry();
+
+    this.registry.setDefaultLabels({
+      serviceName: this.configService.SERVICE_NAME.data!,
+      environment: this.configService.ENVIRONMENT.data!,
+    });
 
     client.collectDefaultMetrics({ register: this.registry });
   }
