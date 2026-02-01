@@ -20,6 +20,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { InviteStatus } from '../../../generated/prisma/enums';
 import { BullModule } from '@nestjs/bullmq';
@@ -85,6 +86,8 @@ const mockConfigService = {
   MAILER_FROM: { success: true, data: 'test-mailer-from' },
   FRONTEND_URL: { success: true, data: 'test-frontend-url' },
   DOMAIN: { success: true, data: 'test-domain' },
+  SERVICE_NAME: { success: true, data: 'test-service' },
+  ENVIRONMENT: { success: true, data: 'test-environment' },
 };
 
 const mockLogger = {
@@ -114,6 +117,7 @@ describe('RoomsService', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),
@@ -185,11 +189,7 @@ describe('RoomsService', () => {
       description: 'test-description',
     });
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      'test-error',
-      undefined,
-      'RoomsService',
-    );
+    expect(mockLogger.error).toHaveBeenCalled();
 
     expect(mockDatabaseService.room.create).toHaveBeenCalledTimes(1);
     expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);

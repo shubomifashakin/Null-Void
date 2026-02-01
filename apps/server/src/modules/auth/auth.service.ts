@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import * as crypto from 'crypto';
-
 import { v4 as uuid } from 'uuid';
 
 import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
@@ -83,7 +81,7 @@ export class AuthService {
   }
 
   async authorize() {
-    const state = crypto.randomBytes(32).toString('hex');
+    const state = uuid();
 
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
@@ -95,12 +93,20 @@ export class AuthService {
     const { success, data, error } = this.configService.GOOGLE_CLIENT_ID;
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({
+        message: 'Failed to get google client id',
+        error,
+      });
+
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!this.configService.BASE_URL.success) {
-      this.logger.error(this.configService.BASE_URL.error);
+      this.logger.error({
+        message: 'Failed to get base url',
+        error: this.configService.BASE_URL.error,
+      });
+
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -122,7 +128,10 @@ export class AuthService {
     );
 
     if (!result.success) {
-      this.logger.error(result.error);
+      this.logger.error({
+        message: 'Failed to set oauth state in cache',
+        error: result.error,
+      });
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -134,7 +143,11 @@ export class AuthService {
 
   async callback(state: string, code: string) {
     if (!state || !code) {
-      this.logger.error('Invalid state or code');
+      this.logger.error({
+        message: 'No state or code received',
+        error: makeError('No state or code received'),
+      });
+
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
@@ -143,12 +156,20 @@ export class AuthService {
     );
 
     if (!success) {
-      this.logger.error(error);
+      this.logger.error({
+        message: 'Failed to get oauth state from cache',
+        error,
+      });
+
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
 
     if (!data) {
-      this.logger.error('Invalid state');
+      this.logger.error({
+        message: 'Invalid state',
+        error: makeError('State does not exist in cache'),
+      });
+
       throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
@@ -157,11 +178,14 @@ export class AuthService {
       !this.configService.GOOGLE_CLIENT_ID.success ||
       !this.configService.BASE_URL.success
     ) {
-      this.logger.error(
-        this.configService.GOOGLE_CLIENT_SECRET.error ||
-          this.configService.GOOGLE_CLIENT_ID.error ||
-          this.configService.BASE_URL.error,
-      );
+      this.logger.error({
+        message: 'Missing required configuration',
+        error: {
+          googleClientSecret: this.configService.GOOGLE_CLIENT_SECRET.error,
+          googleClientId: this.configService.GOOGLE_CLIENT_ID.error,
+          baseUrl: this.configService.BASE_URL.error,
+        },
+      });
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -194,10 +218,13 @@ export class AuthService {
       !this.configService.JWT_SECRET.success ||
       !this.configService.BASE_URL.success
     ) {
-      this.logger.error(
-        this.configService.JWT_SECRET.error ||
-          this.configService.BASE_URL.error,
-      );
+      this.logger.error({
+        message: 'Missing required configuration',
+        error: {
+          jwtSecret: this.configService.JWT_SECRET.error,
+          baseUrl: this.configService.BASE_URL.error,
+        },
+      });
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -207,7 +234,10 @@ export class AuthService {
     );
 
     if (!deleted.success) {
-      this.logger.error(deleted.error);
+      this.logger.error({
+        message: 'Failed to delete oauth state from cache',
+        error: deleted.error,
+      });
     }
 
     const decodedInfo = this.jwtService.decode<{
@@ -256,7 +286,10 @@ export class AuthService {
     } = await this.generateToken(userInfo);
 
     if (!tokenSuccess) {
-      this.logger.error(tokensError);
+      this.logger.error({
+        message: 'Failed to generate tokens',
+        error: tokensError,
+      });
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }
@@ -277,7 +310,10 @@ export class AuthService {
       );
 
       if (!success) {
-        this.logger.error(error);
+        this.logger.error({
+          message: 'Failed to blacklist access token',
+          error,
+        });
       }
     }
 
@@ -354,7 +390,10 @@ export class AuthService {
     });
 
     if (!tokenSuccess) {
-      this.logger.error(tokensError);
+      this.logger.error({
+        message: 'Failed to generate tokens',
+        error: tokensError,
+      });
 
       throw new InternalServerErrorException(MESSAGES.INTERNAL_SERVER_ERROR);
     }

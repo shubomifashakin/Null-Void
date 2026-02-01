@@ -189,4 +189,34 @@ export class AppConfigService {
       };
     }
   }
+
+  get ENVIRONMENT(): FnResult<string> {
+    try {
+      const environment = this.config.getOrThrow<string>('NODE_ENV');
+
+      return { success: true, data: environment.trim(), error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
+  get METRICS_BEARER_TOKEN(): FnResult<string> {
+    try {
+      const metricsBearerToken = this.config.getOrThrow<string>(
+        'METRICS_BEARER_TOKEN',
+      );
+
+      return { success: true, data: metricsBearerToken.trim(), error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
 }

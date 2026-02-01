@@ -22,6 +22,7 @@ import { AppConfigModule } from '../../core/app-config/app-config.module';
 import { AppConfigService } from '../../core/app-config/app-config.service';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 import { QueueRedisModule } from '../../core/queue-redis/queue-redis.module';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { DAYS_1 } from '../../common/constants';
 
@@ -99,6 +100,8 @@ const mockConfigService = {
   MAILER_FROM: { success: true, data: 'test-mailer-from' },
   FRONTEND_URL: { success: true, data: 'test-frontend-url' },
   DOMAIN: { success: true, data: 'test-domain' },
+  SERVICE_NAME: { success: true, data: 'test-service-name' },
+  ENVIRONMENT: { success: true, data: 'test-environment' },
 };
 
 const mockLogger = {
@@ -155,6 +158,7 @@ describe('RoomsGatewayService', () => {
         QueueRedisModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),

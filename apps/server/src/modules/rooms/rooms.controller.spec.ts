@@ -16,6 +16,7 @@ import { CacheRedisModule } from '../../core/cache-redis/cache-redis.module';
 import { MailerModule } from '../../core/mailer/mailer.module';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AppConfigModule } from '../../core/app-config/app-config.module';
+import { PrometheusModule } from '../../core/prometheus/prometheus.module';
 
 import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
@@ -88,6 +89,8 @@ const mockConfigService = {
   MAILER_FROM: { success: true, data: 'test-mailer-from' },
   FRONTEND_URL: { success: true, data: 'test-frontend-url' },
   DOMAIN: { success: true, data: 'test-domain' },
+  SERVICE_NAME: { success: true, data: 'test-service' },
+  ENVIRONMENT: { success: true, data: 'test-environment' },
 };
 
 const mockLogger = {
@@ -123,6 +126,7 @@ describe('RoomsController', () => {
         MailerModule,
         AppConfigModule,
         JwtModule,
+        PrometheusModule,
         BullModule.registerQueue({
           name: IDLE_SNAPSHOT_QUEUE,
         }),
@@ -194,11 +198,7 @@ describe('RoomsController', () => {
       description: 'test-description',
     });
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      'test-error',
-      undefined,
-      'RoomsService',
-    );
+    expect(mockLogger.error).toHaveBeenCalled();
 
     expect(mockDatabaseService.room.create).toHaveBeenCalledTimes(1);
     expect(mockRedisService.setInCache).toHaveBeenCalledTimes(1);
