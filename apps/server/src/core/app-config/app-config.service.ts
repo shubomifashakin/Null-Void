@@ -203,4 +203,20 @@ export class AppConfigService {
       };
     }
   }
+
+  get METRICS_BEARER_TOKEN(): FnResult<string> {
+    try {
+      const metricsBearerToken = this.config.getOrThrow<string>(
+        'METRICS_BEARER_TOKEN',
+      );
+
+      return { success: true, data: metricsBearerToken.trim(), error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
 }
