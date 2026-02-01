@@ -25,9 +25,14 @@ services:
     volumes:
       - ./logs/null_void_1:/app/logs
     depends_on:
-      - postgres
-      - cache_redis
-      - queue_redis
+      postgres:
+        condition: service_healthy
+      cache_redis:
+        condition: service_healthy
+      queue_redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - paytrail_network
     healthcheck:
@@ -56,9 +61,14 @@ services:
     volumes:
       - ./logs/null_void_2:/app/logs
     depends_on:
-      - postgres
-      - cache_redis
-      - queue_redis
+      postgres:
+        condition: service_healthy
+      cache_redis:
+        condition: service_healthy
+      queue_redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - paytrail_network
     healthcheck:
@@ -86,9 +96,14 @@ services:
     volumes:
       - ./logs/null_void_queue_processor:/app/logs
     depends_on:
-      - postgres
-      - cache_redis
-      - queue_redis
+      postgres:
+        condition: service_healthy
+      cache_redis:
+        condition: service_healthy
+      queue_redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - paytrail_network
     env_file:
@@ -125,6 +140,19 @@ services:
       retries: 5
     mem_limit: 512m
     restart: unless-stopped
+
+  migrations:
+    image: null_void_server:latest
+    container_name: null_void_migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - paytrail_network
+    env_file:
+      - .env.server
+    command: npx prisma migrate deploy
+    restart: "no"
 
 networks:
   paytrail_network:

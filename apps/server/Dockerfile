@@ -1,7 +1,8 @@
-
 FROM node:24-slim AS builder
 
 WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 
@@ -27,6 +28,8 @@ FROM node:24-slim
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/node_modules ./node_modules
 
 RUN rm -rf ./node_modules/@null-void/shared
@@ -37,6 +40,8 @@ COPY --from=builder /app/shared/dist ./node_modules/@null-void/shared/dist
 COPY --from=builder /app/apps/server/dist ./dist
 
 COPY --from=builder /app/apps/server/prisma ./prisma
+
+COPY --from=builder /app/apps/server/prisma.config.ts ./prisma.config.ts
 
 COPY --from=builder /app/apps/server/package*.json ./
 
