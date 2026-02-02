@@ -23,7 +23,7 @@ export default function RoomsList() {
     mutationKey: ["create-room"],
 
     onSuccess: (data) => {
-      router.push(`/room/${data.id}`);
+      router.push(`/rooms/${data.id}`);
     },
 
     onError: (error) => {
