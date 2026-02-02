@@ -143,6 +143,10 @@ export class AccountsController {
     )
     inviteId: string,
   ) {
-    return this.accountsService.updateInvite(inviteId, body.status);
+    return this.accountsService.updateInvite(
+      inviteId,
+      body.status,
+      req.user.id,
+    );
   }
 }

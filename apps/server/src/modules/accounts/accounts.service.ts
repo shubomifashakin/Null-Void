@@ -185,7 +185,7 @@ export class AccountsService {
     };
   }
 
-  async updateInvite(inviteId: string, status: InviteStatus) {
+  async updateInvite(inviteId: string, status: InviteStatus, userId: string) {
     const inviteStatus = await this.databaseService.invite.findUniqueOrThrow({
       where: {
         id: inviteId,
@@ -201,10 +201,25 @@ export class AccountsService {
       );
     }
 
-    await this.databaseService.invite.update({
-      where: { id: inviteId },
-      data: { status },
-    });
+    await this.databaseService.$transaction(
+      async (tx) => {
+        const inviteInfo = await tx.invite.update({
+          where: { id: inviteId },
+          data: { status },
+        });
+
+        if (inviteInfo.status === 'ACCEPTED') {
+          await tx.roomMember.create({
+            data: {
+              room_id: inviteInfo.room_id,
+              user_id: userId,
+              role: inviteInfo.role,
+            },
+          });
+        }
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
 
     return { message: 'success' };
   }

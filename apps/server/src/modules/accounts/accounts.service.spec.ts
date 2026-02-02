@@ -27,6 +27,7 @@ const mockDatabaseService = {
     findUniqueOrThrow: jest.fn(),
     update: jest.fn(),
   },
+  $transaction: jest.fn(),
 };
 
 const mockRedisService = {
@@ -179,10 +180,10 @@ describe('AccountsService', () => {
       mockDatabaseService.invite.findUniqueOrThrow.mockResolvedValue({
         status: 'PENDING',
       });
-      mockDatabaseService.invite.update.mockResolvedValue(true);
+      mockDatabaseService.$transaction.mockResolvedValue(true);
 
       const inviteId = 'test-invite-id';
-      await service.updateInvite(inviteId, 'ACCEPTED');
+      await service.updateInvite(inviteId, 'ACCEPTED', 'test-user-id');
 
       expect(mockDatabaseService.invite.findUniqueOrThrow).toHaveBeenCalledWith(
         {
@@ -194,14 +195,7 @@ describe('AccountsService', () => {
           },
         },
       );
-      expect(mockDatabaseService.invite.update).toHaveBeenCalledWith({
-        where: {
-          id: inviteId,
-        },
-        data: {
-          status: 'ACCEPTED',
-        },
-      });
+      expect(mockDatabaseService.$transaction).toHaveBeenCalled();
     });
   });
 
