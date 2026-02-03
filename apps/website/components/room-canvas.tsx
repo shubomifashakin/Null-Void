@@ -18,7 +18,7 @@ export default function RoomCanvas({
   connectedUsers,
 }: RoomCanvasProps) {
   return (
-    <div className="flex-1 p-2 overflow-auto bg-white">
+    <div className="flex-1 p-2 overflow-auto bg-white relative">
       <Cursors users={connectedUsers} />
 
       <canvas

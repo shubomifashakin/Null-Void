@@ -93,9 +93,9 @@ export default function Page() {
   }, [setConnected]);
 
   function handleLeaveRoom() {
-    if (!socket) return;
+    if (!socket || !userInfo?.userId) return;
 
-    socket.emit(WS_EVENTS.ROOM_LEAVE, { userId: userInfo?.userId });
+    socket.emit(WS_EVENTS.ROOM_LEAVE, { userId: userInfo.userId });
   }
 
   function handleUpdateRoom(name: string, description: string) {
@@ -160,8 +160,9 @@ export default function Page() {
       if (!foundUser?.ref?.current) return;
 
       foundUser.ref.current.style.visibility = "visible";
-      foundUser.ref.current.style.setProperty("--x", `${event.x}vw`);
-      foundUser.ref.current.style.setProperty("--y", `${event.y}vh`);
+
+      foundUser.ref.current.style.setProperty("--x", `${event.x}px`);
+      foundUser.ref.current.style.setProperty("--y", `${event.y}px`);
     },
     [connectedUsers],
   );
@@ -232,20 +233,24 @@ export default function Page() {
 
   const handleCanvasMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!socket) return;
+      if (!socket || !canvasRef.current) return;
 
       const now = Date.now();
+      const rect = canvasRef.current.getBoundingClientRect();
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
       const payload = {
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
+        x,
+        y,
         isPenDown: false,
         timestamp: now.toString(),
       } as UserMovePayload;
 
       socket.volatile.emit(WS_EVENTS.USER_MOVE, payload);
     },
-    [socket],
+    [socket, canvasRef],
   );
 
   const handleConnectError = useCallback(() => {
