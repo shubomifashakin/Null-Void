@@ -850,6 +850,10 @@ export class RoomsGatewayService {
         if (!usersSocket.data) return;
 
         usersSocket.data.data.role = dto.role;
+
+        usersSocket.data.emit(WS_EVENTS.USER_INFO, {
+          ...usersSocket.data.data,
+        } satisfies UserInfoPayload);
       });
 
       server.to(roomId).emit(WS_EVENTS.USER_PROMOTED, {
