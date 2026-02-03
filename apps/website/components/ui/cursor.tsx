@@ -12,14 +12,14 @@ export interface CursorProps {
 
 export const Cursor = forwardRef<HTMLDivElement, CursorProps>(function Cursor(
   { info },
-  ref
+  ref,
 ) {
   const color = hash.hex(info.userId);
 
   return (
     <div
       ref={ref}
-      className={cn("fixed flex gap-1 rounded text-xs")}
+      className={cn("absolute flex gap-1 rounded text-xs pointer-events-none")}
       style={{
         transform: `translate(var(--x), var(--y))`,
       }}

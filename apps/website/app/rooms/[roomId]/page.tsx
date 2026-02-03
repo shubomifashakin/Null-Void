@@ -54,6 +54,7 @@ export default function Page() {
     userInfo,
     connectedUsers,
     roomInfo,
+    drawEvents,
     reconnecting,
     clientReady,
     serverReady,
@@ -111,9 +112,6 @@ export default function Page() {
     (event: { state: DrawEvent[] }) => {
       setDrawEvents(event.state);
 
-      //FIXME: IMPLEMENT LOGIC
-      for (let x = 0; x < event.state.length; x++) {}
-
       setClientReady(true);
     },
     [setClientReady, setDrawEvents],
@@ -121,10 +119,7 @@ export default function Page() {
 
   const handleUndoDraw = useCallback(
     (event: UndoDrawPayload) => {
-      //when message is received remove the draw event from
       removeDrawEvent(event.id);
-
-      //FIXME: REMOVE THE DRAW FROM THE CANVAS
     },
     [removeDrawEvent],
   );
@@ -188,13 +183,19 @@ export default function Page() {
 
   const handleDrawEvent = useCallback(
     (event: DrawEvent) => {
-      //FIXME: append the drawing to the list, needs acknowledgment
-      console.log("draw event", event);
-
       addDrawEvent(event);
-      //FIXME: DRAW ON THE CANVAS
     },
     [addDrawEvent],
+  );
+
+  const handleDraw = useCallback(
+    (event: DrawEvent) => {
+      if (!socket) return;
+
+      addDrawEvent(event);
+      socket.emit(WS_EVENTS.USER_DRAW, event);
+    },
+    [addDrawEvent, socket],
   );
 
   const handleUserPromoted = useCallback(
@@ -316,13 +317,14 @@ export default function Page() {
         socket.off(WS_EVENTS.USER_MOVE, handleUserMove);
         socket.off(WS_EVENTS.USER_JOINED, handleUserJoined);
         socket.off(WS_EVENTS.USER_LIST, handleUserList);
-        socket.off(WS_EVENTS.USER_DRAW, handleUndoDraw);
+        socket.off(WS_EVENTS.USER_DRAW, handleDrawEvent);
         socket.off(WS_EVENTS.USER_PROMOTED, handleUserPromoted);
       };
     },
     [
       socket,
       handleCurrentUserDisconnected,
+      handleDraw,
       handleDrawEvent,
       handleRoomMemberDisconnected,
       handleUserJoined,
@@ -363,6 +365,8 @@ export default function Page() {
         <RoomCanvas
           tool={selectedTool}
           canvasRef={canvasRef}
+          handleDraw={handleDraw}
+          drawEvents={drawEvents}
           handleMouseMove={handleCanvasMouseMove}
           connectedUsers={Object.values(connectedUsers)}
         />
