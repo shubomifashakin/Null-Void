@@ -40,6 +40,7 @@ import RoomInfoPanel from "@/components/room-info-panel";
 import CurrentUserPanel from "@/components/current-user-panel";
 
 import { useSockets } from "@/hooks/useSockets";
+import { Role } from "@/types/room";
 
 type Panels = "invites" | "info";
 
@@ -115,7 +116,7 @@ export default function Page() {
 
       setClientReady(true);
     },
-    [setClientReady, setDrawEvents]
+    [setClientReady, setDrawEvents],
   );
 
   const handleUndoDraw = useCallback(
@@ -125,7 +126,7 @@ export default function Page() {
 
       //FIXME: REMOVE THE DRAW FROM THE CANVAS
     },
-    [removeDrawEvent]
+    [removeDrawEvent],
   );
 
   const handleRoomReady = useCallback(() => {
@@ -136,7 +137,7 @@ export default function Page() {
     (event: RoomInfoPayload) => {
       setRoomInfo(event);
     },
-    [setRoomInfo]
+    [setRoomInfo],
   );
 
   function handleRoomError(event: RoomErrorPayload) {
@@ -147,26 +148,29 @@ export default function Page() {
     (event: UserInfoPayload) => {
       setUserInfo(event);
     },
-    [setUserInfo]
+    [setUserInfo],
   );
 
-  function handleUserMove(event: UserMovePayload) {
-    const foundUser = Object.values(connectedUsers).find(
-      (user) => user.userId === event.userId
-    );
+  const handleUserMove = useCallback(
+    (event: UserMovePayload) => {
+      const foundUser = Object.values(connectedUsers).find(
+        (user) => user.userId === event.userId,
+      );
 
-    if (!foundUser?.ref?.current) return;
+      if (!foundUser?.ref?.current) return;
 
-    foundUser.ref.current.style.visibility = "visible";
-    foundUser.ref.current.style.setProperty("--x", `${event.x}vw`);
-    foundUser.ref.current.style.setProperty("--y", `${event.y}vh`);
-  }
+      foundUser.ref.current.style.visibility = "visible";
+      foundUser.ref.current.style.setProperty("--x", `${event.x}vw`);
+      foundUser.ref.current.style.setProperty("--y", `${event.y}vh`);
+    },
+    [connectedUsers],
+  );
 
   const handleUserJoined = useCallback(
     (event: UserJoinedPayload) => {
       addConnectedUser({ ...event, ref: createRef<HTMLDivElement>() });
     },
-    [addConnectedUser]
+    [addConnectedUser],
   );
 
   const handleUserList = useCallback(
@@ -175,10 +179,10 @@ export default function Page() {
         event.users.map((user) => ({
           ...user,
           ref: createRef<HTMLDivElement>()!,
-        }))
+        })),
       );
     },
-    [setConnectedUsers]
+    [setConnectedUsers],
   );
 
   const handleDrawEvent = useCallback(
@@ -189,28 +193,41 @@ export default function Page() {
       addDrawEvent(event);
       //FIXME: DRAW ON THE CANVAS
     },
-    [addDrawEvent]
+    [addDrawEvent],
   );
 
   const handleUserPromoted = useCallback(
     (event: UserPromotedPayload) => {
+      if (event.userId === userInfo.userId) return;
       updateConnectedUserRole(event);
     },
-    [updateConnectedUserRole]
+    [updateConnectedUserRole, userInfo],
+  );
+
+  const handlePromoteUser = useCallback(
+    (userId: string, role: Role) => {
+      if (!socket) return;
+
+      socket.emit(WS_EVENTS.USER_PROMOTED, {
+        userId,
+        role,
+      } as UserPromotedPayload);
+    },
+    [socket],
   );
 
   const handleRoomNotification = useCallback(
     (event: RoomNotificationPayload) => {
       toast.info(event.message);
     },
-    []
+    [],
   );
 
   const handleRoomMemberDisconnected = useCallback(
     (event: UserDisconnectedPayload) => {
       removeConnectedUser(event.userId);
     },
-    [removeConnectedUser]
+    [removeConnectedUser],
   );
 
   const handleCanvasMouseMove = useCallback(
@@ -228,7 +245,7 @@ export default function Page() {
 
       socket.volatile.emit(WS_EVENTS.USER_MOVE, payload);
     },
-    [socket]
+    [socket],
   );
 
   const handleConnectError = useCallback(() => {
@@ -314,7 +331,8 @@ export default function Page() {
       handleUserInfo,
       handleConnectError,
       handleUndoDraw,
-    ]
+      handleUserMove,
+    ],
   );
 
   if (!clientReady || !serverReady) return <RoomLoading />;
@@ -360,6 +378,7 @@ export default function Page() {
               />
 
               <MembersPanel
+                onPromoteMember={handlePromoteUser}
                 members={Object.values(connectedUsers)}
                 isAdmin={userInfo!.role === "ADMIN"}
                 onRemoveMember={handleRemoveMember}
