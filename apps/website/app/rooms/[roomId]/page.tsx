@@ -193,7 +193,7 @@ export default function Page() {
       if (!socket) return;
 
       addDrawEvent(event);
-      socket.emit(WS_EVENTS.USER_DRAW, event);
+      socket.volatile.emit(WS_EVENTS.USER_DRAW, event);
     },
     [addDrawEvent, socket],
   );
