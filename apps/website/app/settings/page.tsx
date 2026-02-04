@@ -40,10 +40,14 @@ export default function SettingsPage() {
     },
 
     onError: (error) => {
-      if (error.cause === 403) {
+      if (error.cause === 401) {
         toast.error("Unauthorized");
 
         return router.push("/");
+      }
+
+      if (error.cause === 403) {
+        return toast.error("Forbidden");
       }
 
       if (error.cause === 429) {
@@ -67,10 +71,14 @@ export default function SettingsPage() {
         return toast.error(error.message);
       }
 
-      if (error.cause === 403) {
+      if (error.cause === 401) {
         toast.error("Unauthorized");
 
         return router.push("/");
+      }
+
+      if (error.cause === 403) {
+        return toast.error("Forbidden");
       }
 
       if (error.cause === 429) {
@@ -117,7 +125,7 @@ export default function SettingsPage() {
 
         {status === "success" && (
           <AccountInfo
-            data={data!}
+            data={data}
             isDeleting={isDeleting}
             isUpdating={isUpdating}
             showDeleteConfirm={showDeleteConfirm}

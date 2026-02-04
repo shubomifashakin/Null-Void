@@ -41,6 +41,10 @@ export default function RoomsList() {
         return router.push("/login");
       }
 
+      if (error.cause === 403) {
+        return toast.error("Forbidden");
+      }
+
       toast.error("Something went wrong");
     },
   });
@@ -79,7 +83,7 @@ export default function RoomsList() {
         description: description.trim(),
       });
     },
-    [name, description, mutate]
+    [name, description, mutate],
   );
 
   return (

@@ -65,6 +65,10 @@ export default function InvitesList() {
         return router.push("/login");
       }
 
+      if (error.cause === 403) {
+        return toast.error("Forbidden");
+      }
+
       if (error.cause === 404) {
         return toast.error("Invite not found");
       }
