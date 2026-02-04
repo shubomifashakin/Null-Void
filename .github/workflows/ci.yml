@@ -73,6 +73,8 @@ jobs:
       - name: Prisma Migrate
         working-directory: apps/server
         run: npx prisma migrate dev
+        env:
+          DATABASE_URL: postgres://postgres:postgres_123@postgres:5432/test_postgres
 
       - name: Prisma Generate
         working-directory: apps/server
