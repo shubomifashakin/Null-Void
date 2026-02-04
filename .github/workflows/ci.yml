@@ -34,26 +34,30 @@ jobs:
         run: npm run test:server
 
   e2e:
-    environment: development
     services:
       cache-redis:
         image: redis:latest
         ports:
-          - 6379
+          - 6379:6379
 
       queue-redis:
         image: redis:latest
         ports:
-          - 6380
+          - 6380:6379
 
       postgres:
         image: postgres:latest
         ports:
-          - 5432
+          - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres_123
           POSTGRES_DB: test_postgres
+        options: >-
+          --health-cmd pg_isready -U postgres
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     runs-on: ubuntu-latest
     steps:
@@ -69,10 +73,6 @@ jobs:
 
       - name: Build Shared
         run: npm run build:shared
-
-      - name: Wait for PostgreSQL
-        run: |
-          timeout 60 bash -c 'until nc -z postgres 5432; do sleep 1; done'
 
       - name: Prisma Migrate
         working-directory: apps/server
