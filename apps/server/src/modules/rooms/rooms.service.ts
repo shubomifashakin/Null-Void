@@ -241,6 +241,7 @@ export class RoomsService {
     const invites = await this.databaseService.invite.findMany({
       where: {
         room_id: roomId,
+        status: 'PENDING',
       },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
