@@ -1,0 +1,98 @@
+name: Run Tests
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Shared
+        run: npm run build:shared
+
+      - name: Prisma Generate
+        working-directory: apps/server
+        run: npx prisma generate
+
+      - name: Run Server Tests
+        run: npm run test:server
+
+  # e2e:
+  #   environment: development
+  #   services:
+  #     cache-redis:
+  #       image: redis:latest
+  #       ports:
+  #         - 6379
+
+  #     queue-redis:
+  #       image: redis:latest
+  #       ports:
+  #         - 6380
+
+  #     postgres:
+  #       image: postgres:latest
+  #       ports:
+  #         - 5432
+  #       env:
+  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  #         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "24"
+
+  #     - name: Install Dependencies
+  #       run: npm install
+
+  #     - name: Build Shared
+  #       run: npm run build:shared
+
+  #     - name: Prisma Migrate
+  #       working-directory: apps/server
+  #       run: npx prisma migrate dev
+
+  #     - name: Prisma Generate
+  #       working-directory: apps/server
+  #       run: npx prisma generate
+
+  #     - name: Run E2E Tests
+  #       run: npm run test:server:e2e
+  #       env:
+  #         PORT: 3000
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #         CACHE_REDIS_URL: ${{ secrets.CACHE_REDIS_URL }}
+  #         QUEUE_REDIS_URL: ${{ secrets.QUEUE_REDIS_URL }}
+  #         SERVICE_NAME: ${{vars.SERVICE_NAME}}
+  #         BASE_URL: ${{ secrets.BASE_URL }}
+  #         FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+  #         RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+  #         MAILER_FROM: ${{ secrets.MAILER_FROM }}
+  #         LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+  #         GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  #         GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  #         DOMAIN: ${{ secrets.DOMAIN }}
+  #         JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  #         JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
