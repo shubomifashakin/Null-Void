@@ -1,21 +1,20 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Cursors } from "./cursors";
-import { UserInfoWithRef } from "@/stores/room-state";
-import { DrawEvent, FillStyle, Points } from "@null-void/shared";
+import React, { useCallback, useEffect, useRef } from "react";
 import { v4 as uuid } from "uuid";
 
+import { DrawEvent, Points } from "@null-void/shared";
+
+import { Cursors } from "./cursors";
+import { type Tools } from "./toolbar-panel";
+
+import { UserInfoWithRef } from "@/stores/room-state";
+import { useDrawingStyle } from "@/stores/drawing-style";
+
 interface RoomCanvasProps {
-  tool: "cursor" | "circle" | "polygon" | "line";
-  connectedUsers: UserInfoWithRef[];
+  tool: Tools;
   drawEvents: DrawEvent[];
+  connectedUsers: UserInfoWithRef[];
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   handleDraw: (event: DrawEvent) => void;
   handleMouseMove: (e: MouseEvent) => void;
@@ -29,10 +28,6 @@ export default function RoomCanvas({
   handleDraw,
   handleMouseMove,
 }: RoomCanvasProps) {
-  const [fillColor] = useState("rgba(255, 54, 51, 1)");
-  const [strokeColor] = useState("#fc3");
-  const [strokeWidth] = useState(2);
-
   const containerRef = useRef<HTMLDivElement | null>(null);
   const lineStartRef = useRef<Points | null>(null);
   const circleCenterRef = useRef<Points | null>(null);
@@ -40,12 +35,7 @@ export default function RoomCanvas({
   const polygonHoverRef = useRef<Points | null>(null);
   const previewEventRef = useRef<DrawEvent | null>(null);
 
-  const fillStyle: FillStyle | undefined = useMemo(() => {
-    return {
-      color: fillColor,
-      opacity: 0.25,
-    };
-  }, [fillColor]);
+  const drawingStyle = useDrawingStyle();
 
   const getPoint = useCallback(
     (e: MouseEvent): Points | null => {
@@ -195,101 +185,142 @@ export default function RoomCanvas({
   const handleCanvasMouseUp = useCallback(
     (e: MouseEvent) => {
       if (tool === "cursor") return;
+
       const point = getPoint(e);
+
       if (!point) return;
 
       if (tool === "line") {
         const from = lineStartRef.current;
+
         if (!from) return;
+
         const event: DrawEvent = {
           type: "line",
           id: uuid(),
-          strokeColor,
-          strokeWidth,
-          timestamp: Date.now().toString(),
           from,
           to: point,
+          timestamp: Date.now().toString(),
+          strokeColor: drawingStyle.strokeColor,
+          strokeWidth: drawingStyle.strokeWidth,
         };
+
         lineStartRef.current = null;
+
         previewEventRef.current = null;
+
         handleDraw(event);
+
         redraw();
+
         return;
       }
 
       if (tool === "circle") {
         const center = circleCenterRef.current;
+
         if (!center) return;
+
         const radius = Math.hypot(point.x - center.x, point.y - center.y);
+
         const event: DrawEvent = {
           type: "circle",
           id: uuid(),
-          strokeColor,
-          strokeWidth,
+          strokeColor: drawingStyle.strokeColor,
+          strokeWidth: drawingStyle.strokeWidth,
           timestamp: Date.now().toString(),
           center,
           radius,
-          fillStyle,
+          fillStyle: {
+            color: drawingStyle.fillColor,
+            opacity: drawingStyle.fillOpacity,
+          },
         };
+
         circleCenterRef.current = null;
+
         previewEventRef.current = null;
+
         handleDraw(event);
+
         redraw();
       }
     },
-    [fillStyle, getPoint, handleDraw, redraw, strokeColor, strokeWidth, tool],
+    [getPoint, handleDraw, redraw, tool, drawingStyle],
   );
 
   const handleCanvasClick = useCallback(
     (e: MouseEvent) => {
       if (tool !== "polygon") return;
+
       if (
         (e as unknown as { detail?: number }).detail &&
         (e as unknown as { detail?: number }).detail! > 1
-      ) {
+      )
         return;
-      }
+
       const point = getPoint(e);
+
       if (!point) return;
+
       polygonPointsRef.current = [...polygonPointsRef.current, point];
+
       polygonHoverRef.current = null;
+
       const points = polygonPointsRef.current;
+
       previewEventRef.current = {
         type: "polygon",
-        id: uuid(),
-        strokeColor,
-        strokeWidth,
-        timestamp: Date.now().toString(),
         points,
-        fillStyle,
+        id: uuid(),
+        strokeColor: drawingStyle.strokeColor,
+        strokeWidth: drawingStyle.strokeWidth,
+        timestamp: Date.now().toString(),
+        fillStyle: {
+          color: drawingStyle.fillColor,
+          opacity: drawingStyle.fillOpacity,
+        },
       };
+
       redraw();
     },
-    [fillStyle, getPoint, redraw, strokeColor, strokeWidth, tool],
+    [getPoint, redraw, tool, drawingStyle],
   );
 
   const handleCanvasDoubleClick = useCallback(
     (e: MouseEvent) => {
       if (tool !== "polygon") return;
+
       e.preventDefault();
+
       const points = polygonPointsRef.current;
+
       if (points.length < 3) return;
+
       const event: DrawEvent = {
         type: "polygon",
         id: uuid(),
-        strokeColor,
-        strokeWidth,
+        strokeColor: drawingStyle.strokeColor,
+        strokeWidth: drawingStyle.strokeWidth,
         timestamp: Date.now().toString(),
         points,
-        fillStyle,
+        fillStyle: {
+          color: drawingStyle.fillColor,
+          opacity: drawingStyle.fillOpacity,
+        },
       };
+
       polygonPointsRef.current = [];
+
       polygonHoverRef.current = null;
+
       previewEventRef.current = null;
+
       handleDraw(event);
+
       redraw();
     },
-    [fillStyle, handleDraw, redraw, strokeColor, strokeWidth, tool],
+    [handleDraw, redraw, tool, drawingStyle],
   );
 
   const handleCanvasMouseMove = useCallback(
@@ -298,69 +329,86 @@ export default function RoomCanvas({
 
       if (tool === "line") {
         const from = lineStartRef.current;
+
         if (!from) return;
+
         const point = getPoint(e);
+
         if (!point) return;
+
         previewEventRef.current = {
           type: "line",
           id: uuid(),
-          strokeColor,
-          strokeWidth,
+          strokeColor: drawingStyle.strokeColor,
+          strokeWidth: drawingStyle.strokeWidth,
           timestamp: Date.now().toString(),
           from,
           to: point,
         };
+
         redraw();
+
         return;
       }
 
       if (tool === "circle") {
         const center = circleCenterRef.current;
+
         if (!center) return;
+
         const point = getPoint(e);
+
         if (!point) return;
+
         const radius = Math.hypot(point.x - center.x, point.y - center.y);
+
         previewEventRef.current = {
           type: "circle",
           id: uuid(),
-          strokeColor,
-          strokeWidth,
+          strokeColor: drawingStyle.strokeColor,
+          strokeWidth: drawingStyle.strokeWidth,
           timestamp: Date.now().toString(),
           center,
           radius,
-          fillStyle,
+          fillStyle: {
+            color: drawingStyle.fillColor,
+            opacity: drawingStyle.fillOpacity,
+          },
         };
+
         redraw();
+
         return;
       }
 
       if (tool === "polygon") {
         if (polygonPointsRef.current.length === 0) return;
+
         const hover = getPoint(e);
+
         if (!hover) return;
+
         polygonHoverRef.current = hover;
+
         const points = [...polygonPointsRef.current, hover];
+
         previewEventRef.current = {
           type: "polygon",
           id: uuid(),
-          strokeColor,
-          strokeWidth,
+          strokeColor: drawingStyle.strokeColor,
+          strokeWidth: drawingStyle.strokeWidth,
           timestamp: Date.now().toString(),
           points,
-          fillStyle,
+          fillStyle: {
+            color: drawingStyle.fillColor,
+            opacity: drawingStyle.fillOpacity,
+          },
         };
+
         redraw();
       }
     },
-    [
-      fillStyle,
-      getPoint,
-      handleMouseMove,
-      redraw,
-      strokeColor,
-      strokeWidth,
-      tool,
-    ],
+    [getPoint, handleMouseMove, redraw, drawingStyle, tool],
   );
 
   return (
