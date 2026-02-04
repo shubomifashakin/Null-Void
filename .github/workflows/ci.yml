@@ -69,7 +69,7 @@ jobs:
           node-version: "24"
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Shared
         run: npm run build:shared
@@ -78,7 +78,7 @@ jobs:
         working-directory: apps/server
         run: npx prisma migrate dev
         env:
-          DATABASE_URL: postgres://postgres:postgres_123@postgres:5432/test_postgres
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
 
       - name: Prisma Generate
         working-directory: apps/server
@@ -88,9 +88,9 @@ jobs:
         run: npm run test:server:e2e
         env:
           PORT: 3000
-          DATABASE_URL: postgres://postgres:postgres_123@postgres:5432/test_postgres
-          CACHE_REDIS_URL: redis://cache-redis:6379
-          QUEUE_REDIS_URL: redis://queue-redis:6380
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
+          CACHE_REDIS_URL: redis://localhost:6379
+          QUEUE_REDIS_URL: redis://localhost:6380
           SERVICE_NAME: null-void
           BASE_URL: http://localhost:3000
           FRONTEND_URL: http://localhost:4000
