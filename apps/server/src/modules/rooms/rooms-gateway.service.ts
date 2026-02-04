@@ -127,6 +127,11 @@ export class RoomsGatewayService {
           error_type: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
         });
 
+        client.emit(WS_EVENTS.ROOM_ERROR, {
+          code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          message: 'Failed to draw',
+        } satisfies RoomErrorPayload);
+
         return client.emit(WS_EVENTS.ROOM_UNDO_DRAW, {
           code: WS_ERROR_CODES.INTERNAL_SERVER_ERROR,
           id: data.id,
