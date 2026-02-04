@@ -22,10 +22,10 @@ class EnvConfig {
   @IsNotEmpty()
   QUEUE_REDIS_URL: string;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   BASE_URL: string;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   FRONTEND_URL: string;
 
   @IsString()
