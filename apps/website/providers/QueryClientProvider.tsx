@@ -19,6 +19,7 @@ const queryClientProvider = new QueryClient({
         return failureCount < 3;
       },
       retryDelay: 3000,
+      refetchOnWindowFocus: false,
     },
   },
 });
