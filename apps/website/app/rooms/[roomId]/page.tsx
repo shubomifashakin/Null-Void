@@ -76,7 +76,9 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<Panels>("info");
 
   function handleRemoveMember(userId: string) {
-    if (userInfo?.role !== "ADMIN" || !socket) return;
+    if (userInfo?.role !== "ADMIN" || !socket) {
+      return toast.error("Unauthorized");
+    }
 
     socket.emit(WS_EVENTS.USER_REMOVE, { userId });
   }
@@ -96,7 +98,9 @@ export default function Page() {
   }
 
   function handleUpdateRoom(name: string, description: string) {
-    if (userInfo?.role !== "ADMIN" || !socket) return;
+    if (userInfo?.role !== "ADMIN" || !socket) {
+      return toast.error("Unauthorized");
+    }
 
     socket.emit(WS_EVENTS.ROOM_INFO, {
       name,
