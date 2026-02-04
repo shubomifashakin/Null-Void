@@ -73,10 +73,6 @@ export default function Page() {
     updateConnectedUserRole,
   } = useRoomState();
 
-  const [selectedTool, setSelectedTool] = useState<
-    "cursor" | "circle" | "polygon" | "line"
-  >("cursor");
-
   const [activeTab, setActiveTab] = useState<Panels>("info");
 
   function handleRemoveMember(userId: string) {
@@ -357,13 +353,9 @@ export default function Page() {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <ToolbarPanel
-          selectedTool={selectedTool}
-          onToolChange={setSelectedTool}
-        />
+        <ToolbarPanel />
 
         <RoomCanvas
-          tool={selectedTool}
           canvasRef={canvasRef}
           handleDraw={handleDraw}
           drawEvents={drawEvents}

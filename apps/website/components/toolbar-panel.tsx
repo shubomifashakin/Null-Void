@@ -1,32 +1,21 @@
 "use client";
 
-import { useDrawingStyle } from "@/stores/drawing-style";
+import { useToolBar } from "@/stores/toolbar-state";
 import { Circle, Hexagon, MousePointer2 } from "lucide-react";
 
 export type Tools = "cursor" | "circle" | "polygon" | "line";
 
-interface ToolbarPanelProps {
-  selectedTool: Tools;
-  onToolChange: (tool: Tools) => void;
-}
-
 const tools = [
-  { id: "cursor", label: "Cursor", icon: <MousePointer2 /> },
+  { id: "cursor", label: "Cursor", icon: <MousePointer2 size={20} /> },
   { id: "line", label: "Line", icon: "/" },
-  { id: "circle", label: "Circle", icon: <Circle /> },
-  { id: "polygon", label: "Polygon", icon: <Hexagon /> },
+  { id: "circle", label: "Circle", icon: <Circle size={20} /> },
+  { id: "polygon", label: "Polygon", icon: <Hexagon size={20} /> },
 ];
 
-interface ToolbarPanelProps {
-  selectedTool: Tools;
-  onToolChange: (tool: Tools) => void;
-}
-
-export default function ToolbarPanel({
-  selectedTool,
-  onToolChange,
-}: ToolbarPanelProps) {
+export default function ToolbarPanel() {
   const {
+    tool: selectedTool,
+    setTool,
     fillColor,
     fillOpacity,
     strokeColor,
@@ -35,7 +24,11 @@ export default function ToolbarPanel({
     setStrokeColor,
     setFillOpacity,
     setStrokeWidth,
-  } = useDrawingStyle();
+  } = useToolBar();
+
+  function handleToolChange(tool: Tools) {
+    setTool(tool);
+  }
 
   function handleFillColorChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFillColor(e.target.value);
@@ -60,7 +53,7 @@ export default function ToolbarPanel({
           {tools.map((tool) => (
             <button
               key={tool.id}
-              onClick={() => onToolChange(tool.id as Tools)}
+              onClick={() => handleToolChange(tool.id as Tools)}
               className={`w-8 h-8 cursor-pointer flex items-center justify-center rounded text-lg font-semibold transition-colors ${
                 selectedTool === tool.id
                   ? "bg-primary text-primary-foreground"

@@ -6,13 +6,11 @@ import { v4 as uuid } from "uuid";
 import { DrawEvent, Points } from "@null-void/shared";
 
 import { Cursors } from "./cursors";
-import { type Tools } from "./toolbar-panel";
 
+import { useToolBar } from "@/stores/toolbar-state";
 import { UserInfoWithRef } from "@/stores/room-state";
-import { useDrawingStyle } from "@/stores/drawing-style";
 
 interface RoomCanvasProps {
-  tool: Tools;
   drawEvents: DrawEvent[];
   connectedUsers: UserInfoWithRef[];
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -21,7 +19,6 @@ interface RoomCanvasProps {
 }
 
 export default function RoomCanvas({
-  tool,
   canvasRef,
   connectedUsers,
   drawEvents,
@@ -35,7 +32,7 @@ export default function RoomCanvas({
   const polygonHoverRef = useRef<Points | null>(null);
   const previewEventRef = useRef<DrawEvent | null>(null);
 
-  const drawingStyle = useDrawingStyle();
+  const { tool, ...drawingStyle } = useToolBar();
 
   const getPoint = useCallback(
     (e: MouseEvent): Points | null => {
