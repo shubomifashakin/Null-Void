@@ -1,15 +1,15 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: null_void_postgres
+    container_name: null-void-postgres
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql
     networks:
-      - paytrail_network
+      - paytrail-network
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_123
-      POSTGRES_DB: null_void_postgres
+      POSTGRES_PASSWORD: postgres-123
+      POSTGRES_DB: null-void-postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -17,19 +17,19 @@ services:
       retries: 5
     restart: unless-stopped
 
-  null_void_1:
-    image: null_void_server:latest
-    container_name: null_void_1
+  null-void-1:
+    image: null-void-server:latest
+    container_name: null-void-1
     restart: unless-stopped
     mem_limit: 512m
     volumes:
-      - ./logs/null_void_1:/app/logs
+      - ./logs/null-void-1:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
-      cache_redis:
+      cache-redis:
         condition: service_healthy
-      queue_redis:
+      queue-redis:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
@@ -53,19 +53,19 @@ services:
     ports:
       - "4000:4000"
 
-  null_void_2:
-    image: null_void_server:latest
-    container_name: null_void_2
+  null-void-2:
+    image: null-void-server:latest
+    container_name: null-void-2
     restart: unless-stopped
     mem_limit: 512m
     volumes:
-      - ./logs/null_void_2:/app/logs
+      - ./logs/null-void-2:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
-      cache_redis:
+      cache-redis:
         condition: service_healthy
-      queue_redis:
+      queue-redis:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
@@ -89,18 +89,18 @@ services:
     ports:
       - "5000:4000"
 
-  null_void_queue_processor:
-    image: null_void_processor:latest
-    container_name: null_void_queue_processor
+  null-void-queue-processor:
+    image: null-void-processor:latest
+    container_name: null-void-queue-processor
     restart: unless-stopped
     volumes:
-      - ./logs/null_void_queue_processor:/app/logs
+      - ./logs/null-void-queue-processor:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
-      cache_redis:
+      cache-redis:
         condition: service_healthy
-      queue_redis:
+      queue-redis:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
@@ -109,9 +109,9 @@ services:
     env_file:
       - .env.processor
 
-  cache_redis:
+  cache-redis:
     image: redis:latest
-    container_name: null_void_cache_redis
+    container_name: null-void-cache-redis
     networks:
       - paytrail_network
     volumes:
@@ -125,9 +125,9 @@ services:
     mem_limit: 256m
     restart: unless-stopped
 
-  queue_redis:
+  queue-redis:
     image: redis:latest
-    container_name: null_void_queue_redis
+    container_name: null-void-queue-redis
     networks:
       - paytrail_network
     volumes:
@@ -142,8 +142,8 @@ services:
     restart: unless-stopped
 
   migrations:
-    image: null_void_server:latest
-    container_name: null_void_migrations
+    image: null-void-server:latest
+    container_name: null-void-migrations
     depends_on:
       postgres:
         condition: service_healthy
@@ -160,6 +160,6 @@ networks:
     name: system_wide_network
 
 volumes:
-  cache_redis_data:
-  queue_redis_data:
-  postgres_data:
+  cache-redis-data:
+  queue-redis-data:
+  postgres-data:

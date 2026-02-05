@@ -136,9 +136,9 @@ $ cp .env.server.example ops/.env.server
 
 $ cp .env.processor.example ops/.env.processor
 
-$ docker build -f apps/server/Dockerfile -t null_void_server:latest .
+$ docker build -f apps/server/Dockerfile -t null-void-server:latest .
 
-$ docker build -f apps/processor/Dockerfile -t null_void_processor:latest .
+$ docker build -f apps/processor/Dockerfile -t null-void-processor:latest .
 
 $ cd ops
 
