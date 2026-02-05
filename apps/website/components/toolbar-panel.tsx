@@ -1,6 +1,7 @@
 "use client";
 
 import { useToolBar } from "@/stores/toolbar-state";
+import { Role } from "@/types/room";
 import { Circle, Hexagon, MousePointer2 } from "lucide-react";
 
 export type Tools = "cursor" | "circle" | "polygon" | "line";
@@ -12,7 +13,7 @@ const tools = [
   { id: "polygon", label: "Polygon", icon: <Hexagon size={20} /> },
 ];
 
-export default function ToolbarPanel() {
+export default function ToolbarPanel({ role }: { role: Role }) {
   const {
     tool: selectedTool,
     setTool,
@@ -27,6 +28,10 @@ export default function ToolbarPanel() {
   } = useToolBar();
 
   function handleToolChange(tool: Tools) {
+    if (role === "VIEWER") {
+      return setTool("cursor");
+    }
+
     setTool(tool);
   }
 

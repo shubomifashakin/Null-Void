@@ -357,7 +357,7 @@ export default function Page() {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <ToolbarPanel />
+        <ToolbarPanel role={userInfo.role} />
 
         <RoomCanvas
           canvasRef={canvasRef}
