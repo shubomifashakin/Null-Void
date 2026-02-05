@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && npm install && npm run build:shared && cd apps/website && npm run build",
+  "buildCommand": "cd ../.. && npm install --include=dev && npm run build:shared && cd apps/website && npm run build",
   "installCommand": "cd ../.. && npm install --include=dev",
   "framework": "nextjs"
 }
