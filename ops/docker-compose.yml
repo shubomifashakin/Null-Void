@@ -3,9 +3,9 @@ services:
     image: postgres:latest
     container_name: null-void-postgres
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql
     networks:
-      - paytrail-network
+      - system_wide_network
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres-123
@@ -34,7 +34,7 @@ services:
       migrations:
         condition: service_completed_successfully
     networks:
-      - paytrail_network
+      - system_wide_network
     healthcheck:
       test:
         [
@@ -70,7 +70,7 @@ services:
       migrations:
         condition: service_completed_successfully
     networks:
-      - paytrail_network
+      - system_wide_network
     healthcheck:
       test:
         [
@@ -105,7 +105,7 @@ services:
       migrations:
         condition: service_completed_successfully
     networks:
-      - paytrail_network
+      - system_wide_network
     env_file:
       - .env.processor
 
@@ -113,7 +113,7 @@ services:
     image: redis:latest
     container_name: null-void-cache-redis
     networks:
-      - paytrail_network
+      - system_wide_network
     volumes:
       - cache_redis_data:/data
       - "./cache-redis.conf:/etc/redis/redis.conf"
@@ -129,7 +129,7 @@ services:
     image: redis:latest
     container_name: null-void-queue-redis
     networks:
-      - paytrail_network
+      - system_wide_network
     volumes:
       - queue_redis_data:/data
       - "./queue-redis.conf:/etc/redis/redis.conf"
@@ -148,18 +148,18 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - paytrail_network
+      - system_wide_network
     env_file:
       - .env.server
     command: npx prisma migrate deploy
     restart: "no"
 
 networks:
-  paytrail_network:
+  system_wide_network:
     external: true
     name: system_wide_network
 
 volumes:
-  cache-redis-data:
-  queue-redis-data:
-  postgres-data:
+  cache_redis_data:
+  queue_redis_data:
+  postgres_data:
