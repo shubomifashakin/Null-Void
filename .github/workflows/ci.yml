@@ -145,3 +145,5 @@ jobs:
           JWT_SECRET: 1234
 
           JWT_PUBLIC_KEY: 1234
+
+          LOCK_TTL: 20

@@ -102,6 +102,7 @@ const mockConfigService = {
   DOMAIN: { success: true, data: 'test-domain' },
   SERVICE_NAME: { success: true, data: 'test-service-name' },
   ENVIRONMENT: { success: true, data: 'test-environment' },
+  LOCK_TTL: { success: true, data: 20 },
 };
 
 const mockLogger = {
