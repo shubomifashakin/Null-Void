@@ -103,7 +103,7 @@ jobs:
         run: npx prisma migrate dev
 
         env:
-          DATABASE_URL: postgres://postgres:postgres_123@postgres:5432/test_postgres
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
 
       - name: Prisma Generate
 
@@ -118,11 +118,11 @@ jobs:
         env:
           PORT: 3000
 
-          DATABASE_URL: postgres://postgres:postgres_123@postgres:5432/test_postgres
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
 
-          CACHE_REDIS_URL: redis://cache-redis:6379
+          CACHE_REDIS_URL: redis://localhost:6379
 
-          QUEUE_REDIS_URL: redis://queue-redis:6380
+          QUEUE_REDIS_URL: redis://localhost:6380
 
           SERVICE_NAME: null-void
 
