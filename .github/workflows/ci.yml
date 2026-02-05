@@ -72,7 +72,7 @@ jobs:
 
         options: >-
 
-          --health-cmd pg_isready --U postgres
+          --health-cmd 'pg_isready -U postgres'
 
           --health-interval 10s
 
