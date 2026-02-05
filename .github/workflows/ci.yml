@@ -144,7 +144,7 @@ jobs:
 
           GOOGLE_CLIENT_SECRET: 1234
 
-          DOMAIN: 1234
+          DOMAIN: 12345
 
           JWT_SECRET: 1234
 
