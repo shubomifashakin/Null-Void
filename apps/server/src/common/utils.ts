@@ -34,10 +34,6 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  PORT: string;
-
-  @IsString()
-  @IsNotEmpty()
   @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
   JWT_SECRET: string;
 

@@ -45,5 +45,6 @@ COPY --from=builder /app/apps/server/prisma.config.ts ./prisma.config.ts
 
 COPY --from=builder /app/apps/server/package*.json ./
 
+EXPOSE 3000
 
 CMD ["node", "dist/src/main.js"]

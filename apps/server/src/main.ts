@@ -71,6 +71,6 @@ async function bootstrap() {
 
   app.useGlobalFilters(new PrismaKnownErrorFilter());
 
-  await app.listen(process.env.PORT!);
+  await app.listen(3000);
 }
 bootstrap();

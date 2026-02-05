@@ -51,7 +51,7 @@ services:
     env_file:
       - .env.server
     ports:
-      - "4000:4000"
+      - "4000:3000"
 
   null-void-2:
     image: null-void-server:latest
@@ -87,7 +87,7 @@ services:
     env_file:
       - .env.server
     ports:
-      - "5000:4000"
+      - "5000:3000"
 
   null-void-queue-processor:
     image: null-void-processor:latest
