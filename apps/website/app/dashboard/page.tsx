@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity } from "react";
+import { Activity, Suspense } from "react";
 
 import { useRouter } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -10,6 +10,14 @@ import InvitesList from "@/components/invites-list";
 import DashboardHeader from "@/components/dashboard-header";
 
 export default function Page() {
+  return (
+    <Suspense>
+      <Dashboard />
+    </Suspense>
+  );
+}
+
+function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
