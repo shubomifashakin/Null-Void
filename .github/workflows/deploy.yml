@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "apps/processor/**"
+      - "apps/server/**"
+      - "shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 jobs:
