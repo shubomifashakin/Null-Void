@@ -1,0 +1,165 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: null-void-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - system_wide_network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres-123
+      POSTGRES_DB: null-void-postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  null-void-1:
+    image: 545plea/null-void-server:latest
+    container_name: null-void-1
+    restart: unless-stopped
+    mem_limit: 512m
+    volumes:
+      - ./logs/null-void-1:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cache-redis:
+        condition: service_healthy
+      queue-redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - system_wide_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000/health",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    env_file:
+      - .env.server
+    ports:
+      - "4000:3000"
+
+  null-void-2:
+    image: 545plea/null-void-server:latest
+    container_name: null-void-2
+    restart: unless-stopped
+    mem_limit: 512m
+    volumes:
+      - ./logs/null-void-2:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cache-redis:
+        condition: service_healthy
+      queue-redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - system_wide_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/health",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    env_file:
+      - .env.server
+    ports:
+      - "5000:3000"
+
+  null-void-queue-processor:
+    image: 545plea/null-void-processor:latest
+    container_name: null-void-queue-processor
+    restart: unless-stopped
+    volumes:
+      - ./logs/null-void-queue-processor:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cache-redis:
+        condition: service_healthy
+      queue-redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - system_wide_network
+    env_file:
+      - .env.processor
+
+  cache-redis:
+    image: redis:latest
+    container_name: null-void-cache-redis
+    networks:
+      - system_wide_network
+    volumes:
+      - cache_redis_data:/data
+      - "./cache-redis.conf:/etc/redis/redis.conf"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    restart: unless-stopped
+
+  queue-redis:
+    image: redis:latest
+    container_name: null-void-queue-redis
+    networks:
+      - system_wide_network
+    volumes:
+      - queue_redis_data:/data
+      - "./queue-redis.conf:/etc/redis/redis.conf"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    restart: unless-stopped
+
+  migrations:
+    image: 545plea/null-void-server:latest
+    container_name: null-void-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - system_wide_network
+    env_file:
+      - .env.server
+    command: npx prisma migrate deploy
+    restart: "no"
+
+networks:
+  system_wide_network:
+    external: true
+    name: system_wide_network
+
+volumes:
+  cache_redis_data:
+  queue_redis_data:
+  postgres_data:

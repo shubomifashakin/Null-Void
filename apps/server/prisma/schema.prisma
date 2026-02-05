@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Provider {
+  google
+}
+
+enum Roles {
+  ADMIN
+  VIEWER
+  EDITOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  name String
+  picture String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  room Room[]
+  accounts Accounts[]
+  members RoomMember[]
+  refresh_tokens RefreshToken[]
+  invites Invite[]
+}
+
+model Accounts {
+  id String @id @default(uuid())
+  user_id String
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  provider Provider
+  provider_id String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index(name: "accounts_user_id_idx", fields: [user_id])
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+  user_id String
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  token_id String @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Room {
+  id String @id @default(uuid())
+
+  name String @db.VarChar(20)
+  description String @db.VarChar(100)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  owner_id String?
+  owner User? @relation(fields: [owner_id], references: [id], onDelete: SetNull)
+
+  members RoomMember[]
+  invites Invite[]
+  drawing_states Snapshots[]
+}
+
+model RoomMember {
+  id String @id @default(uuid())
+
+  role Roles
+
+  room_id String
+  room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  user_id String
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([room_id, user_id])
+}
+
+model Invite {
+  id String @id @default(uuid())
+
+  status InviteStatus @default(PENDING) 
+
+  email String 
+  
+  inviter_id String
+  inviter User @relation(fields: [inviter_id], references: [id], onDelete: Cascade)
+
+  role Roles
+
+  room_id String
+  room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  expires_at DateTime
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index(name: "invites_email_idx", fields: [email, room_id, status])
+}
+
+model Snapshots {
+  id String @id @default(uuid())
+  
+  payload Json
+
+  room_id String
+  room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  timestamp DateTime
+
+  @@unique(name: "snapshots_room_id_timestamp_key", fields: [room_id, timestamp])
+
+  @@index(name: "snapshots_room_id_idx", fields: [room_id, timestamp])
+}

@@ -3,14 +3,25 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:shared": "cd shared && npm run build",
+    "build:server": "cd apps/server && npm run build",
+    "build:processor": "cd apps/processor && npm run build",
+    "build": "npm run build:shared && npm run build:server && npm run build:processor",
+    "dev:shared": "cd shared && npm run dev",
+    "dev:server": "cd apps/server && npm run start:dev",
+    "dev:website": "cd apps/website && npm run dev",
+    "dev:processor": "cd apps/processor && npm run dev",
+    "test:server": "cd apps/server && npm run test",
+    "test:server:e2e": "cd apps/server && npm run test:e2e"
   },
   "workspaces": [
-    "packages/*",
+    "shared",
     "apps/*"
   ],
   "keywords": [],
   "author": "Fashakin Olashubomi",
   "license": "ISC",
-  "type": "module"
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

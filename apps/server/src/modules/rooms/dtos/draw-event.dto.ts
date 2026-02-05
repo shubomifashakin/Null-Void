@@ -1,0 +1,135 @@
+import { Type } from 'class-transformer';
+import {
+  type Points,
+  type DrawEventBase,
+  type LineEvent,
+  type CircleEvent,
+  type PolygonEvent,
+  type FillStyle,
+  type DrawEvent as SharedDrawEvent,
+} from '@null-void/shared';
+
+import {
+  IsArray,
+  IsIn,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUUID,
+  Matches,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+
+export type DrawEvent = SharedDrawEvent;
+
+export class PointsDto implements Points {
+  @IsNumber()
+  x: number;
+
+  @IsNumber()
+  y: number;
+}
+
+export class FillStyleDto implements FillStyle {
+  @IsString()
+  color: string;
+
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  opacity: number;
+}
+
+export class DrawEventBaseDto implements DrawEventBase {
+  @IsString()
+  @IsIn(['line', 'circle', 'polygon'], { message: 'Invalid draw event type' })
+  type: 'line' | 'circle' | 'polygon';
+
+  @IsString()
+  @IsUUID(4)
+  id: string;
+
+  @IsString()
+  strokeColor: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(50)
+  strokeWidth: number;
+
+  @IsString()
+  @Matches(/^[1-9]\d*$/, {
+    message: 'Timestamp must be a string representing a positive number',
+  })
+  timestamp: string;
+}
+
+export class LineEventDto extends DrawEventBaseDto implements LineEvent {
+  constructor() {
+    super();
+    this.type = 'line';
+  }
+
+  @IsString()
+  @IsIn(['line'], { message: 'Invalid draw event type' })
+  type: 'line';
+
+  @IsObject()
+  @Type(() => PointsDto)
+  from: PointsDto;
+
+  @IsObject()
+  @Type(() => PointsDto)
+  to: PointsDto;
+}
+
+export class CircleEventDto extends DrawEventBaseDto implements CircleEvent {
+  constructor() {
+    super();
+    this.type = 'circle';
+  }
+
+  @IsString()
+  @IsIn(['circle'], { message: 'Invalid draw event type' })
+  type: 'circle';
+
+  @IsNumber()
+  @IsPositive()
+  radius: number;
+
+  @IsObject()
+  @Type(() => PointsDto)
+  center: PointsDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => FillStyleDto)
+  fillStyle?: FillStyle;
+}
+
+export class PolygonEventDto extends DrawEventBaseDto implements PolygonEvent {
+  constructor() {
+    super();
+    this.type = 'polygon';
+  }
+
+  @IsString()
+  @IsIn(['polygon'], { message: 'Invalid draw event type' })
+  type: 'polygon';
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PointsDto)
+  points: PointsDto[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => FillStyleDto)
+  fillStyle?: FillStyle;
+}
+
+export type DrawEventPayload = LineEventDto | CircleEventDto | PolygonEventDto;

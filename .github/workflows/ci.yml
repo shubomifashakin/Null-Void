@@ -1,0 +1,147 @@
+name: Run Tests
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+
+        uses: actions/setup-node@v4
+
+        with:
+          node-version: "24"
+
+      - name: Install Dependencies
+
+        run: npm install
+
+      - name: Build Shared
+
+        run: npm run build:shared
+
+      - name: Prisma Generate
+
+        working-directory: apps/server
+
+        run: npx prisma generate
+
+      - name: Run Server Tests
+
+        run: npm run test:server
+
+  e2e:
+    services:
+      cache-redis:
+        image: redis:latest
+
+        ports:
+          - 6379:6379
+
+      queue-redis:
+        image: redis:latest
+
+        ports:
+          - 6380:6379
+
+      postgres:
+        image: postgres:latest
+
+        ports:
+          - 5432:5432
+
+        env:
+          POSTGRES_USER: postgres
+
+          POSTGRES_PASSWORD: postgres_123
+
+          POSTGRES_DB: test_postgres
+
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+
+        uses: actions/setup-node@v4
+
+        with:
+          node-version: "24"
+
+      - name: Install Dependencies
+
+        run: npm install
+
+      - name: Build Shared
+
+        run: npm run build:shared
+
+      - name: Prisma Migrate
+
+        working-directory: apps/server
+
+        run: npx prisma migrate dev
+
+        env:
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
+
+      - name: Prisma Generate
+
+        working-directory: apps/server
+
+        run: npx prisma generate
+
+      - name: Run E2E Tests
+
+        run: npm run test:server:e2e
+
+        env:
+          PORT: 3000
+
+          DATABASE_URL: postgres://postgres:postgres_123@localhost:5432/test_postgres
+
+          CACHE_REDIS_URL: redis://localhost:6379
+
+          QUEUE_REDIS_URL: redis://localhost:6380
+
+          SERVICE_NAME: null-void
+
+          BASE_URL: http://localhost:3000
+
+          FRONTEND_URL: http://localhost:4000
+
+          RESEND_API_KEY: 1234
+
+          MAILER_FROM: 1234
+
+          LOG_LEVEL: info
+
+          GOOGLE_CLIENT_ID: 1234
+
+          GOOGLE_CLIENT_SECRET: 1234
+
+          DOMAIN: 12345
+
+          JWT_SECRET: 1234
+
+          JWT_PUBLIC_KEY: 1234
