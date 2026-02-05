@@ -35,6 +35,21 @@ export class AppConfigService {
     }
   }
 
+  get LOCK_TTL(): FnResult<number> {
+    try {
+      const lockTtl = this.config.getOrThrow<string>('LOCK_TTL');
+      const lockNumber = parseInt(lockTtl);
+
+      return { success: true, data: lockNumber, error: null };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: makeError(error),
+      };
+    }
+  }
+
   get MAILER_FROM(): FnResult<string> {
     try {
       const mailerFrom = this.config.getOrThrow<string>('MAILER_FROM');

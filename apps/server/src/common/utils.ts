@@ -34,6 +34,10 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
+  LOCK_TTL: string;
+
+  @IsString()
+  @IsNotEmpty()
   @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
   JWT_SECRET: string;
 

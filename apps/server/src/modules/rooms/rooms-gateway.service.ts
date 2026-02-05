@@ -49,6 +49,7 @@ import { DAYS_1, MINUTES_5_MS } from '../../common/constants';
 
 import { DrawEvent } from '../../core/protos/draw_event';
 import { DatabaseService } from '../../core/database/database.service';
+import { AppConfigService } from '../../core/app-config/app-config.service';
 import { PrometheusService } from '../../core/prometheus/prometheus.service';
 import { QueueRedisService } from '../../core/queue-redis/queue-redis.service';
 import {
@@ -81,6 +82,7 @@ export class RoomsGatewayService {
     @InjectQueue(IDLE_SNAPSHOT_QUEUE)
     private readonly idleSnapshotsQueue: Queue,
     private readonly prometheusService: PrometheusService,
+    private readonly configService: AppConfigService,
   ) {
     this.errorCounter = this.prometheusService.createCounter(
       'rooms_errors_total',
@@ -174,7 +176,7 @@ export class RoomsGatewayService {
       const acquiredLock = await this.queueRedisService.setInCache(
         makeLockKey(roomDrawEventsCacheKey),
         'locked',
-        20,
+        this.configService.LOCK_TTL.data!,
         'NX',
       );
 
