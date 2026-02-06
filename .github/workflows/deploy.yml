@@ -70,5 +70,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/${{ secrets.REMOTE_USER }}/projects/null-void/
-            docker compose up -d
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker compose logs --tail=50
             echo "Successfully deployed to server"

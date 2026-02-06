@@ -811,19 +811,19 @@ export class RoomsGatewayService {
         return;
       }
 
-      let promotedUsersName: string;
+      const usersSocket = await this.getUserSocket(server, dto.userId, roomId);
+
+      if (!usersSocket.success) {
+        throw usersSocket.error;
+      }
+
+      if (!usersSocket.data) {
+        throw new Error('User is not currently in room');
+      }
+
+      let promotedUsersName = usersSocket.data.data.name;
 
       await this.databaseService.$transaction(async (tx) => {
-        const usersSocket = await this.getUserSocket(
-          server,
-          dto.userId,
-          roomId,
-        );
-
-        if (!usersSocket.success) {
-          throw usersSocket.error;
-        }
-
         await tx.roomMember.update({
           where: {
             room_id_user_id: {
@@ -873,7 +873,7 @@ export class RoomsGatewayService {
       } satisfies UserPromotedPayload);
 
       server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
-        message: `${clientInfo.name} promoted ${promotedUsersName!} to ${dto.role}`,
+        message: `${clientInfo.name} promoted ${promotedUsersName} to ${dto.role}`,
       } satisfies RoomNotificationPayload);
     } catch (error: unknown) {
       this.errorCounter.inc({
