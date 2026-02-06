@@ -14,12 +14,11 @@ export function useSockets() {
       {
         query: { roomId },
         retries: 3,
-        ackTimeout: 10000,
         withCredentials: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-      }
+      },
     );
 
     setSocket(socketInstance);
