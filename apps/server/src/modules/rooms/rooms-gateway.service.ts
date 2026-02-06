@@ -811,6 +811,8 @@ export class RoomsGatewayService {
         return;
       }
 
+      let promotedUsersName: string;
+
       await this.databaseService.$transaction(async (tx) => {
         const usersSocket = await this.getUserSocket(
           server,
@@ -858,6 +860,8 @@ export class RoomsGatewayService {
 
         usersSocket.data.data.role = dto.role;
 
+        promotedUsersName = usersSocket.data.data.name;
+
         usersSocket.data.emit(WS_EVENTS.USER_INFO, {
           ...usersSocket.data.data,
         } satisfies UserInfoPayload);
@@ -869,7 +873,7 @@ export class RoomsGatewayService {
       } satisfies UserPromotedPayload);
 
       server.to(roomId).emit(WS_EVENTS.ROOM_NOTIFICATION, {
-        message: `${clientInfo.name} promoted ${dto.userId} to ${dto.role}`,
+        message: `${clientInfo.name} promoted ${promotedUsersName!} to ${dto.role}`,
       } satisfies RoomNotificationPayload);
     } catch (error: unknown) {
       this.errorCounter.inc({

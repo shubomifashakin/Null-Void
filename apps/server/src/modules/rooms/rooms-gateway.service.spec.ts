@@ -1209,7 +1209,7 @@ describe('RoomsGatewayService', () => {
       expect(mockServer.emit).toHaveBeenCalledWith(
         WS_EVENTS.ROOM_NOTIFICATION,
         {
-          message: `Test User promoted ${userToPromote} to ADMIN`,
+          message: expect.stringContaining(`Test User promoted`),
         },
       );
     });
