@@ -110,11 +110,11 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 onClick={handleGoBack}
-                className="border-border cursor-pointer text-foreground hover:bg-background bg-transparent"
+                className="cursor-pointer border-none shadow-none text-foreground hover:bg-background bg-transparent"
               >
                 <ArrowLeft size={10} /> Back
               </Button>
-              <h1 className="text-lg font-bold text-foreground">Settings</h1>
+              <h1 className="font-bold text-foreground">Settings</h1>
             </div>
           </div>
         </div>
@@ -166,7 +166,7 @@ function AccountInfo({
 
   return (
     <div className="space-y-6">
-      <Card className="p-6 bg-card border border-border">
+      <Card className="p-6 bg-card border border-border shadow-none">
         <h2 className="text-lg font-semibold text-foreground mb-6">
           Account Information
         </h2>
@@ -252,7 +252,7 @@ function AccountInfo({
         </div>
       </Card>
 
-      <Card className="p-6 bg-destructive/5 border border-destructive/20 gap-y-4">
+      <Card className="p-6 bg-destructive/5 border border-destructive/20 gap-y-4 shadow-none">
         <h2 className="text-lg font-semibold text-foreground">Danger Zone</h2>
 
         <p className="text-sm text-muted-foreground">
@@ -286,7 +286,7 @@ function AccountInfo({
                 variant="outline"
                 disabled={isDeleting}
                 onClick={() => setShowDeleteConfirm(false)}
-                className="border-border text-foreground cursor-pointer hover:bg-background"
+                className="border-border text-foreground cursor-pointer shadow-none hover:bg-background"
               >
                 Cancel
               </Button>

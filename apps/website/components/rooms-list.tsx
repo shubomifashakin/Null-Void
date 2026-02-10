@@ -93,12 +93,12 @@ export default function RoomsList() {
           onClick={handleIsCreatingRoom}
           className="bg-primary cursor-pointer text-primary-foreground hover:bg-primary/90"
         >
-          {isCreatingRoom ? "Cancel" : "+ Create Room"}
+          {isCreatingRoom ? "Cancel" : "Create Room"}
         </Button>
       </div>
 
       {isCreatingRoom && (
-        <Card className="p-6 bg-card border border-border">
+        <Card className="p-6 shadow-none bg-card border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Create a New Room
           </h3>
@@ -187,7 +187,7 @@ export default function RoomsList() {
             <Card
               key={room.id}
               onClick={() => router.push(`/rooms/${room.id}`)}
-              className="p-6 bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
+              className="p-6 bg-card border shadow-none border-border hover:border-primary/50 transition-colors cursor-pointer"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-2">

@@ -112,7 +112,10 @@ export default function InvitesList() {
       {data && data.length > 0 && (
         <div className="space-y-4">
           {data.map((invite) => (
-            <Card key={invite.id} className="p-6 bg-card border border-border">
+            <Card
+              key={invite.id}
+              className="p-6 bg-card border shadow-none border-border"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="w-12 h-12 rounded-full overflow-hidden relative">
