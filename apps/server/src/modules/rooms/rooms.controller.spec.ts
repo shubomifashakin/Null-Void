@@ -327,7 +327,7 @@ describe('RoomsController', () => {
     expect(mockMailerService.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         receiver: inviteeEmail,
-        sender: 'test-mailer-from',
+        sender: 'Null Void <test-mailer-from>',
         subject: `You have been invited to join ${inviteInfo.room.name}`,
         html: generateInviteMail({
           inviterName: invitersInfo.name,

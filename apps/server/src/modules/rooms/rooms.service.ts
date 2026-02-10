@@ -208,7 +208,7 @@ export class RoomsService {
 
         const { success, error } = await this.mailerService.sendMail({
           receiver: dto.email,
-          sender: this.appConfigService.MAILER_FROM.data!, //FIXME: ADD SENDING MAIL
+          sender: `Null Void <${this.appConfigService.MAILER_FROM.data!}>`,
           subject: `You have been invited to join ${inviteInfo.room.name}`,
           html: generateInviteMail({
             inviterName: invitersInfo.name,
