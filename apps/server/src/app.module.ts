@@ -168,8 +168,8 @@ import { DEFAULT_JWT_ALG } from './common/constants';
         return {
           throttlers: [
             {
-              ttl: 10,
-              limit: 10,
+              ttl: 15,
+              limit: 30,
               name: 'default',
             },
           ],
