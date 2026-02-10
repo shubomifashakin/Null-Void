@@ -57,7 +57,7 @@ export class RoomsController {
   @ApiResponse({ status: 429, description: 'Too many requests' })
   @ApiBody({ type: CreateRoomDto })
   @HttpCode(200)
-  @Throttle({ default: { limit: 3, ttl: 2.5 } })
+  @Throttle({ default: { limit: 10, ttl: 15 } })
   @Post()
   createRoom(@Req() req: Request, @Body() dto: CreateRoomDto) {
     return this.roomsService.createRoom(req.user.id, dto);
@@ -116,7 +116,7 @@ export class RoomsController {
   @Roles('ADMIN')
   @UseGuards(IsMemberGuard, RoomRoleGuard)
   @ApiParam({ name: 'roomId', description: 'Room ID' })
-  @Throttle({ default: { limit: 3, ttl: 2.5 } })
+  @Throttle({ default: { limit: 10, ttl: 15 } })
   @HttpCode(200)
   @Delete(':roomId')
   deleteRoom(@Param('roomId') id: string) {
@@ -169,7 +169,7 @@ export class RoomsController {
   @UseGuards(IsMemberGuard, RoomRoleGuard)
   @ApiParam({ name: 'roomId', description: 'Room ID' })
   @ApiBody({ type: InviteUserDto })
-  @Throttle({ default: { limit: 3, ttl: 2.5 } })
+  @Throttle({ default: { limit: 10, ttl: 15 } })
   @HttpCode(200)
   @Post(':roomId/invites')
   inviteUser(

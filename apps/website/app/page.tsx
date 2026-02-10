@@ -5,7 +5,7 @@ export default function Page() {
     <main className="min-h-screen font-sans  bg-gradient-to-br from-background via-background to-card flex items-center justify-center px-4">
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-2">
-          <h1 className="text-6xl font-bold text-foreground ">Null-Void</h1>
+          <h1 className="text-6xl font-bold text-foreground ">Null Void</h1>
 
           <div className="h-1 w-24 bg-primary mx-auto rounded-full" />
         </div>
