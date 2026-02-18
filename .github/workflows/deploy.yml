@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/deploy.yml"
+      - "ops/**"
   workflow_dispatch:
 
 jobs:

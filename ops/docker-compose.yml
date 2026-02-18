@@ -50,8 +50,6 @@ services:
       retries: 5
     env_file:
       - .env.server
-    ports:
-      - "4000:3000"
 
   null-void-2:
     image: 545plea/null-void-server:latest
@@ -86,8 +84,6 @@ services:
       retries: 5
     env_file:
       - .env.server
-    ports:
-      - "5000:3000"
 
   null-void-queue-processor:
     image: 545plea/null-void-processor:latest
