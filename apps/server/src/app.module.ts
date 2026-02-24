@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
@@ -113,8 +113,15 @@ import { DEFAULT_JWT_ALG } from './common/constants';
             Date.now().toString()
           );
         },
+        autoLogging: {
+          ignore: (req) => ['/health', '/metrics'].includes(req.url ?? ''),
+        },
       },
       assignResponse: false,
+      exclude: [
+        { path: '/health', method: RequestMethod.GET },
+        { path: '/metrics', method: RequestMethod.GET },
+      ],
     }),
     JwtModule.registerAsync({
       global: true,
