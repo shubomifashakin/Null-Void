@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
+import * as cookie from 'cookie';
+
 import { Counter, Histogram } from 'prom-client';
 
 import { isUUID } from 'class-validator';
@@ -1097,14 +1099,7 @@ export class RoomsGatewayService {
 
     if (!cookieHeader) return null;
 
-    const cookies = cookieHeader.split(';').reduce(
-      (acc, cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        acc[name] = value;
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+    const cookies = cookie.parse(cookieHeader);
 
     return cookies['access_token'] || null;
   }
