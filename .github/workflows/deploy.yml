@@ -65,13 +65,11 @@ jobs:
 
       - name: Start new containers
         uses: appleboy/ssh-action@v1.2.5
+        env:
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
         with:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/${{ secrets.REMOTE_USER }}/projects/null-void/
-            docker compose pull
-            docker compose up -d --force-recreate
-            docker compose logs --tail=50
-            echo "Successfully deployed to server"
+          envs: REMOTE_USER
+          script_path: ./scripts/actions/deploy.sh
