@@ -39,9 +39,15 @@ import { DEFAULT_JWT_ALG } from './common/constants';
     LoggerModule.forRoot({
       pinoHttp: {
         messageKey: 'message',
+        mixin(_context, level, logger) {
+          return { level_label: logger.levels.labels[level] };
+        },
         errorKey: 'error',
         level: process.env.LOG_LEVEL! || 'info',
-        base: { service: process.env.SERVICE_NAME! },
+        base: {
+          service: process.env.SERVICE_NAME!,
+          environment: process.env.NODE_ENV!,
+        },
         timestamp: () => `,"time":"${new Date(Date.now()).toISOString()}"`,
         ...(process.env.NODE_ENV !== 'production' && {
           transport: {
