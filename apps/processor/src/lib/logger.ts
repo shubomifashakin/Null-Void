@@ -3,44 +3,21 @@ import { logLevel, NODE_ENV } from "./config";
 
 const logger = pino({
   level: logLevel,
-  name: "idle-snapshots-worker",
+  mixin(_context, level, logger) {
+    return { level_label: logger.levels.labels[level] };
+  },
+  name: "null-void-worker",
   base: {
-    service: "idle-snapshots-worker",
+    service: "null-void-worker",
   },
   messageKey: "message",
   errorKey: "error",
   timestamp: pino.stdTimeFunctions.isoTime,
-  transport: {
-    targets:
-      NODE_ENV === "production"
-        ? [
-            {
-              target: "pino-roll",
-              level: "info",
-              options: {
-                file: "./logs/combined.log",
-                mkdir: true,
-                size: "2m",
-                frequency: "daily",
-                limit: { count: 1 },
-                dateFormat: "dd-MM-yyyy",
-              },
-            },
-            {
-              target: "pino-roll",
-              level: "error",
-              options: {
-                file: "./logs/errors.log",
-                mkdir: true,
-                size: "2m",
-                frequency: "daily",
-                limit: { count: 1 },
-                dateFormat: "dd-MM-yyyy",
-              },
-            },
-          ]
-        : [{ target: "pino-pretty" }],
-  },
+  ...(NODE_ENV !== "production" && {
+    transport: {
+      targets: [{ target: "pino-pretty" }],
+    },
+  }),
   redact: {
     paths: [
       "req.headers",
