@@ -84,6 +84,7 @@ services:
   null-void-queue-processor:
     image: 545plea/null-void-processor:latest
     container_name: null-void-queue-processor
+    mem_limit: 256m
     restart: unless-stopped
     depends_on:
       postgres:
