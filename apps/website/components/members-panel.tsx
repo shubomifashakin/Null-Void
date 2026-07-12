@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MoreVertical } from "lucide-react";
 import { Role } from "@/types/room";
 import { UserInfoPayload } from "@null-void/shared";
 
@@ -75,9 +76,9 @@ export default function MembersPanel({
                       expandedMemberId === member.userId ? null : member.userId,
                     )
                   }
-                  className="text-xs px-2 py-1 text-foreground hover:bg-primary/10 rounded transition-colors"
+                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors"
                 >
-                  ⋮
+                  <MoreVertical size={14} />
                 </button>
               )}
             </div>
