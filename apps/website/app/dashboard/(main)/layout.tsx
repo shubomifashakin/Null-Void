@@ -25,7 +25,7 @@ export default function DashboardLayout({
             <NullVoidIcon className="h-5 w-5" />
             <p className="font-semibold tracking-[-0.02em]">Null Void</p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             <UserMenu />
           </div>

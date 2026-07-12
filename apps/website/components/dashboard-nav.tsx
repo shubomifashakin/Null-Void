@@ -38,7 +38,7 @@ export function DashboardNav({ mobile = false }: { mobile?: boolean }) {
   }
 
   return (
-    <nav className="flex-1 px-3 py-5 space-y-0.5">
+    <nav className="flex-1 px-3 py-5 space-y-3">
       {navItems.map(({ label, href, icon: Icon }) => {
         const active = pathname === href;
         return (
