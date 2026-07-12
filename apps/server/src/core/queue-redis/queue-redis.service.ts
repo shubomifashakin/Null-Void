@@ -31,6 +31,9 @@ export class QueueRedisService
       url: redisUrl.data,
       name: serviceName.data + '-queue',
       disableOfflineQueue: true,
+      maintNotifications: 'disabled',
+      commandOptions: { timeout: 15000 },
+      socket: { keepAliveInitialDelay: 5000 },
     });
   }
 

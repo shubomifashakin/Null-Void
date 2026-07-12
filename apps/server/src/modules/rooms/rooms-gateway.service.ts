@@ -1099,7 +1099,7 @@ export class RoomsGatewayService {
 
     if (!cookieHeader) return null;
 
-    const cookies = cookie.parse(cookieHeader);
+    const cookies = cookie.parseCookie(cookieHeader);
 
     return cookies['access_token'] || null;
   }

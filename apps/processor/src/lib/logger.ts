@@ -9,6 +9,7 @@ const logger = pino({
   name: "null-void-worker",
   base: {
     service: "null-void-worker",
+    environment: NODE_ENV,
   },
   messageKey: "message",
   errorKey: "error",
