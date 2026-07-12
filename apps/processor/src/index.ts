@@ -1,4 +1,4 @@
-import { Worker, Job, MetricsTime } from "bullmq";
+import { Worker, Job, MetricsTime, ConnectionOptions } from "bullmq";
 import { v4 as uuid } from "uuid";
 
 import pgClient from "./lib/pg";
@@ -30,7 +30,7 @@ const worker = new Worker(
       "locked",
       "EX",
       LOCK_TTL,
-      "NX"
+      "NX",
     );
 
     if (!acquiredLock) {
@@ -42,7 +42,7 @@ const worker = new Worker(
     const pendingEvents = await connection.hgetall(job.data.roomEventsKey);
 
     const pendingEventsArray = Object.values(pendingEvents).map(
-      (event) => JSON.parse(event) as DrawEvent
+      (event) => JSON.parse(event) as DrawEvent,
     );
 
     if (!pendingEventsArray.length) {
@@ -60,7 +60,7 @@ const worker = new Worker(
     //merge pending events and previous events to make new snapshot
     const mergedEvents = mergeSnapshotsWithPendingEvents(
       previousSnapshot.data?.events || [],
-      pendingEventsArray
+      pendingEventsArray,
     );
 
     const snapshotTaken = await takeSnapshot(mergedEvents, job.data.roomId);
@@ -75,7 +75,7 @@ const worker = new Worker(
     await connection.del(makeLockKey(job.data.roomEventsKey));
   },
   {
-    connection,
+    connection: connection as ConnectionOptions,
     name: "idle-snapshots-worker",
     removeOnComplete: { count: 0 },
     removeOnFail: { count: 20 },
@@ -86,15 +86,15 @@ const worker = new Worker(
       max: 10,
       duration: 2000,
     },
-  }
+  },
 );
 
 async function getPreviousSnapshot(
-  roomId: string
+  roomId: string,
 ): Promise<FnResult<DrawEventList | null>> {
   try {
     const previousSnapshot = await connection.getBuffer(
-      makeRoomSnapshotCacheKey(roomId)
+      makeRoomSnapshotCacheKey(roomId),
     );
 
     if (previousSnapshot) {
@@ -106,7 +106,7 @@ async function getPreviousSnapshot(
       timestamp: string;
     }>(
       'SELECT payload, timestamp FROM "Snapshots" WHERE room_id = $1 ORDER BY timestamp DESC LIMIT 1',
-      [roomId]
+      [roomId],
     );
 
     if (!result.rows.length) {
@@ -132,7 +132,7 @@ async function getPreviousSnapshot(
 
 async function takeSnapshot(
   events: DrawEvent[],
-  roomId: string
+  roomId: string,
 ): Promise<FnResult<null>> {
   try {
     const timestamp = new Date();
@@ -144,12 +144,12 @@ async function takeSnapshot(
 
     await connection.set(
       makeRoomSnapshotCacheKey(roomId),
-      encodedSnapshot.data
+      encodedSnapshot.data,
     );
 
     await pgClient.query(
       'INSERT INTO "Snapshots" (id, room_id, payload, timestamp, created_at, updated_at) VALUES ($1, $2, $3::jsonb, $4, $5, $6)',
-      [uuid(), roomId, JSON.stringify(events), timestamp, timestamp, timestamp]
+      [uuid(), roomId, JSON.stringify(events), timestamp, timestamp, timestamp],
     );
 
     return { success: true, error: null, data: null };

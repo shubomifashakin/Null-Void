@@ -50,7 +50,7 @@ describe('RoomsController (e2e)', () => {
   let app: INestApplication<App>;
   let databaseService: DatabaseService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })

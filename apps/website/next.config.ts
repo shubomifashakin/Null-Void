@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["dev-null-void.545plea.xyz"],
   images: {
     qualities: [100, 75],
     remotePatterns: [
