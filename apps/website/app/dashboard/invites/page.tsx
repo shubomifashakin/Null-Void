@@ -111,58 +111,63 @@ export default function Page() {
       )}
 
       {data && data.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {data.map((invite) => (
             <Card
               key={invite.id}
-              className="p-5 bg-card border shadow-none border-border flex flex-col gap-4"
+              className="p-8 bg-card border shadow-none border-border"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0">
-                  <Image
-                    fill
-                    alt={invite.invitersName}
-                    className="object-cover"
-                    src={
-                      invite.invitersPicture ||
-                      "https://avatars.githubusercontent.com/u/12345?v=4"
-                    }
-                  />
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-semibold truncate">{invite.roomName}</p>
-                    <span className="text-xs text-muted-foreground capitalize">
-                      • {invite.role.toLowerCase()}
-                    </span>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0">
+                    <Image
+                      fill
+                      alt={invite.invitersName}
+                      className="object-cover"
+                      src={
+                        invite.invitersPicture ||
+                        "https://avatars.githubusercontent.com/u/12345?v=4"
+                      }
+                    />
                   </div>
 
-                  <p className="text-xs text-muted-foreground truncate">
-                    By{" "}
-                    <span className="font-medium">{invite.invitersName}</span> •
-                    Expires {new Date(invite.expiresAt).toLocaleDateString()}
-                  </p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold truncate">
+                        {invite.roomName}
+                      </p>
+                      <span className="text-xs text-muted-foreground capitalize shrink-0">
+                        • {invite.role.toLowerCase()}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground truncate">
+                      By{" "}
+                      <span className="font-medium">{invite.invitersName}</span>{" "}
+                      • Expires{" "}
+                      {new Date(invite.expiresAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  disabled={isPending}
-                  onClick={() => handleDecline(invite.id)}
-                  className="flex-1 border-border text-foreground cursor-pointer hover:bg-background"
-                >
-                  Decline
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={() => handleDecline(invite.id)}
+                    className="border-border text-foreground cursor-pointer hover:bg-background"
+                  >
+                    Decline
+                  </Button>
 
-                <Button
-                  disabled={isPending}
-                  onClick={() => handleAccept(invite.id)}
-                  className="flex-1 bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
-                >
-                  Accept
-                </Button>
+                  <Button
+                    disabled={isPending}
+                    onClick={() => handleAccept(invite.id)}
+                    className="bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
+                  >
+                    Accept
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
