@@ -1,6 +1,7 @@
 import { DashboardNav } from "@/components/dashboard-nav";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NullVoidIcon } from "@/components/null-void-icon";
 
 const headerStyle = {
   backgroundColor: "color-mix(in oklab, var(--background) 80%, transparent)",
@@ -20,9 +21,10 @@ export default function DashboardLayout({
           className="sticky top-0 z-50 border-b border-border flex items-center justify-between px-6 py-5"
           style={headerStyle}
         >
-          <p className="font-semibold tracking-[-0.02em] text-foreground">
-            Null Void
-          </p>
+          <div className="flex items-center gap-2 text-foreground">
+            <NullVoidIcon className="h-5 w-5" />
+            <p className="font-semibold tracking-[-0.02em]">Null Void</p>
+          </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             <UserMenu />

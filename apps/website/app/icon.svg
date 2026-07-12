@@ -1,0 +1,13 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .stroke { stroke: #09090b; }
+    .fill { fill: #09090b; }
+    @media (prefers-color-scheme: dark) {
+      .stroke { stroke: #fafafa; }
+      .fill { fill: #fafafa; }
+    }
+  </style>
+  <path class="stroke" d="M2 12Q12 4 22 12Q12 20 2 12Z" stroke-width="2" stroke-linejoin="round" />
+  <circle class="stroke" cx="12" cy="12" r="4.5" stroke-width="2" />
+  <circle class="fill" cx="12" cy="12" r="2" />
+</svg>
