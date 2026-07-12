@@ -100,9 +100,10 @@ const mockLogger = {
 
 describe('RoomsService', () => {
   let service: RoomsService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         RoomsService,
         RoomsGateway,
@@ -140,6 +141,10 @@ describe('RoomsService', () => {
     service = module.get<RoomsService>(RoomsService);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {

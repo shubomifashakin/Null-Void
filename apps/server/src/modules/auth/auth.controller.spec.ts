@@ -79,9 +79,10 @@ global.fetch = mockFetch;
 
 describe('AuthController', () => {
   let controller: AuthController;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [AuthController],
       imports: [
         AppConfigModule,
@@ -107,6 +108,10 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {
