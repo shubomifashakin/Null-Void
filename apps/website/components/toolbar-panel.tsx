@@ -1,14 +1,15 @@
 "use client";
 
+import { Circle, Hexagon, Minus, MousePointer2 } from "lucide-react";
+
 import { useToolBar } from "@/stores/toolbar-state";
 import { Role } from "@/types/room";
-import { Circle, Hexagon, MousePointer2 } from "lucide-react";
 
 export type Tools = "cursor" | "circle" | "polygon" | "line";
 
 const tools = [
   { id: "cursor", label: "Cursor", icon: <MousePointer2 size={20} /> },
-  { id: "line", label: "Line", icon: "/" },
+  { id: "line", label: "Line", icon: <Minus size={20} /> },
   { id: "circle", label: "Circle", icon: <Circle size={20} /> },
   { id: "polygon", label: "Polygon", icon: <Hexagon size={20} /> },
 ];
@@ -73,52 +74,57 @@ export default function ToolbarPanel({ role }: { role: Role }) {
 
         <div className="h-8 w-px bg-border" />
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <label
+            htmlFor="fillColor"
+            title="Fill Color"
+            className="flex items-center gap-1.5 cursor-pointer group"
+          >
+            <span className="text-xs text-muted-foreground">Fill</span>
+            <div className="relative w-6 h-6 rounded border border-border group-hover:border-primary/60 transition-colors overflow-hidden">
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: fillColor }}
+              />
+              <input
+                type="color"
+                id="fillColor"
+                value={fillColor}
+                onChange={handleFillColorChange}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+          </label>
+
+          <label
+            htmlFor="strokeColor"
+            title="Stroke Color"
+            className="flex items-center gap-1.5 cursor-pointer group"
+          >
+            <span className="text-xs text-muted-foreground">Stroke</span>
+            <div className="relative w-6 h-6 rounded border border-border group-hover:border-primary/60 transition-colors overflow-hidden">
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: strokeColor }}
+              />
+              <input
+                type="color"
+                id="strokeColor"
+                value={strokeColor}
+                onChange={handleStrokeColorChange}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+          </label>
+
+          <div className="flex items-center gap-1.5">
             <label
-              title="Fill Color"
-              htmlFor="fillColor"
-              className="text-xs text-muted-foreground"
-            >
-              Fill
-            </label>
-
-            <input
-              type="color"
-              id="fillColor"
-              value={fillColor}
-              onChange={handleFillColorChange}
-              className="w-6 h-6 rounded cursor-pointer border border-border rounded-sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label
-              title="Stroke Color"
-              htmlFor="strokeColor"
-              className="text-xs text-muted-foreground"
-            >
-              Stroke
-            </label>
-
-            <input
-              type="color"
-              id="strokeColor"
-              value={strokeColor}
-              onChange={handleStrokeColorChange}
-              className="w-6 h-6 rounded cursor-pointer border border-border rounded-sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label
-              title="Stroke Width"
               htmlFor="strokeWidth"
+              title="Stroke Width"
               className="text-xs text-muted-foreground"
             >
               Width
             </label>
-
             <input
               min="1"
               max="10"
@@ -126,19 +132,18 @@ export default function ToolbarPanel({ role }: { role: Role }) {
               id="strokeWidth"
               value={strokeWidth}
               onChange={handleStrokeWidthChange}
-              className="w-12 px-2 py-1 text-xs bg-background border border-border rounded focus:outline-none focus:border-primary"
+              className="w-10 px-1.5 py-1 text-xs text-center bg-background border border-border rounded focus:outline-none focus:border-primary"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <label
-              title="Fill Opacity"
               htmlFor="fillOpacity"
+              title="Fill Opacity"
               className="text-xs text-muted-foreground"
             >
               Opacity
             </label>
-
             <input
               min="0"
               max="1"
@@ -147,10 +152,9 @@ export default function ToolbarPanel({ role }: { role: Role }) {
               id="fillOpacity"
               value={fillOpacity}
               onChange={handleFillOpacityChange}
-              className="w-20 cursor-pointer"
+              className="w-20 cursor-pointer accent-primary"
             />
-
-            <span className="text-xs text-muted-foreground w-8">
+            <span className="text-xs text-muted-foreground tabular-nums w-7 text-right">
               {Math.round(fillOpacity * 100)}%
             </span>
           </div>

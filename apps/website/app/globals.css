@@ -6,8 +6,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
+  /* Null-Void brand tokens — available as Tailwind utilities */
+  --color-nv-subtle: var(--nv-fg-subtle);
+  --color-nv-muted: var(--nv-fg-muted);
+  --color-nv-divider: var(--nv-divider);
+  --color-nv-grid: var(--nv-grid-line);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,6 +54,17 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
+  /* NV brand token values — light mode */
+  --nv-fg-subtle: oklch(0.145 0 0 / 38%);
+  --nv-fg-muted: oklch(0.145 0 0 / 55%);
+  --nv-divider: oklch(0.145 0 0 / 15%);
+  --nv-grid-line: rgba(0, 0, 0, 0.06);
+  --nv-frame-border: oklch(0.145 0 0 / 10%);
+  --nv-handle-bg: oklch(0.145 0 0 / 8%);
+  --nv-handle-border: oklch(0.145 0 0 / 35%);
+  --nv-shape-fill-solid: rgba(0, 0, 0, 0.07);
+  --nv-shape-fill-ghost: rgba(0, 0, 0, 0.03);
+  --nv-shape-stroke-ghost: rgba(0, 0, 0, 0.12);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -82,8 +98,19 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: #0c0c0c;
   --foreground: oklch(0.985 0 0);
+  /* NV brand token values — dark mode */
+  --nv-fg-subtle: oklch(1 0 0 / 30%);
+  --nv-fg-muted: oklch(1 0 0 / 50%);
+  --nv-divider: oklch(1 0 0 / 15%);
+  --nv-grid-line: rgba(255, 255, 255, 0.07);
+  --nv-frame-border: oklch(1 0 0 / 10%);
+  --nv-handle-bg: oklch(1 0 0 / 18%);
+  --nv-handle-border: oklch(1 0 0 / 45%);
+  --nv-shape-fill-solid: rgba(255, 255, 255, 0.90);
+  --nv-shape-fill-ghost: rgba(255, 255, 255, 0.12);
+  --nv-shape-stroke-ghost: rgba(255, 255, 255, 0.25);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -118,8 +145,45 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: white transparent;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 9999px;
+}
+
+/* Page entry animations — reusable across all pages */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@layer components {
+  /* CTA button: scale-on-press feedback (Emil design principle) */
+  .cta-btn {
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cta-btn:hover { opacity: 0.88; }
+  }
+  .cta-btn:active {
+    transform: scale(0.97);
   }
 }

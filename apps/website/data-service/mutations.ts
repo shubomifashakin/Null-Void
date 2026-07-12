@@ -3,7 +3,7 @@ import { Invites, InviteStatus } from "@/types/invites";
 import { AccountInfo } from "@/types/accountInfo";
 import { Role } from "@null-void/shared";
 
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
+export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
 export async function createRoom({
   name,
@@ -12,7 +12,7 @@ export async function createRoom({
   name: string;
   description: string;
 }) {
-  const request = await fetchWithAuth(`${baseUrl}/rooms`, {
+  const request = await fetchWithAuth(`${backendUrl}/rooms`, {
     method: "POST",
     body: JSON.stringify({
       name: name.trim(),
@@ -35,7 +35,7 @@ export async function createRoom({
 }
 
 export async function fetchRooms({ cursor }: { cursor?: string }) {
-  const url = new URL(baseUrl + "/rooms");
+  const url = new URL(backendUrl + "/rooms");
 
   if (cursor) {
     url.searchParams.append("cursor", cursor);
@@ -61,7 +61,7 @@ export async function fetchRooms({ cursor }: { cursor?: string }) {
 }
 
 export async function logout() {
-  const request = await fetchWithAuth(`${baseUrl}/auth/logout`, {
+  const request = await fetchWithAuth(`${backendUrl}/auth/logout`, {
     method: "POST",
     credentials: "include",
   });
@@ -76,7 +76,7 @@ export async function logout() {
 }
 
 export async function deleteAccount() {
-  const request = await fetchWithAuth(`${baseUrl}/accounts/me`, {
+  const request = await fetchWithAuth(`${backendUrl}/accounts/me`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -91,7 +91,7 @@ export async function deleteAccount() {
 }
 
 export async function updateAccountInfo({ name }: { name: string }) {
-  const request = await fetchWithAuth(`${baseUrl}/accounts/me`, {
+  const request = await fetchWithAuth(`${backendUrl}/accounts/me`, {
     method: "PATCH",
     credentials: "include",
     body: JSON.stringify({ name: name.trim() }),
@@ -110,7 +110,7 @@ export async function updateAccountInfo({ name }: { name: string }) {
 }
 
 export async function getAccountInfo() {
-  const request = await fetchWithAuth(`${baseUrl}/accounts/me`, {
+  const request = await fetchWithAuth(`${backendUrl}/accounts/me`, {
     method: "GET",
     credentials: "include",
   });
@@ -126,7 +126,7 @@ export async function getAccountInfo() {
 }
 
 export async function getInvites({ cursor }: { cursor?: string }) {
-  const url = new URL(baseUrl + "/accounts/invites");
+  const url = new URL(backendUrl + "/accounts/invites");
 
   if (cursor) {
     url.searchParams.append("cursor", cursor);
@@ -159,14 +159,14 @@ export async function updateInviteStatus({
   status: "ACCEPTED" | "REJECTED";
 }) {
   const response = await fetchWithAuth(
-    `${baseUrl}/accounts/invites/${inviteId}`,
+    `${backendUrl}/accounts/invites/${inviteId}`,
     {
       method: "PATCH",
       body: JSON.stringify({ status }),
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -190,13 +190,16 @@ export async function sendInvite({
   email: string;
   roomId: string;
 }) {
-  const response = await fetchWithAuth(`${baseUrl}/rooms/${roomId}/invites`, {
-    method: "POST",
-    body: JSON.stringify({ email, role }),
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetchWithAuth(
+    `${backendUrl}/rooms/${roomId}/invites`,
+    {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const error = (await response.json()) as { message: string };
@@ -218,13 +221,13 @@ export async function revokeInvite({
   roomId: string;
 }) {
   const response = await fetchWithAuth(
-    `${baseUrl}/rooms/${roomId}/invites/${inviteId}`,
+    `${backendUrl}/rooms/${roomId}/invites/${inviteId}`,
     {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -246,7 +249,7 @@ export async function getRoomInvites({
   cursor?: string;
   roomId: string;
 }) {
-  const url = new URL(baseUrl + `/rooms/${roomId}/invites`);
+  const url = new URL(backendUrl + `/rooms/${roomId}/invites`);
 
   if (cursor) {
     url.searchParams.append("cursor", cursor);
@@ -283,7 +286,7 @@ export async function getRoomInvites({
 export async function fetchWithAuth(
   url: string,
   options: RequestInit = {},
-  retries = 0
+  retries = 0,
 ): Promise<Response> {
   const response = await fetch(url, {
     ...options,
@@ -291,7 +294,7 @@ export async function fetchWithAuth(
   });
 
   if ((response.status === 403 || response.status === 401) && retries < 1) {
-    const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
+    const refreshRes = await fetch(`${backendUrl}/auth/refresh`, {
       method: "GET",
       credentials: "include",
     });
