@@ -12,7 +12,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 import {
   DrawEvent,
@@ -346,6 +346,14 @@ export default function Page() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
+      {reconnecting && (
+        <div className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-2 py-2 bg-yellow-500/10 border-b border-yellow-500/20">
+          <Loader2 className="h-3 w-3 animate-spin text-yellow-600 dark:text-yellow-400" />
+          <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
+            Reconnecting...
+          </p>
+        </div>
+      )}
       <div className="w-16 border-r border-border bg-card flex flex-col items-center justify-start pt-4">
         <button
           onClick={handleGoBack}
