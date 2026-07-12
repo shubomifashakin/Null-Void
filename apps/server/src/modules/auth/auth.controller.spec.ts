@@ -64,7 +64,7 @@ const mockConfigService = {
   BASE_URL: { success: true, data: 'test-base-url' },
   FRONTEND_URL: { success: true, data: 'test-frontend-url' },
   DOMAIN: { success: true, data: 'test-domain' },
-  JWT_SECRET: { success: true, data: 'test-jwt-secret' },
+  JWT_PRIVATE_KEY_BASE64: { success: true, data: 'test-jwt-secret' },
   GOOGLE_CLIENT_ID: { success: true, data: 'test-client-id' },
   GOOGLE_CLIENT_SECRET: { success: true, data: 'test-client-secret' },
 };

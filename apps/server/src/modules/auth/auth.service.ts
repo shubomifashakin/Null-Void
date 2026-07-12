@@ -215,13 +215,13 @@ export class AuthService {
     };
 
     if (
-      !this.configService.JWT_SECRET.success ||
+      !this.configService.JWT_PRIVATE_KEY_BASE64.success ||
       !this.configService.BASE_URL.success
     ) {
       this.logger.error({
         message: 'Missing required configuration',
         error: {
-          jwtSecret: this.configService.JWT_SECRET.error,
+          jwtSecret: this.configService.JWT_PRIVATE_KEY_BASE64.error,
           baseUrl: this.configService.BASE_URL.error,
         },
       });
