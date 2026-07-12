@@ -102,7 +102,7 @@ function AccountInfo({
   const [name, setName] = useState(data.name);
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 w-full">
       <Card className="p-6 bg-card border border-border shadow-none">
         <h2 className="text-lg font-semibold text-foreground mb-6">
           Account Information
@@ -234,7 +234,7 @@ function AccountInfo({
 
 function LoadingState() {
   return (
-    <Card className="p-6 bg-card border border-border max-w-2xl">
+    <Card className="p-6 bg-card border border-border w-full">
       <div className="animate-pulse space-y-4">
         <div className="h-6 bg-muted rounded w-1/3 mb-6" />
         <div className="space-y-6">

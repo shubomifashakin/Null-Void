@@ -25,7 +25,7 @@ export default function Page() {
     mutationKey: ["create-room"],
 
     onSuccess: (data) => {
-      router.push(`/rooms/${data.id}`);
+      router.push(`/dashboard/${data.id}`);
     },
 
     onError: (error) => {
@@ -188,7 +188,7 @@ export default function Page() {
           {data.map((room) => (
             <Card
               key={room.id}
-              onClick={() => router.push(`/rooms/${room.id}`)}
+              onClick={() => router.push(`/dashboard/${room.id}`)}
               className="p-5 bg-card border shadow-none border-border hover:border-primary/50 transition-colors cursor-pointer flex flex-col gap-3"
             >
               <div className="flex-1 space-y-1.5">
