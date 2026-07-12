@@ -1,0 +1,27 @@
+rules:
+  - id: jwt-decode-without-verify
+    patterns:
+      - pattern-either:
+          - pattern: $JWT.decode(...)
+          - pattern: jwt.decode(...)
+    message: >
+      jwt.decode() only base64-decodes the token payload — it does NOT
+      verify the signature. Anyone can craft a token with an arbitrary
+      payload and it will decode "successfully." Never use the result
+      of decode() for authentication or authorization decisions. Use
+      jwt.verify(token, secretOrPublicKey) instead, which validates the
+      signature (and expiry) before trusting the payload.
+    metadata:
+      cwe:
+        - 'CWE-347: Improper Verification of Cryptographic Signature'
+      owasp:
+        - 'A02:2021 - Cryptographic Failures'
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://github.com/auth0/node-jsonwebtoken#jwtdecodetoken--options
+        - https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html
+    severity: ERROR
+    languages:
+      - typescript
+      - javascript

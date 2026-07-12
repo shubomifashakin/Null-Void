@@ -109,9 +109,10 @@ const mockRequest = {
 
 describe('RoomsController', () => {
   let controller: RoomsController;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [RoomsController],
       providers: [
         RoomsService,
@@ -149,6 +150,10 @@ describe('RoomsController', () => {
     controller = module.get<RoomsController>(RoomsController);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {

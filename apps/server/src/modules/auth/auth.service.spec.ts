@@ -59,9 +59,10 @@ global.fetch = mockFetch;
 
 describe('AuthService', () => {
   let service: AuthService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [AuthService],
       imports: [
         AppConfigModule,
@@ -86,6 +87,10 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {
