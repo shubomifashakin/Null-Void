@@ -354,7 +354,7 @@ export default function Page() {
           </p>
         </div>
       )}
-      <div className="w-16 border-r border-border bg-card flex flex-col items-center justify-start pt-4">
+      <div className="w-16 border-r border-border bg-background flex flex-col items-center justify-start pt-4">
         <button
           onClick={handleGoBack}
           title="Back to Dashboard"
@@ -376,7 +376,7 @@ export default function Page() {
         />
       </div>
 
-      <div className="w-64 border-l border-border bg-card flex flex-col">
+      <div className="w-64 border-l border-border bg-background flex flex-col">
         <CurrentUserPanel user={userInfo!} onLeaveRoom={handleLeaveRoom} />
 
         <PanelControls activeTab={activeTab} setActiveTab={setActiveTab} />
