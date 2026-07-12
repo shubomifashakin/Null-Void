@@ -23,6 +23,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://null-void.545plea.xyz"),
   title: "Null-Void",
   description:
     "A simple collaborative canvas where you and your friends can create, collaborate, and bring ideas to life in real-time",
@@ -32,6 +33,10 @@ export const metadata: Metadata = {
     "real-time collaboration",
     "creative tools",
   ],
+  robots: {
+    index: true,
+    follow: true,
+  },
   twitter: {
     title: "Null-Void",
     description:
@@ -41,7 +46,17 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     site: "https://null-void.545plea.xyz",
   },
-  authors: [{ name: "Fashakin Olashubomi", url: "545plea.xyz" }],
+  openGraph: {
+    title: "Null-Void",
+    description:
+      "A simple collaborative canvas where you and your friends can create, collaborate, and bring ideas to life in real-time",
+    url: "https://null-void.545plea.xyz",
+    siteName: "Null-Void",
+    images: ["/og-image.png"],
+    type: "website",
+    locale: "en_US",
+  },
+  authors: [{ name: "Fashakin Olashubomi", url: "https://545plea.xyz" }],
 };
 
 export default function RootLayout({
