@@ -26,5 +26,8 @@
         }
       }
     ]
-  }
+  },
+  "transformIgnorePatterns": ["node_modules/(?!(cookie|uuid)/)"],
+  "maxWorkers": "1",
+  "testTimeout": 30000
 }

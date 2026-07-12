@@ -31,6 +31,9 @@ export class CacheRedisService
       url: redisUrl.data,
       name: serviceName.data,
       disableOfflineQueue: true,
+      maintNotifications: 'disabled',
+      commandOptions: { timeout: 10000 },
+      socket: { keepAliveInitialDelay: 5000 },
     });
   }
 

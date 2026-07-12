@@ -39,7 +39,7 @@ describe('AuthController (e2e)', () => {
   let databaseService: DatabaseService;
   let redisService: CacheRedisService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
