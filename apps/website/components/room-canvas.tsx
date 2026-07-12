@@ -409,7 +409,7 @@ export default function RoomCanvas({
   );
 
   return (
-    <div className="flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-800 p-8">
+    <div className="flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-900 p-8">
       <div ref={containerRef} className="relative w-full h-full">
         <Cursors users={connectedUsers} />
 
