@@ -17,6 +17,29 @@ export default function Page() {
   );
 }
 
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 text-sm font-medium rounded-md cursor-pointer transition-all duration-150 ${
+        active
+          ? "bg-background text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
@@ -34,32 +57,24 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <DashboardHeader />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-2 border-b border-border mb-8">
-          <button
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex gap-1 mb-8 p-1 bg-muted rounded-lg w-fit">
+          <TabButton
+            active={activeTab === "rooms"}
             onClick={() => setActiveTab("rooms")}
-            className={`px-4 cursor-pointer py-2 font-medium text-sm transition-colors ${
-              activeTab === "rooms"
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
           >
             My Rooms
-          </button>
+          </TabButton>
 
-          <button
+          <TabButton
+            active={activeTab === "invites"}
             onClick={() => setActiveTab("invites")}
-            className={`px-4 cursor-pointer py-2 font-medium text-sm transition-colors ${
-              activeTab === "invites"
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
           >
             Invites
-          </button>
+          </TabButton>
         </div>
 
         <Activity mode={activeTab === "rooms" ? "visible" : "hidden"}>

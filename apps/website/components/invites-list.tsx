@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-query";
 
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,9 +105,9 @@ export default function InvitesList() {
       )}
 
       {isLoading && (
-        <Card className="p-6 bg-card border-0 shadow-none items-center">
-          <p className="text-muted-foreground text-sm">Loading invites...</p>
-        </Card>
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
       )}
 
       {data && data.length > 0 && (
@@ -172,10 +173,8 @@ export default function InvitesList() {
           ))}
 
           {isFetchingNextPage && (
-            <div className="text-center py-4">
-              <p className="text-muted-foreground text-sm">
-                Loading invites...
-              </p>
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           )}
 
