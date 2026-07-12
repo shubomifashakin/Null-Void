@@ -1,16 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { generateInviteMail, makeRoomCacheKey } from './utils/fns';
 import { CreateRoomDto } from './dtos/create-room.dto';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 import { InviteUserDto } from './dtos/invite-user.dto';
 
-import { DAYS_7_MS, MESSAGES } from '../../common/constants';
+import { DAYS_7_MS } from '../../common/constants';
 
 import { CacheRedisService } from '../../core/cache-redis/cache-redis.service';
 import { MailerService } from '../../core/mailer/mailer.service';
@@ -170,69 +165,68 @@ export class RoomsService {
   }
 
   async inviteUser(inviterId: string, roomId: string, dto: InviteUserDto) {
-    return await this.databaseService.$transaction(
-      async (tx) => {
-        const invitersInfo = await tx.user.findUniqueOrThrow({
-          where: {
-            id: inviterId,
-          },
-          select: {
-            name: true,
-            email: true,
-          },
-        });
-
-        //prevent from inviting self
-        if (invitersInfo.email === dto.email) {
-          throw new BadRequestException('You cannot invite yourself');
-        }
-
-        const inviteInfo = await tx.invite.create({
-          data: {
-            role: dto.role,
-            room_id: roomId,
-            email: dto.email,
-            inviter_id: inviterId,
-            expires_at: new Date(Date.now() + DAYS_7_MS),
-          },
-          select: {
-            room: {
-              select: {
-                name: true,
-              },
+    const { inviteInfo, invitersInfo } =
+      await this.databaseService.$transaction(
+        async (tx) => {
+          const invitersInfo = await tx.user.findUniqueOrThrow({
+            where: {
+              id: inviterId,
             },
-            id: true,
-            expires_at: true,
-          },
-        });
-
-        const { success, error } = await this.mailerService.sendMail({
-          receiver: dto.email,
-          sender: `Null Void <${this.appConfigService.MAILER_FROM.data!}>`,
-          subject: `You have been invited to join ${inviteInfo.room.name}`,
-          html: generateInviteMail({
-            inviterName: invitersInfo.name,
-            roomName: inviteInfo.room.name,
-            inviteLink: `${this.appConfigService.FRONTEND_URL.data!}/dashboard?tab=invites`,
-            expiryDate: inviteInfo.expires_at,
-          }),
-        });
-
-        if (!success) {
-          this.logger.error({
-            message: 'Failed to send invite email',
-            error,
+            select: {
+              name: true,
+              email: true,
+            },
           });
 
-          throw new InternalServerErrorException(
-            MESSAGES.INTERNAL_SERVER_ERROR,
-          );
-        }
+          //prevent from inviting self
+          if (invitersInfo.email === dto.email) {
+            throw new BadRequestException('You cannot invite yourself');
+          }
 
-        return { message: 'success' };
-      },
-      { isolationLevel: 'RepeatableRead' },
-    );
+          const inviteInfo = await tx.invite.create({
+            data: {
+              role: dto.role,
+              room_id: roomId,
+              email: dto.email,
+              inviter_id: inviterId,
+              expires_at: new Date(Date.now() + DAYS_7_MS),
+            },
+            select: {
+              room: {
+                select: {
+                  name: true,
+                },
+              },
+              id: true,
+              expires_at: true,
+            },
+          });
+
+          return { inviteInfo, invitersInfo };
+        },
+        { isolationLevel: 'RepeatableRead' },
+      );
+
+    const { success, error } = await this.mailerService.sendMail({
+      receiver: dto.email,
+      sender: `Null Void <${this.appConfigService.MAILER_FROM.data!}>`,
+      subject: `You have been invited to join ${inviteInfo.room.name}`,
+      html: generateInviteMail({
+        inviterName: invitersInfo.name,
+        roomName: inviteInfo.room.name,
+        inviteLink: `${this.appConfigService.FRONTEND_URL.data!}/dashboard?tab=invites`,
+        expiryDate: inviteInfo.expires_at,
+      }),
+    });
+
+    if (!success) {
+      this.logger.error({
+        message: 'Failed to send invite email',
+        error,
+      });
+    }
+
+    return { message: 'success' };
   }
 
   async getInvites(roomId: string, cursor?: string) {

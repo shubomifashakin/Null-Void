@@ -330,6 +330,52 @@ describe('RoomsService', () => {
     );
   });
 
+  it('should create the invite even if mail failed', async () => {
+    const invitersInfo = {
+      name: 'test-name',
+      email: 'test-email@test.com',
+    };
+    mockDatabaseService.user.findUniqueOrThrow.mockResolvedValue(invitersInfo);
+
+    const inviteInfo = {
+      id: 'test-invite-id',
+      room: { name: 'test-room-name' },
+      expires_at: new Date(),
+    };
+
+    mockDatabaseService.invite.create.mockResolvedValue(inviteInfo);
+
+    mockMailerService.sendMail.mockResolvedValue({
+      success: false,
+      error: new Error('Failed to send mail'),
+    });
+
+    const inviteeEmail = 'invited-user@test.com';
+    const result = await service.inviteUser('test-user-id', 'test-room-id', {
+      email: inviteeEmail,
+      role: 'VIEWER',
+    });
+
+    expect(result).toEqual({ message: 'success' });
+    expect(mockDatabaseService.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.user.findUniqueOrThrow).toHaveBeenCalledTimes(1);
+    expect(mockDatabaseService.invite.create).toHaveBeenCalledTimes(1);
+    expect(mockMailerService.sendMail).toHaveBeenCalledTimes(1);
+    expect(mockMailerService.sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receiver: inviteeEmail,
+        sender: 'Null Void <test-mailer-from>',
+        subject: `You have been invited to join ${inviteInfo.room.name}`,
+        html: generateInviteMail({
+          inviterName: invitersInfo.name,
+          roomName: inviteInfo.room.name,
+          inviteLink: `${mockConfigService.FRONTEND_URL.data}/dashboard?tab=invites`,
+          expiryDate: inviteInfo.expires_at,
+        }),
+      }),
+    );
+  });
+
   it('should not invite self', async () => {
     const invitersInfo = {
       name: 'test-name',
