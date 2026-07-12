@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://null-void.545plea.xyz"),
   title: "Null-Void",
   description:
-    "A simple collaborative canvas where you and your friends can create, collaborate, and bring ideas to life in real-time",
+    "Virtual whiteboard for real-time collaborative drawing and brainstorming.",
   creator: "Fashakin Olashubomi",
   keywords: [
     "collaborative canvas",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     title: "Null-Void",
     description:
-      "A simple collaborative canvas where you and your friends can create, collaborate, and bring ideas to life in real-time",
+      "Virtual whiteboard for real-time collaborative drawing and brainstorming.",
     creator: "@545plea",
     card: "summary_large_image",
     images: ["/og-image.png"],
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Null-Void",
     description:
-      "A simple collaborative canvas where you and your friends can create, collaborate, and bring ideas to life in real-time",
+      "Virtual whiteboard for real-time collaborative drawing and brainstorming.",
     url: "https://null-void.545plea.xyz",
     siteName: "Null-Void",
     images: ["/og-image.png"],
