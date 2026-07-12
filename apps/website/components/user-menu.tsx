@@ -56,7 +56,7 @@ export function UserMenu() {
   }
 
   function handleNavigateToSettings() {
-    router.push("/settings");
+    router.push("/dashboard/profile");
   }
 
   if (status === "pending") {
@@ -86,21 +86,16 @@ export function UserMenu() {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center cursor-pointer gap-3 p-2 rounded-lg hover:bg-background transition-colors">
-          <div className="rounded-full w-8 h-8 overflow-hidden relative">
-            <Image
-              fill
-              src={
-                data?.picture ||
-                "https://avatars.githubusercontent.com/u/12345?v=4"
-              }
-              alt={data?.name || "User"}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <span className="text-sm font-medium text-foreground hidden sm:inline">
-            {data?.name}
-          </span>
+        <button className="rounded-full w-8 h-8 overflow-hidden relative cursor-pointer ring-2 ring-transparent hover:ring-border transition-all">
+          <Image
+            fill
+            src={
+              data?.picture ||
+              "https://avatars.githubusercontent.com/u/12345?v=4"
+            }
+            alt={data?.name || "User"}
+            className="w-full h-full object-cover"
+          />
         </button>
       </DropdownMenuTrigger>
 
@@ -118,7 +113,7 @@ export function UserMenu() {
           className="cursor-pointer"
           onClick={handleNavigateToSettings}
         >
-          <span>Settings</span>
+          <span>Profile</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

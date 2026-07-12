@@ -6,6 +6,7 @@ import {
 import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { Role } from "@null-void/shared";
 
@@ -154,6 +155,7 @@ export default function InvitePanel({
 
               <select
                 required
+                defaultValue="DEFAULT"
                 {...register("role", {
                   required: { value: true, message: "Role is required" },
                   validate: (value) =>
@@ -162,7 +164,7 @@ export default function InvitePanel({
                 })}
                 className="w-full px-3 py-2 text-xs bg-card border border-border rounded focus:outline-none focus:border-primary mb-1"
               >
-                <option value="DEFAULT" disabled selected hidden>
+                <option value="DEFAULT" disabled hidden>
                   Select a role
                 </option>
 
@@ -201,20 +203,9 @@ export default function InvitePanel({
         )}
 
         {isLoading && (
-          <Card className="p-6 bg-card border-0 shadow-none flex flex-col items-center space-y-3">
-            <div className="flex space-x-2">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="size-2 bg-primary/60 rounded-full animate-pulse"
-                  style={{
-                    animationDuration: "1.5s",
-                    animationDelay: `${i * 0.15}s`,
-                  }}
-                />
-              ))}
-            </div>
-          </Card>
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
         )}
 
         {data && data.length > 0 && (
@@ -268,10 +259,8 @@ export default function InvitePanel({
             </div>
 
             {isFetchingNextPage && (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground text-xs">
-                  Loading invites...
-                </p>
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
 

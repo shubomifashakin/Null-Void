@@ -409,23 +409,22 @@ export default function RoomCanvas({
   );
 
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 p-2 overflow-auto bg-white relative"
-    >
-      <Cursors users={connectedUsers} />
+    <div className="flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-800 p-8">
+      <div ref={containerRef} className="relative w-full h-full">
+        <Cursors users={connectedUsers} />
 
-      <canvas
-        ref={canvasRef}
-        onMouseDown={(e) => handleCanvasMouseDown(e as unknown as MouseEvent)}
-        onMouseUp={(e) => handleCanvasMouseUp(e as unknown as MouseEvent)}
-        onClick={(e) => handleCanvasClick(e as unknown as MouseEvent)}
-        onDoubleClick={(e) =>
-          handleCanvasDoubleClick(e as unknown as MouseEvent)
-        }
-        onMouseMove={(e) => handleCanvasMouseMove(e as unknown as MouseEvent)}
-        className={`block border w-full h-full ${tool !== "cursor" ? "cursor-crosshair" : "cursor-default"}`}
-      />
+        <canvas
+          ref={canvasRef}
+          onMouseDown={(e) => handleCanvasMouseDown(e as unknown as MouseEvent)}
+          onMouseUp={(e) => handleCanvasMouseUp(e as unknown as MouseEvent)}
+          onClick={(e) => handleCanvasClick(e as unknown as MouseEvent)}
+          onDoubleClick={(e) =>
+            handleCanvasDoubleClick(e as unknown as MouseEvent)
+          }
+          onMouseMove={(e) => handleCanvasMouseMove(e as unknown as MouseEvent)}
+          className={`block w-full h-full bg-white shadow-md ${tool !== "cursor" ? "cursor-crosshair" : "cursor-default"}`}
+        />
+      </div>
     </div>
   );
 }
