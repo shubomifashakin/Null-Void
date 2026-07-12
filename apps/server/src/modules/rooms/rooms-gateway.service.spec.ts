@@ -148,9 +148,10 @@ const mockBullService = {
 
 describe('RoomsGatewayService', () => {
   let service: RoomsGatewayService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [RoomsController],
       imports: [
         CacheRedisModule,
@@ -194,6 +195,10 @@ describe('RoomsGatewayService', () => {
     service = module.get<RoomsGatewayService>(RoomsGatewayService);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {

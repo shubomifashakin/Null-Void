@@ -56,9 +56,10 @@ const mockJwtService = {
 
 describe('AccountsService', () => {
   let service: AccountsService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [AccountsService],
       imports: [
         DatabaseModule,
@@ -82,6 +83,10 @@ describe('AccountsService', () => {
     service = module.get<AccountsService>(AccountsService);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {
