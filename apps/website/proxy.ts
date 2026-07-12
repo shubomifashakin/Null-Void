@@ -4,7 +4,9 @@ import type { NextRequest } from "next/server";
 import * as jose from "jose";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
-const spki = process.env.JWT_PUBLIC_KEY!.replace(/\n/g, "");
+const spki = Buffer.from(process.env.JWT_PUBLIC_KEY_BASE64!, "base64").toString(
+  "utf-8",
+);
 
 export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token");
