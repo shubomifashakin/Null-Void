@@ -15,8 +15,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-7xl mx-auto min-h-screen flex flex-col">
+    <div className="h-screen overflow-hidden bg-background text-foreground">
+      <div className="max-w-7xl mx-auto h-full flex flex-col">
         <header
           className="sticky top-0 z-50 border-b border-border flex items-center justify-between px-6 py-5"
           style={headerStyle}
@@ -35,12 +35,14 @@ export default function DashboardLayout({
           <DashboardNav mobile />
         </div>
 
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-hidden">
           <aside className="hidden md:flex w-52 shrink-0 border-r border-border flex-col">
             <DashboardNav />
           </aside>
 
-          <main className="flex-1 min-w-0 px-6 py-8">{children}</main>
+          <main className="flex-1 min-w-0 px-6 py-8 overflow-hidden flex flex-col">
+            {children}
+          </main>
         </div>
       </div>
     </div>
