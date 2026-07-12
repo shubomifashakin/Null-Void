@@ -1,9 +1,12 @@
 # Null-Void
 
-## Description
+Virtual whiteboard for real-time collaborative drawing and brainstorming.
 
-This project is a distributed collaborative drawing system built as a monorepo. It demonstrates how to design and scale real‑time applications using modern backend technologies.
-At its core, the system enables multiple users to collaborate live on a shared canvas, with features like cursor tracking, draw events, and room snapshots. The architecture is designed for scalability, fault tolerance, and performance, making it a strong example of distributed systems engineering. **It focuses more on backend architecture and distributed systems patterns than frontend design.**
+Create a room, invite your team, and draw together, live. Everything you create is persisted, so the canvas is exactly where you left it when you come back.
+
+## Architecture
+
+Built as a monorepo with a WebSocket-first backend designed for scalability and fault tolerance. The architecture uses dual Redis instances (cache + queue), binary-encoded canvas snapshots, distributed locking, and background job processing to keep rooms fast and consistent at scale.
 
 ## Architecture
 
@@ -13,11 +16,13 @@ _Figure: Distributed architecture showing frontend, backend, Redis layers, and b
 
 ## Features
 
-- Real‑time collaboration via WebSockets (live cursor tracking, draw events and many more...)
-- Distributed WebSocket scaling using Redis Pub/Sub adapter.
-- Background job processing with BullMQ.
-- Dual Redis configuration for cache vs. durable state/queue.
-- Monorepo structure with shared modules for clean code reuse.
+- Real-time collaborative canvas with live cursor tracking
+- Persistent rooms (canvas state is saved and restored across sessions)
+- Role-based access control (Admin / Viewer)
+- Room invites via email
+- Distributed WebSocket scaling with Redis Pub/Sub
+- Binary-encoded canvas snapshots with background compaction via BullMQ
+- Dual Redis setup for cache and durable queue state
 
 ## Project Structure
 
