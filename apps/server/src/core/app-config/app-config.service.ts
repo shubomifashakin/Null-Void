@@ -108,11 +108,16 @@ export class AppConfigService {
     }
   }
 
-  get JWT_SECRET(): FnResult<string> {
+  get JWT_PRIVATE_KEY_BASE64(): FnResult<string> {
     try {
-      const jwtSecret = this.config.getOrThrow<string>('JWT_SECRET');
+      const jwtPrivateKeyBase64 = this.config.getOrThrow<string>(
+        'JWT_PRIVATE_KEY_BASE64',
+      );
+      const decodedKey = Buffer.from(jwtPrivateKeyBase64, 'base64').toString(
+        'utf-8',
+      );
 
-      return { success: true, data: jwtSecret, error: null };
+      return { success: true, data: decodedKey, error: null };
     } catch (error) {
       return {
         success: false,
@@ -122,11 +127,16 @@ export class AppConfigService {
     }
   }
 
-  get JWT_PUBLIC_KEY(): FnResult<string> {
+  get JWT_PUBLIC_KEY_BASE64(): FnResult<string> {
     try {
-      const jwtPublicKey = this.config.getOrThrow<string>('JWT_PUBLIC_KEY');
+      const jwtPublicKeyBase64 = this.config.getOrThrow<string>(
+        'JWT_PUBLIC_KEY_BASE64',
+      );
+      const decodedKey = Buffer.from(jwtPublicKeyBase64, 'base64').toString(
+        'utf-8',
+      );
 
-      return { success: true, data: jwtPublicKey, error: null };
+      return { success: true, data: decodedKey, error: null };
     } catch (error) {
       return {
         success: false,

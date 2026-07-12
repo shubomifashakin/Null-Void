@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import { IsString, IsUrl, IsNotEmpty, validateSync } from 'class-validator';
 
 export function makeBlacklistedKey(token: string): string {
@@ -38,13 +37,11 @@ class EnvConfig {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
-  JWT_SECRET: string;
+  JWT_PRIVATE_KEY_BASE64: string;
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }: { value: string }) => value.replace(/\n/g, ''))
-  JWT_PUBLIC_KEY: string;
+  JWT_PUBLIC_KEY_BASE64: string;
 
   @IsString()
   @IsNotEmpty()

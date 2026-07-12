@@ -108,11 +108,11 @@ import { DEFAULT_JWT_ALG } from './common/constants';
             algorithms: [DEFAULT_JWT_ALG],
           },
           secretOrKeyProvider() {
-            return configService.JWT_SECRET.data!;
+            return configService.JWT_PRIVATE_KEY_BASE64.data!;
           },
-          secret: configService.JWT_SECRET.data!,
-          privateKey: configService.JWT_SECRET.data!,
-          publicKey: configService.JWT_PUBLIC_KEY.data!,
+          secret: configService.JWT_PRIVATE_KEY_BASE64.data!,
+          privateKey: configService.JWT_PRIVATE_KEY_BASE64.data!,
+          publicKey: configService.JWT_PUBLIC_KEY_BASE64.data!,
         };
       },
       inject: [AppConfigService],
