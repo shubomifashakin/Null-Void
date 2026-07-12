@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/providers/QueryClientProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 import { Toaster } from "@/components/ui/sonner";
 
@@ -51,12 +52,14 @@ export default function RootLayout({
 }>) {
   return (
     <ReactQueryProvider>
-      <html lang="en" className="dark">
+      <html lang="en" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
         >
-          {children}
-          <Toaster />
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </body>
       </html>
     </ReactQueryProvider>

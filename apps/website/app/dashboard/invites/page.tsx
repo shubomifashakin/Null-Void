@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 
 import { getInvites, updateInviteStatus } from "@/data-service/mutations";
 
-export default function InvitesList() {
+export default function Page() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -111,63 +111,58 @@ export default function InvitesList() {
       )}
 
       {data && data.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.map((invite) => (
             <Card
               key={invite.id}
-              className="p-6 bg-card border shadow-none border-border"
+              className="p-5 bg-card border shadow-none border-border flex flex-col gap-4"
             >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-full overflow-hidden relative">
-                    <Image
-                      fill
-                      alt={invite.invitersName}
-                      className="object-cover"
-                      src={
-                        invite.invitersPicture ||
-                        "https://avatars.githubusercontent.com/u/12345?v=4"
-                      }
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-x-1.5">
-                      <p className="font-semibold ">{invite.roomName}</p>
-
-                      <span className="text-sm text-muted-foreground capitalize">
-                        {" "}
-                        • {invite.role.toLowerCase()}
-                      </span>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground">
-                      Invited by{" "}
-                      <span className="font-medium">{invite.invitersName}</span>{" "}
-                      • Expires{" "}
-                      {new Date(invite.expiresAt).toLocaleDateString()}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0">
+                  <Image
+                    fill
+                    alt={invite.invitersName}
+                    className="object-cover"
+                    src={
+                      invite.invitersPicture ||
+                      "https://avatars.githubusercontent.com/u/12345?v=4"
+                    }
+                  />
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    disabled={isPending}
-                    onClick={() => handleDecline(invite.id)}
-                    className="border-border text-foreground cursor-pointer hover:bg-background"
-                  >
-                    Decline
-                  </Button>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-semibold truncate">{invite.roomName}</p>
+                    <span className="text-xs text-muted-foreground capitalize">
+                      • {invite.role.toLowerCase()}
+                    </span>
+                  </div>
 
-                  <Button
-                    disabled={isPending}
-                    onClick={() => handleAccept(invite.id)}
-                    className="bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
-                  >
-                    Accept
-                  </Button>
+                  <p className="text-xs text-muted-foreground truncate">
+                    By{" "}
+                    <span className="font-medium">{invite.invitersName}</span> •
+                    Expires {new Date(invite.expiresAt).toLocaleDateString()}
+                  </p>
                 </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => handleDecline(invite.id)}
+                  className="flex-1 border-border text-foreground cursor-pointer hover:bg-background"
+                >
+                  Decline
+                </Button>
+
+                <Button
+                  disabled={isPending}
+                  onClick={() => handleAccept(invite.id)}
+                  className="flex-1 bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90"
+                >
+                  Accept
+                </Button>
               </div>
             </Card>
           ))}
