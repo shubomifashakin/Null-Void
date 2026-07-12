@@ -246,6 +246,14 @@ export class RoomsGatewayService {
         message: `Created snapshot for room ${roomId}`,
       });
 
+      await this.databaseService.snapshots.create({
+        data: {
+          room_id: roomId,
+          payload: allEvents as unknown as InputJsonValue,
+          timestamp: new Date(),
+        },
+      });
+
       const deletedPendingEventsFromCache =
         await this.queueRedisService.deleteFromCache(roomDrawEventsCacheKey);
 
@@ -255,14 +263,6 @@ export class RoomsGatewayService {
           error: deletedPendingEventsFromCache.error,
         });
       }
-
-      await this.databaseService.snapshots.create({
-        data: {
-          room_id: roomId,
-          payload: allEvents as unknown as InputJsonValue,
-          timestamp: new Date(),
-        },
-      });
 
       const removedIdleSnapshot = await this.removeIdleSnapshotJob(roomId);
 
