@@ -53,7 +53,7 @@ export default function ToolbarPanel({ role }: { role: Role }) {
   }
 
   return (
-    <div className="border-b border-border bg-card px-4 py-3 space-y-3">
+    <div className="border-b border-border bg-background px-4 py-3 space-y-3">
       <div className="flex items-center justify-center gap-6">
         <div className="flex items-center gap-1 bg-background rounded p-1">
           {tools.map((tool) => (
