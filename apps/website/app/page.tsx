@@ -78,7 +78,7 @@ export default function Page() {
               width="62"
               height="62"
               rx="4"
-              fill="rgba(255,255,255,0.9)"
+              style={{ fill: "var(--nv-shape-fill-solid)" }}
             />
             <rect
               x="38"
@@ -86,8 +86,10 @@ export default function Page() {
               width="62"
               height="62"
               rx="4"
-              fill="rgba(255,255,255,0.12)"
-              stroke="rgba(255,255,255,0.25)"
+              style={{
+                fill: "var(--nv-shape-fill-ghost)",
+                stroke: "var(--nv-shape-stroke-ghost)",
+              }}
               strokeWidth="1.5"
             />
           </svg>
@@ -121,7 +123,7 @@ export default function Page() {
       >
         <Frame>
           <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
-            <polygon points="50,6 96,88 4,88" fill="rgba(255,255,255,0.88)" />
+            <polygon points="50,6 96,88 4,88" style={{ fill: "var(--nv-shape-fill-solid)" }} />
           </svg>
         </Frame>
       </div>
@@ -136,13 +138,15 @@ export default function Page() {
       >
         <Frame>
           <svg width="128" height="108" viewBox="0 0 128 108" fill="none">
-            <circle cx="42" cy="54" r="38" fill="rgba(255,255,255,0.88)" />
+            <circle cx="42" cy="54" r="38" style={{ fill: "var(--nv-shape-fill-solid)" }} />
             <circle
               cx="86"
               cy="54"
               r="38"
-              fill="rgba(255,255,255,0.14)"
-              stroke="rgba(255,255,255,0.3)"
+              style={{
+                fill: "var(--nv-shape-fill-ghost)",
+                stroke: "var(--nv-shape-stroke-ghost)",
+              }}
               strokeWidth="1.5"
             />
           </svg>
