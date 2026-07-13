@@ -1,13 +1,19 @@
-name: Run Tests
+name: Run Server Tests
 
 on:
   push:
     branches-ignore:
       - main
+    paths:
+      - "apps/server/**"
+      - "shared/**"
 
   pull_request:
     branches:
       - main
+    paths:
+      - "apps/server/**"
+      - "shared/**"
 
   workflow_dispatch:
 
