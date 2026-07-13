@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - dev
-  schedule:
-    - cron: "0 0 * * *" # Run daily at midnight
   workflow_dispatch:
 
 jobs:
@@ -64,7 +62,7 @@ jobs:
           status: ${{ needs.scan.result != 'failure' && 'success' || 'failure' }}
           title: "Trivy Analysis"
           description: |
-            **Commit:** ${{ github.event.pull_request.title || 'Nightly Run' }}
+            **Commit:** ${{ github.event.pull_request.title || github.event.head_commit.message || 'Manual Run' }}
             **Triggered by:** ${{ github.actor }}
             **Branch:** ${{ github.head_ref || github.ref_name }}
             **Repository:** ${{ github.repository }}
