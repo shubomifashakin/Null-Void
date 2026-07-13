@@ -1,0 +1,4 @@
+# CVE-2026-12151 - undici bundled in node:24-slim, not yet patched upstream
+# Temp is a WS server not client, low risk
+# Remove once node:24-slim ships with undici 6.27.0+
+CVE-2026-12151
