@@ -17,6 +17,7 @@ global.fetch = mockFetch;
 const mockJwtService = {
   signAsync: jest.fn(),
   decode: jest.fn(),
+  verify: jest.fn(),
 };
 
 const myLoggerMock = {
@@ -148,7 +149,7 @@ describe('AuthController (e2e)', () => {
       },
     });
 
-    mockJwtService.decode.mockReturnValue({
+    mockJwtService.verify.mockReturnValue({
       jti: testRefreshTokenId,
     });
 
@@ -178,7 +179,7 @@ describe('AuthController (e2e)', () => {
       },
     });
 
-    mockJwtService.decode
+    mockJwtService.verify
       .mockReturnValue({
         jti: testRefreshTokenId,
       })

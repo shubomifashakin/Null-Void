@@ -72,6 +72,7 @@ const mockConfigService = {
 const mockJwtService = {
   signAsync: jest.fn(),
   decode: jest.fn(),
+  verify: jest.fn(),
 };
 
 const mockFetch = jest.fn();
@@ -177,7 +178,7 @@ describe('AuthController', () => {
     });
 
     it('should logout the user', async () => {
-      mockJwtService.decode
+      mockJwtService.verify
         .mockReturnValueOnce({
           jti: 'test-access-tji',
         })
@@ -203,7 +204,7 @@ describe('AuthController', () => {
     });
 
     it('should logout the user successfuly if refresh token does not exist in db', async () => {
-      mockJwtService.decode
+      mockJwtService.verify
         .mockReturnValueOnce({
           jti: 'test-access-tji',
         })
@@ -225,7 +226,7 @@ describe('AuthController', () => {
     });
 
     it('should refresh the tokens', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 
@@ -280,7 +281,7 @@ describe('AuthController', () => {
     });
 
     it('should not refresh the tokens because of invalid refresh token', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti_invalid: 'test-refresh-tji',
       });
 
@@ -290,7 +291,7 @@ describe('AuthController', () => {
     });
 
     it('should not refresh the tokens because refresh token did not exist in db', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 
@@ -302,7 +303,7 @@ describe('AuthController', () => {
     });
 
     it('should not refresh the tokens because refresh token has expired', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 

@@ -1,9 +1,10 @@
 rules:
   - id: jwt-decode-without-verify
     patterns:
-      - pattern-either:
-          - pattern: $JWT.decode(...)
-          - pattern: jwt.decode(...)
+      - pattern: $OBJ.decode(...)
+      - metavariable-regex:
+          metavariable: $OBJ
+          regex: (?i).*jwt.*
     message: >
       jwt.decode() only base64-decodes the token payload — it does NOT
       verify the signature. Anyone can craft a token with an arbitrary
@@ -13,9 +14,9 @@ rules:
       signature (and expiry) before trusting the payload.
     metadata:
       cwe:
-        - 'CWE-347: Improper Verification of Cryptographic Signature'
+        - "CWE-347: Improper Verification of Cryptographic Signature"
       owasp:
-        - 'A02:2021 - Cryptographic Failures'
+        - "A02:2021 - Cryptographic Failures"
       category: security
       confidence: MEDIUM
       references:
