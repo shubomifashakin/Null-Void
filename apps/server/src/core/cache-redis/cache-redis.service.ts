@@ -1,5 +1,10 @@
 import { ThrottlerStorage } from '@nestjs/throttler';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Logger,
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 
 import { createClient, RedisClientType, RESP_TYPES, SetOptions } from 'redis';
@@ -13,6 +18,7 @@ export class CacheRedisService
   implements ThrottlerStorage, OnModuleInit, OnModuleDestroy
 {
   private client: RedisClientType;
+  private logger = new Logger(CacheRedisService.name);
 
   constructor(configService: AppConfigService) {
     const redisUrl = configService.CACHE_REDIS_URL;
@@ -68,8 +74,8 @@ export class CacheRedisService
       };
 
       return obj;
-    } catch (error) {
-      console.error('Redis error in increment:', error);
+    } catch (error: unknown) {
+      this.logger.error({ message: 'Redis error in increment:', error });
       //dont let redis issues block users from using the app
 
       return {
@@ -84,8 +90,8 @@ export class CacheRedisService
   async onModuleInit() {
     await this.client.connect();
 
-    this.client.on('error', (err) => {
-      console.error('Redis connection error:', err);
+    this.client.on('error', (err: unknown) => {
+      this.logger.error({ message: 'Redis connection error:', error: err });
     });
   }
 
