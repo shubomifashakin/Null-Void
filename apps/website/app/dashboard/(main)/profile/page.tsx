@@ -102,7 +102,7 @@ function AccountInfo({
   const [name, setName] = useState(data.name);
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="flex-1 overflow-y-auto min-h-0 space-y-6 w-full">
       <Card className="p-6 bg-card border border-border shadow-none">
         <h2 className="text-lg font-semibold text-foreground mb-6">
           Account Information
