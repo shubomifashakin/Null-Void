@@ -46,4 +46,6 @@ COPY --from=builder /app/apps/processor/dist ./dist
 # Copy package.json for reference
 COPY --from=builder /app/apps/processor/package*.json ./
 
+USER node
+
 CMD ["node", "dist/index.js"]

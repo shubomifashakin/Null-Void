@@ -240,7 +240,7 @@ export class AuthService {
       });
     }
 
-    // nosemgrep: jwt-decode-without-verify
+    // nosemgrep: jwt-decode-without-verify -- token already verified
     const decodedInfo = this.jwtService.decode<{
       email: string;
       sub: string;
