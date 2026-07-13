@@ -24,4 +24,4 @@ rules:
     severity: ERROR
     paths:
       include:
-        - "apps/server/**"
+        - "/apps/server/**"

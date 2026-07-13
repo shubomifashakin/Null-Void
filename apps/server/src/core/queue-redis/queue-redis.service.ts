@@ -1,18 +1,19 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Logger,
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { DAYS_1, SECONDS_20_MS } from '../../common/constants';
 import { AppConfigService } from '../app-config/app-config.service';
-
-import { ThrottlerStorage } from '@nestjs/throttler';
-import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 
 import { createClient, RedisClientType, RESP_TYPES, SetOptions } from 'redis';
 import { FnResult, makeError } from '../../types/fnResult';
 
 @Injectable()
-export class QueueRedisService
-  implements ThrottlerStorage, OnModuleInit, OnModuleDestroy
-{
+export class QueueRedisService implements OnModuleInit, OnModuleDestroy {
   private client: RedisClientType;
+  private logger = new Logger(QueueRedisService.name);
 
   constructor(configService: AppConfigService) {
     const redisUrl = configService.QUEUE_REDIS_URL;
@@ -41,51 +42,11 @@ export class QueueRedisService
     return this.client;
   }
 
-  async increment(
-    key: string,
-    ttl: number,
-    limit: number,
-    blockDuration: number,
-  ): Promise<ThrottlerStorageRecord> {
-    try {
-      const currentCount = await this.client.incr(key);
-
-      if (currentCount === 1) {
-        await this.client.expire(key, ttl);
-      }
-      const resetTime = Date.now() + ttl * 1000;
-      const isBlocked = currentCount > limit;
-
-      if (isBlocked && currentCount === limit + 1) {
-        await this.client.expire(key, ttl + blockDuration);
-      }
-
-      const obj = {
-        totalHits: currentCount,
-        isBlocked: currentCount >= limit,
-        timeToExpire: resetTime,
-        timeToBlockExpire: resetTime + blockDuration * 1000,
-      };
-
-      return obj;
-    } catch (error) {
-      console.error('Redis error in increment:', error);
-      //dont let redis issues block users from using the app
-
-      return {
-        totalHits: 0,
-        isBlocked: false,
-        timeToExpire: 0,
-        timeToBlockExpire: 0,
-      };
-    }
-  }
-
   async onModuleInit() {
     await this.client.connect();
 
-    this.client.on('error', (err) => {
-      console.error('Redis connection error:', err);
+    this.client.on('error', (err: unknown) => {
+      this.logger.error({ message: 'Redis connection error:', error: err });
     });
   }
 
