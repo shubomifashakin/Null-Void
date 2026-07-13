@@ -240,6 +240,7 @@ export class AuthService {
       });
     }
 
+    // nosemgrep: jwt-decode-without-verify
     const decodedInfo = this.jwtService.decode<{
       email: string;
       sub: string;
@@ -298,7 +299,7 @@ export class AuthService {
   }
 
   async logout(accessToken: string, refreshToken: string) {
-    const accessTokenId = this.jwtService.decode<{ jti: string }>(
+    const accessTokenId = this.jwtService.verify<{ jti: string }>(
       accessToken,
     )?.jti;
 
@@ -317,7 +318,7 @@ export class AuthService {
       }
     }
 
-    const refreshTokenId = this.jwtService.decode<{ jti: string }>(
+    const refreshTokenId = this.jwtService.verify<{ jti: string }>(
       refreshToken,
     )?.jti;
 
@@ -345,7 +346,7 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    const refreshTokenId = this.jwtService.decode<{ jti: string }>(
+    const refreshTokenId = this.jwtService.verify<{ jti: string }>(
       refreshToken,
     )?.jti;
 

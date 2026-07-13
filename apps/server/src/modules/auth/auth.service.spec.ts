@@ -52,6 +52,7 @@ const mockConfigService = {
 const mockJwtService = {
   signAsync: jest.fn(),
   decode: jest.fn(),
+  verify: jest.fn(),
 };
 
 const mockFetch = jest.fn();
@@ -182,7 +183,7 @@ describe('AuthService', () => {
     });
 
     it('should logout the user', async () => {
-      mockJwtService.decode
+      mockJwtService.verify
         .mockReturnValueOnce({
           jti: 'test-access-tji',
         })
@@ -203,9 +204,9 @@ describe('AuthService', () => {
         'test-refresh-token',
       );
 
-      expect(mockJwtService.decode).toHaveBeenCalledTimes(2);
-      expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
-      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+      expect(mockJwtService.verify).toHaveBeenCalledTimes(2);
+      expect(mockJwtService.verify).toHaveBeenCalledWith('test-access-token');
+      expect(mockJwtService.verify).toHaveBeenCalledWith('test-refresh-token');
 
       expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
         1,
@@ -228,7 +229,7 @@ describe('AuthService', () => {
     });
 
     it('should logout the user successfuly if refresh token does not exist in db', async () => {
-      mockJwtService.decode
+      mockJwtService.verify
         .mockReturnValueOnce({
           jti: 'test-access-tji',
         })
@@ -245,9 +246,9 @@ describe('AuthService', () => {
         'test-refresh-token',
       );
 
-      expect(mockJwtService.decode).toHaveBeenCalledTimes(2);
-      expect(mockJwtService.decode).toHaveBeenCalledWith('test-access-token');
-      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+      expect(mockJwtService.verify).toHaveBeenCalledTimes(2);
+      expect(mockJwtService.verify).toHaveBeenCalledWith('test-access-token');
+      expect(mockJwtService.verify).toHaveBeenCalledWith('test-refresh-token');
 
       expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
         1,
@@ -265,7 +266,7 @@ describe('AuthService', () => {
     });
 
     it('should refresh the tokens', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 
@@ -287,8 +288,8 @@ describe('AuthService', () => {
 
       const result = await service.refresh('test-refresh-token');
 
-      expect(mockJwtService.decode).toHaveBeenCalledTimes(1);
-      expect(mockJwtService.decode).toHaveBeenCalledWith('test-refresh-token');
+      expect(mockJwtService.verify).toHaveBeenCalledTimes(1);
+      expect(mockJwtService.verify).toHaveBeenCalledWith('test-refresh-token');
 
       expect(mockDatabaseService.refreshToken.findUnique).toHaveBeenCalledTimes(
         1,
@@ -346,7 +347,7 @@ describe('AuthService', () => {
     });
 
     it('should not refresh the tokens because of invalid refresh token', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti_invalid: 'test-refresh-tji',
       });
 
@@ -356,7 +357,7 @@ describe('AuthService', () => {
     });
 
     it('should not refresh the tokens because refresh token did not exist in db', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 
@@ -368,7 +369,7 @@ describe('AuthService', () => {
     });
 
     it('should not refresh the tokens because refresh token has expired', async () => {
-      mockJwtService.decode.mockReturnValueOnce({
+      mockJwtService.verify.mockReturnValueOnce({
         jti: 'test-refresh-tji',
       });
 

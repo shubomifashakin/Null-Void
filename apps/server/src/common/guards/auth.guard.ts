@@ -30,8 +30,7 @@ export class AuthGuard implements CanActivate {
       try {
         const request = ctx.switchToHttp().getRequest<Request>();
         const accessToken = request.cookies[TOKEN.ACCESS.TYPE] as
-          | string
-          | undefined;
+          string | undefined;
 
         if (!accessToken) {
           throw new UnauthorizedException('Unauthorized');
