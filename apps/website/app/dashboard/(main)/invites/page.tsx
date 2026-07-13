@@ -87,7 +87,7 @@ export default function Page() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto min-h-0 space-y-6">
       {isLoadingError && (
         <Card className="p-6 bg-card border-0 shadow-none items-center">
           <p className="text-destructive">Failed to load invites</p>
