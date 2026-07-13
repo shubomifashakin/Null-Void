@@ -4,7 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 @Catch(PrismaClientKnownRequestError)
 export class PrismaKnownErrorFilter implements ExceptionFilter {
-  logger = new Logger(PrismaKnownErrorFilter.name);
+  private logger = new Logger(PrismaKnownErrorFilter.name);
 
   catch(exception: PrismaClientKnownRequestError, host: ArgumentsHost) {
     const hostType = host.getType();
@@ -37,7 +37,7 @@ export class PrismaKnownErrorFilter implements ExceptionFilter {
         });
       }
 
-      this.logger.error(exception.message, exception.stack);
+      this.logger.error({ message: exception.message, stack: exception.stack });
 
       return response.status(500).json({
         statusCode: 500,
