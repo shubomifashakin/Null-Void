@@ -1,4 +1,4 @@
-FROM node:24.18.0-slim AS builder
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
@@ -45,10 +45,6 @@ COPY --from=builder /app/apps/processor/dist ./dist
 
 # Copy package.json for reference
 COPY --from=builder /app/apps/processor/package*.json ./
-
-# remove npm/npx/yarn from the runtime image because
-# npm CLI bundled undici which currently has no upstream fix (CVE-2026-12151)
-RUN npm uninstall -g npm && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /opt/yarn-v*
 
 USER node
 
