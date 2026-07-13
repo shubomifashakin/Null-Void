@@ -1,0 +1,27 @@
+rules:
+  - id: structured-logging
+    patterns:
+      - pattern: $LOGGER.$METHOD(...)
+      - metavariable-pattern:
+          metavariable: $METHOD
+          patterns:
+            - pattern-either:
+                - pattern: error
+                - pattern: warn
+                - pattern: info
+                - pattern: debug
+                - pattern: log
+                - pattern: verbose
+      - pattern-not: $LOGGER.$METHOD({...})
+      - pattern-not-regex: \{.*\}
+    message: "Logger methods must use structured JSON format, not string literals. Use this.logger.error({ message: '...' }) instead of this.logger.error('...')"
+    metadata:
+      category: code-quality
+      confidence: HIGH
+    languages:
+      - typescript
+      - javascript
+    severity: ERROR
+    paths:
+      include:
+        - "apps/server/**"

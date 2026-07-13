@@ -1,0 +1,17 @@
+rules:
+  - id: no-console-log
+    patterns:
+      - pattern: console.log(...)
+    message: "Avoid using console.log in production code"
+    metadata:
+      category: code-quality
+      confidence: MEDIUM
+    languages:
+      - typescript
+      - javascript
+    severity: WARNING
+    paths:
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+        - "**/__tests__/**"
