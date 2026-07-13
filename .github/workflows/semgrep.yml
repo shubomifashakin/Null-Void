@@ -2,8 +2,6 @@ name: Code Quality
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
   pull_request:
     branches:
       - dev
@@ -59,7 +57,7 @@ jobs:
           status: ${{ needs.code-quality.result != 'failure' && 'success' || 'failure' }}
           title: "Semgrep Scan"
           description: |
-            **Commit:** ${{ github.event.pull_request.title || 'Nightly Run' }}
+            **Commit:** ${{ github.event.pull_request.title || github.event.head_commit.message || 'Manual Run' }}
             **Triggered by:** ${{ github.actor }}
             **Branch:** ${{ github.head_ref || github.ref_name }}
             **Repository:** ${{ github.repository }}
