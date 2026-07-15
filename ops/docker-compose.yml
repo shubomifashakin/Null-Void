@@ -101,7 +101,7 @@ services:
       - .env.processor
 
   cache-redis:
-    image: redis:latest
+    image: redis:8.4
     container_name: null-void-cache-redis
     networks:
       - system_wide_network
@@ -117,7 +117,7 @@ services:
     restart: unless-stopped
 
   queue-redis:
-    image: redis:latest
+    image: redis:8.4
     container_name: null-void-queue-redis
     networks:
       - system_wide_network
