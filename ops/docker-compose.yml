@@ -29,8 +29,6 @@ services:
         condition: service_healthy
       queue-redis:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     networks:
       - system_wide_network
     healthcheck:
@@ -61,8 +59,6 @@ services:
         condition: service_healthy
       queue-redis:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     networks:
       - system_wide_network
     healthcheck:
@@ -93,8 +89,6 @@ services:
         condition: service_healthy
       queue-redis:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     networks:
       - system_wide_network
     env_file:
@@ -131,19 +125,6 @@ services:
       retries: 5
     mem_limit: 512m
     restart: unless-stopped
-
-  migrations:
-    image: 545plea/null-void-server:latest
-    container_name: null-void-migrations
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - system_wide_network
-    env_file:
-      - .env.server
-    command: npx prisma migrate deploy
-    restart: "no"
 
 networks:
   system_wide_network:

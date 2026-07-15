@@ -12,6 +12,5 @@ RUN npm ci --omit=dev
 
 WORKDIR /app/apps/server
 
-RUN npx prisma generate
 
 CMD ["npx", "prisma", "migrate", "deploy"]

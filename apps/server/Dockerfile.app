@@ -32,7 +32,7 @@ RUN apt-get update -y && apt-get install -y openssl wget && rm -rf /var/lib/apt/
 
 COPY package*.json ./
 
-RUN npm ci --omit-dev
+RUN npm ci --omit=dev
 
 COPY --from=builder /app/shared/package.json ./node_modules/@null-void/shared/package.json
 COPY --from=builder /app/shared/dist ./node_modules/@null-void/shared/dist
