@@ -4,24 +4,37 @@ echo "Deploying to server..."
 
 PROJECT_DIR="/home/${REMOTE_USER}/projects/null-void"
 SHA_FILE="$PROJECT_DIR/.last_deployment_sha"
-ENV_FILE="$PROJECT_DIR/.env"
+SERVER_ENV_FILE="$PROJECT_DIR/.env.server"
+PROCESSOR_ENV_FILE="$PROJECT_DIR/.env.processor"
 BACKUP_DIR="$PROJECT_DIR/backup"
 
-trap "rm -f $ENV_FILE" EXIT
+trap "rm -f $SERVER_ENV_FILE $PROCESSOR_ENV_FILE" EXIT
 
 echo "Generating .env from doppler"
 doppler secrets download \
-  --token "$DOPPLER_TOKEN" \
+  --token "$SERVER_DOPPLER_TOKEN" \
   --format env \
   --no-file \
-  > "$ENV_FILE"
+  > "$SERVER_ENV_FILE"
 
 if [ $? -ne 0 ]; then
-    echo "Failed to pull secrets from doppler"
+    echo "Failed to pull server secrets from doppler"
     exit 1
 fi
 
-chmod 600 "$ENV_FILE"
+doppler secrets download \
+  --token "$PROCESSOR_DOPPLER_TOKEN" \
+  --format env \
+  --no-file \
+  > "$PROCESSOR_ENV_FILE"
+
+if [ $? -ne 0 ]; then
+    echo "Failed to pull processor secrets from doppler"
+    exit 1
+fi
+
+chmod 600 "$SERVER_ENV_FILE"
+chmod 600 "$PROCESSOR_ENV_FILE"
 
 cd $PROJECT_DIR
 
