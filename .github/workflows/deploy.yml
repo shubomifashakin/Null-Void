@@ -116,7 +116,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: DOCKER_USERNAME,CURRENT_SHA,DOPPLER_TOKEN
-          script_path: ./scripts/migrate.sh
+          script_path: ./scripts/actions/migrate.sh
         env:
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           CURRENT_SHA: ${{ github.sha }}
@@ -135,7 +135,7 @@ jobs:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_path: ./scripts/backup-ops.sh
+          script_path: ./scripts/actions/backup-ops.sh
           envs: REMOTE_USER
         env:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
