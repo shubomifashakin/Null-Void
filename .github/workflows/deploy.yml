@@ -115,12 +115,12 @@ jobs:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DOCKER_USERNAME,CURRENT_SHA,DOPPLER_TOKEN
+          envs: DOCKER_USERNAME,CURRENT_SHA,SERVER_DOPPLER_TOKEN
           script_path: ./scripts/actions/migrate.sh
         env:
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           CURRENT_SHA: ${{ github.sha }}
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          SERVER_DOPPLER_TOKEN: ${{ secrets.SERVER_DOPPLER_TOKEN }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -155,13 +155,14 @@ jobs:
         env:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           CURRENT_SHA: ${{ github.sha }}
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          SERVER_DOPPLER_TOKEN: ${{ secrets.SERVER_DOPPLER_TOKEN }}
+          PROCESSOR_DOPPLER_TOKEN: ${{ secrets.PROCESSOR_DOPPLER_TOKEN }}
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
         with:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: REMOTE_USER,CURRENT_SHA,DOPPLER_TOKEN,DOCKER_USERNAME
+          envs: REMOTE_USER,CURRENT_SHA,SERVER_DOPPLER_TOKEN,PROCESSOR_DOPPLER_TOKEN,DOCKER_USERNAME
           script_path: ./scripts/actions/deploy.sh
 
   notify:
