@@ -30,9 +30,9 @@ WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
 
-RUN rm -rf ./node_modules/@null-void/shared
+RUN npm ci --omit-dev
 
 COPY --from=builder /app/shared/package.json ./node_modules/@null-void/shared/package.json
 COPY --from=builder /app/shared/dist ./node_modules/@null-void/shared/dist
