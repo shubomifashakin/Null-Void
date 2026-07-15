@@ -1,0 +1,16 @@
+FROM node:24-slim
+
+WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+COPY apps/server/package*.json ./apps/server/
+COPY apps/server/prisma ./apps/server/prisma
+COPY apps/server/prisma.config.ts ./apps/server/prisma.config.ts
+RUN npm ci --omit=dev
+
+WORKDIR /app/apps/server
+
+
+CMD ["npx", "prisma", "migrate", "deploy"]

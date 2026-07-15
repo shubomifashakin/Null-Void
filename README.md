@@ -42,6 +42,8 @@ null-void/
 │   │   │   ├── app.module.ts # Main application module
 │   │   │   └── main.ts      # Application entry point
 │   │   └── package.json     # Server dependencies
+│   │   │   Dockerfile.migrate # Database migration Dockerfile
+│   │   └── Dockerfile.app   # Server Dockerfile
 │   │
 │   ├── processor/           # Background job processor/worker (BullMQ)
 │   │   ├── proto/           # Proto files for draw events
@@ -141,9 +143,15 @@ $ cp .env.server.example ops/.env.server
 
 $ cp .env.processor.example ops/.env.processor
 
-$ docker build -f apps/server/Dockerfile -t null-void-server:latest .
+$ docker build -f apps/server/Dockerfile.migrate -t null-void-migrate:local .
+
+$ docker build -f apps/server/Dockerfile.app -t null-void-server:latest .
 
 $ docker build -f apps/processor/Dockerfile -t null-void-processor:latest .
+
+$ docker run --env-file .\apps\server\.env \
+  -e DATABASE_URL="postgresql://postgres:postgres_123@null_void_postgres:5432/null_void_postgres" \
+  --rm null-void-migrate:local
 
 $ cd ops
 
