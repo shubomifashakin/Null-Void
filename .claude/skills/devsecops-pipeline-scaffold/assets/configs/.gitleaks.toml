@@ -1,0 +1,18 @@
+title = "gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+  '''.*\.lock$''',
+  '''.*\.md$''',
+  '''(.*/)?\.gitleaks\.toml$''',
+  '''(.*/)?test(s)?/.*''',
+]
+
+# Add per-project rule exceptions below as they come up, e.g.:
+# [[rules]]
+# id = "example-fp-rule"
+# path = '''path/to/known/false/positive.ts'''

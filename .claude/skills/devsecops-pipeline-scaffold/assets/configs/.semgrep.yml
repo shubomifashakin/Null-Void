@@ -1,0 +1,14 @@
+rules:
+  - id: hardcoded-secret-assignment
+    languages: [typescript, javascript, go, python]
+    message: Possible hardcoded secret assigned directly in source. Use environment variables or a secrets manager instead.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i)(secret|password|api_?key|token)
+
+# Add project-specific custom rules below. To suppress a specific false positive
+# inline rather than editing this file, add `// nosemgrep: rule-id` above the line.

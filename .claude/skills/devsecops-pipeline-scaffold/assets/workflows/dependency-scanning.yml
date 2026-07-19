@@ -1,0 +1,69 @@
+name: Trivy
+
+on:
+  pull_request:
+    branches:
+      - dev
+  schedule:
+    - cron: "0 0 * * 5" # Run on Fridays
+  workflow_dispatch:
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "sarif"
+          output: "trivy-results.sarif"
+          exit-code: "0"
+          scanners: "vuln"
+          severity: "HIGH,CRITICAL"
+
+      - name: Upload to security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+          category: "trivy"
+
+      - name: Run Trivy (enforce failure threshold)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "table"
+          scanners: "vuln"
+          severity: "HIGH,CRITICAL"
+          exit-code: "1"
+
+  notify:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    needs: [trivy]
+    if: always()
+    steps:
+      - name: Send Discord Notification
+        uses: sarisia/actions-status-discord@v1.16.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ needs.trivy.result != 'failure' && 'success' || 'failure' }}
+          title: "Trivy Analysis"
+          description: |
+            **Commit:** ${{ github.event.pull_request.title || 'Nightly Run' }}
+            **Triggered by:** ${{ github.actor }}
+            **Branch:** ${{ github.head_ref || github.ref_name }}
+            **Repository:** ${{ github.repository }}
+          url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          username: GitHub Actions
+          avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
