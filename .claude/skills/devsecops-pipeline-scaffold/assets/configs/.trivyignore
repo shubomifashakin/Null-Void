@@ -1,0 +1,6 @@
+# Only add a CVE here if you've confirmed it's a genuine false positive
+# or an accepted risk with a documented reason and expiry.
+# Format: CVE-ID exp:YYYY-MM-DD (reason)
+#
+# Example:
+# CVE-2023-12345 exp:2026-12-31 (no upstream fix yet, not exploitable in our usage — see JIRA-123)
