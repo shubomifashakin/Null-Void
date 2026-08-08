@@ -1,48 +1,48 @@
 # CVE-2026-12151 - undici bundled in node:24-slim, not yet patched upstream
 # Temp is a WS server not client, low risk
 # Remove once node:24-slim ships with undici 6.27.0+
-CVE-2026-12151
+CVE-2026-12151 exp:2026-08-29
 
 # brace-expansion - Denial of Service via exponential-time complexity
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-13149
+CVE-2026-13149 exp:2026-08-29
 
 # brace-expansion - Denial of Service via memory exhaustion in expand()
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-14257
+CVE-2026-14257 exp:2026-08-29
 
 # brace-expansion - Denial of Service via unbounded intermediate arrays
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69152
+CVE-2026-69152 exp:2026-08-29
 
 # fast-uri - URI parsing impact, affects versions 2.3.1 through 4.1.0
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-16221
+CVE-2026-16221 exp:2026-08-29
 
 # fast-uri - Host confusion vulnerability via backslash in URI authority
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-18446
+CVE-2026-18446 exp:2026-08-29
 
 # ip-address - Inconsistent IP address parsing leads to SSRF
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69192
+CVE-2026-69192 exp:2026-08-29
 
 # js-yaml - Exponential parsing time in flow collections leads to DoS
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-GHSA-pm4m-ph32-ghv5
+GHSA-pm4m-ph32-ghv5 exp:2026-08-29
 
 # socket.io-parser - DoS via memory exhaustion from crafted packets
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69185
+CVE-2026-69185 exp:2026-08-29
 
 # tar - DoS via crafted gzip bomb (CRITICAL)
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-59873
+CVE-2026-59873 exp:2026-08-29
 
 # tar - DoS via malformed tar archive header
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-59874
+CVE-2026-59874 exp:2026-08-29
 
 # nanoid - Infinite loop in customAlphabet via crafted input
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-67213
+CVE-2026-67213 exp:2026-08-29
