@@ -43,6 +43,7 @@
     "class-validator": "^0.15.1",
     "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
+    "ioredis": "^6.0.0",
     "nestjs-pino": "^4.6.1",
     "npm-check-updates": "^22.2.9",
     "pino-http": "^11.0.0",
