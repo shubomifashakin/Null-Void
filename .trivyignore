@@ -2,3 +2,43 @@
 # Temp is a WS server not client, low risk
 # Remove once node:24-slim ships with undici 6.27.0+
 CVE-2026-12151
+
+# brace-expansion - Denial of Service via exponential-time complexity
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-13149
+
+# brace-expansion - Denial of Service via memory exhaustion in expand()
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-14257
+
+# brace-expansion - Denial of Service via unbounded intermediate arrays
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-69152
+
+# fast-uri - URI parsing impact, affects versions 2.3.1 through 4.1.0
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-16221
+
+# fast-uri - Host confusion vulnerability via backslash in URI authority
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-18446
+
+# ip-address - Inconsistent IP address parsing leads to SSRF
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-69192
+
+# js-yaml - Exponential parsing time in flow collections leads to DoS
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+GHSA-pm4m-ph32-ghv5
+
+# socket.io-parser - DoS via memory exhaustion from crafted packets
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-69185
+
+# tar - DoS via crafted gzip bomb (CRITICAL)
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-59873
+
+# tar - DoS via malformed tar archive header
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-59874
