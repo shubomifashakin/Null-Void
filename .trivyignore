@@ -42,3 +42,7 @@ CVE-2026-59873
 # tar - DoS via malformed tar archive header
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
 CVE-2026-59874
+
+# nanoid - Infinite loop in customAlphabet via crafted input
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-67213
