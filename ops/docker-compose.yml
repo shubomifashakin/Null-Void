@@ -1,6 +1,13 @@
 services:
   postgres:
     image: postgres:latest
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+    security_opt:
+      - no-new-privileges:true
     container_name: null-void-postgres
     volumes:
       - postgres_data:/var/lib/postgresql
@@ -20,6 +27,31 @@ services:
   null-void-1:
     image: 545plea/null-void-server:latest
     container_name: null-void-1
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+        loki-pipeline-stages: |
+          - json:
+              expressions:
+                level: level_label
+                timestamp: timestamp
+                message: message
+                environment: environment
+                service: service
+          - labels:
+              level:
+              service:
+              environment:
+          - timestamp:
+              source: timestamp
+              format: "2006-01-02T15:04:05.000Z"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     restart: unless-stopped
     mem_limit: 512m
     depends_on:
@@ -50,6 +82,31 @@ services:
   null-void-2:
     image: 545plea/null-void-server:latest
     container_name: null-void-2
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+        loki-pipeline-stages: |
+          - json:
+              expressions:
+                level: level_label
+                timestamp: timestamp
+                message: message
+                environment: environment
+                service: service
+          - labels:
+              level:
+              service:
+              environment:
+          - timestamp:
+              source: timestamp
+              format: "2006-01-02T15:04:05.000Z"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     restart: unless-stopped
     mem_limit: 512m
     depends_on:
@@ -80,6 +137,31 @@ services:
   null-void-queue-processor:
     image: 545plea/null-void-processor:latest
     container_name: null-void-queue-processor
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+        loki-pipeline-stages: |
+          - json:
+              expressions:
+                level: level_label
+                timestamp: timestamp
+                message: message
+                environment: environment
+                service: service
+          - labels:
+              level:
+              service:
+              environment:
+          - timestamp:
+              source: timestamp
+              format: "2006-01-02T15:04:05.000Z"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     mem_limit: 256m
     restart: unless-stopped
     depends_on:
@@ -97,6 +179,13 @@ services:
   cache-redis:
     image: redis:8.4
     container_name: null-void-cache-redis
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+    security_opt:
+      - no-new-privileges:true
     networks:
       - system_wide_network
     volumes:
@@ -113,6 +202,13 @@ services:
   queue-redis:
     image: redis:8.4
     container_name: null-void-queue-redis
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "container={{.Name}}"
+    security_opt:
+      - no-new-privileges:true
     networks:
       - system_wide_network
     volumes:
