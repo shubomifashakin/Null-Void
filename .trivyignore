@@ -11,6 +11,9 @@ CVE-2026-13149 exp:2026-08-29
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
 CVE-2026-14257 exp:2026-08-29
 
+# Ignore DeepmergeTS vulnerability from Prisma chain
+CVE-2026-40345 expiry:2026-08-24
+
 # brace-expansion - Denial of Service via unbounded intermediate arrays
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
 CVE-2026-69152 exp:2026-08-29
