@@ -6,6 +6,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
     security_opt:
       - no-new-privileges:true
     container_name: null-void-postgres
@@ -32,6 +34,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
         loki-pipeline-stages: |
           - json:
               expressions:
@@ -87,6 +91,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
         loki-pipeline-stages: |
           - json:
               expressions:
@@ -142,6 +148,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
         loki-pipeline-stages: |
           - json:
               expressions:
@@ -184,6 +192,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
     security_opt:
       - no-new-privileges:true
     networks:
@@ -207,6 +217,8 @@ services:
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "container={{.Name}}"
+        mode: non-blocking
+        max-buffer-size: 4m
     security_opt:
       - no-new-privileges:true
     networks:
