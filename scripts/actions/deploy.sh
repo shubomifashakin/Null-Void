@@ -5,10 +5,11 @@ echo "Deploying to server..."
 PROJECT_DIR="/home/${REMOTE_USER}/projects/null-void"
 SHA_FILE="$PROJECT_DIR/.last_deployment_sha"
 SERVER_ENV_FILE="$PROJECT_DIR/.env.server"
+DB_ENV_FILE="$PROJECT_DIR/.env.postgres"
 PROCESSOR_ENV_FILE="$PROJECT_DIR/.env.processor"
 BACKUP_DIR="$PROJECT_DIR/backup"
 
-trap "rm -f $SERVER_ENV_FILE $PROCESSOR_ENV_FILE" EXIT
+trap "rm -f $SERVER_ENV_FILE $PROCESSOR_ENV_FILE $DB_ENV_FILE" EXIT
 
 echo "Generating .env from doppler"
 doppler secrets download \
@@ -33,8 +34,20 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+doppler secrets download \
+  --token "$POSTGRES_DOPPLER_TOKEN" \
+  --format env \
+  --no-file \
+  > "$DB_ENV_FILE"
+
+if [ $? -ne 0 ]; then
+    echo "Failed to pull postgres secrets from doppler"
+    exit 1
+fi
+
 chmod 600 "$SERVER_ENV_FILE"
 chmod 600 "$PROCESSOR_ENV_FILE"
+chmod 600 "$DB_ENV_FILE"
 
 cd $PROJECT_DIR
 
