@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:18.6
     logging:
       driver: loki
       options:
@@ -15,10 +15,8 @@ services:
       - postgres_data:/var/lib/postgresql
     networks:
       - system_wide_network
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres-123
-      POSTGRES_DB: null-void-postgres
+    env_file:
+      - .env.postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

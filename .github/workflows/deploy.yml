@@ -157,6 +157,7 @@ jobs:
           CURRENT_SHA: ${{ github.sha }}
           SERVER_DOPPLER_TOKEN: ${{ secrets.SERVER_DOPPLER_TOKEN }}
           PROCESSOR_DOPPLER_TOKEN: ${{ secrets.PROCESSOR_DOPPLER_TOKEN }}
+          POSTGRES_DOPPLER_TOKEN: ${{ secrets.POSTGRES_DOPPLER_TOKEN }}
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
         with:
           host: ${{ secrets.HOSTNAME }}
