@@ -163,7 +163,7 @@ jobs:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: REMOTE_USER,CURRENT_SHA,SERVER_DOPPLER_TOKEN,PROCESSOR_DOPPLER_TOKEN,DOCKER_USERNAME
+          envs: REMOTE_USER,CURRENT_SHA,SERVER_DOPPLER_TOKEN,PROCESSOR_DOPPLER_TOKEN,DOCKER_USERNAME,POSTGRES_DOPPLER_TOKEN
           script_path: ./scripts/actions/deploy.sh
 
   notify:
