@@ -115,7 +115,7 @@ jobs:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
           tags: tag:ci
-          version: latest
+          version: 1.102.3
 
       - name: Run Database Migrations
         env:
@@ -141,7 +141,7 @@ jobs:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
           tags: tag:ci
-          version: latest
+          version: 1.102.3
 
       - name: Backup current deployment on VPS
         env:
