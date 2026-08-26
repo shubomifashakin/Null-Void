@@ -49,3 +49,8 @@ CVE-2026-59874 exp:2026-08-29
 # nanoid - Infinite loop in customAlphabet via crafted input
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
 CVE-2026-67213 exp:2026-08-29
+
+# tar (node-tar) - bundled inside npm inside node:24-slim base image, not a direct/transitive
+# project dependency
+# Remove once node:24-slim ships npm with tar 7.5.21+.
+CVE-2026-73566 expiry:2026-09-09
