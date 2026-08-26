@@ -109,18 +109,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Run Database Migrations
-        uses: appleboy/ssh-action@v1.2.5
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4.1.2
         with:
-          host: ${{ secrets.HOSTNAME }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DOCKER_USERNAME,CURRENT_SHA,SERVER_DOPPLER_TOKEN
-          script_path: ./scripts/actions/migrate.sh
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: tag:ci
+          version: latest
+
+      - name: Run Database Migrations
         env:
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           CURRENT_SHA: ${{ github.sha }}
           SERVER_DOPPLER_TOKEN: ${{ secrets.SERVER_DOPPLER_TOKEN }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.REMOTE_USER }}@${{ secrets.HOSTNAME }} \
+            "DOCKER_USERNAME='$DOCKER_USERNAME' CURRENT_SHA='$CURRENT_SHA' SERVER_DOPPLER_TOKEN='$SERVER_DOPPLER_TOKEN' bash -s" < ./scripts/actions/migrate.sh
 
   deploy:
     runs-on: ubuntu-latest
@@ -129,29 +135,29 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Backup current deployment on VPS
-        uses: appleboy/ssh-action@v1.2.5
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4.1.2
         with:
-          host: ${{ secrets.HOSTNAME }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_path: ./scripts/actions/backup-ops.sh
-          envs: REMOTE_USER
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: tag:ci
+          version: latest
+
+      - name: Backup current deployment on VPS
         env:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.REMOTE_USER }}@${{ secrets.HOSTNAME }} \
+            "REMOTE_USER='$REMOTE_USER' bash -s" < ./scripts/actions/backup-ops.sh
 
       - name: Copy Ops Files to Server
-        uses: Burnett01/rsync-deployments@v8
-        with:
-          path: ./ops/
-          switches: -avr --exclude=".git/*" --exclude=".env*"
-          remote_host: ${{ secrets.HOSTNAME }}
-          remote_user: ${{ secrets.REMOTE_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          remote_path: /home/${{ secrets.REMOTE_USER }}/projects/null-void/
+        run: |
+          rsync -avr --exclude=".git/*" --exclude=".env*" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ops/ ${{ secrets.REMOTE_USER }}@${{ secrets.HOSTNAME }}:/home/${{ secrets.REMOTE_USER }}/projects/null-void/
 
       - name: Start new containers
-        uses: appleboy/ssh-action@v1.2.5
         env:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           CURRENT_SHA: ${{ github.sha }}
@@ -159,12 +165,10 @@ jobs:
           PROCESSOR_DOPPLER_TOKEN: ${{ secrets.PROCESSOR_DOPPLER_TOKEN }}
           POSTGRES_DOPPLER_TOKEN: ${{ secrets.POSTGRES_DOPPLER_TOKEN }}
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-        with:
-          host: ${{ secrets.HOSTNAME }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: REMOTE_USER,CURRENT_SHA,SERVER_DOPPLER_TOKEN,PROCESSOR_DOPPLER_TOKEN,DOCKER_USERNAME,POSTGRES_DOPPLER_TOKEN
-          script_path: ./scripts/actions/deploy.sh
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.REMOTE_USER }}@${{ secrets.HOSTNAME }} \
+            "REMOTE_USER='$REMOTE_USER' CURRENT_SHA='$CURRENT_SHA' SERVER_DOPPLER_TOKEN='$SERVER_DOPPLER_TOKEN' PROCESSOR_DOPPLER_TOKEN='$PROCESSOR_DOPPLER_TOKEN' DOCKER_USERNAME='$DOCKER_USERNAME' POSTGRES_DOPPLER_TOKEN='$POSTGRES_DOPPLER_TOKEN' bash -s" < ./scripts/actions/deploy.sh
 
   notify:
     name: Notify Discord
