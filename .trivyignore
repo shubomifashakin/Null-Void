@@ -1,56 +1,76 @@
 # CVE-2026-12151 - undici bundled in node:24-slim, not yet patched upstream
 # Temp is a WS server not client, low risk
 # Remove once node:24-slim ships with undici 6.27.0+
-CVE-2026-12151 exp:2026-08-29
+CVE-2026-12151 exp:2026-09-20
 
 # brace-expansion - Denial of Service via exponential-time complexity
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-13149 exp:2026-08-29
+CVE-2026-13149 exp:2026-09-20
 
 # brace-expansion - Denial of Service via memory exhaustion in expand()
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-14257 exp:2026-08-29
+CVE-2026-14257 exp:2026-09-20
 
 # Ignore DeepmergeTS vulnerability from Prisma chain
-CVE-2026-40345 expiry:2026-08-24
+CVE-2026-40345 expiry:2026-09-20
 
 # brace-expansion - Denial of Service via unbounded intermediate arrays
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69152 exp:2026-08-29
+CVE-2026-69152 exp:2026-09-20
 
 # fast-uri - URI parsing impact, affects versions 2.3.1 through 4.1.0
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-16221 exp:2026-08-29
+CVE-2026-16221 exp:2026-09-20
 
 # fast-uri - Host confusion vulnerability via backslash in URI authority
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-18446 exp:2026-08-29
+CVE-2026-18446 exp:2026-09-20
 
 # ip-address - Inconsistent IP address parsing leads to SSRF
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69192 exp:2026-08-29
+CVE-2026-69192 exp:2026-09-20
 
 # js-yaml - Exponential parsing time in flow collections leads to DoS
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-GHSA-pm4m-ph32-ghv5 exp:2026-08-29
+GHSA-pm4m-ph32-ghv5 exp:2026-09-20
 
 # socket.io-parser - DoS via memory exhaustion from crafted packets
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-69185 exp:2026-08-29
+CVE-2026-69185 exp:2026-09-20
 
 # tar - DoS via crafted gzip bomb (CRITICAL)
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-59873 exp:2026-08-29
+CVE-2026-59873 exp:2026-09-20
 
 # tar - DoS via malformed tar archive header
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-59874 exp:2026-08-29
+CVE-2026-59874 exp:2026-09-20
 
 # nanoid - Infinite loop in customAlphabet via crafted input
 # Transitive dep, not directly installed. No npm override possible without risking breakage.
-CVE-2026-67213 exp:2026-08-29
+CVE-2026-67213 exp:2026-09-20
 
 # tar (node-tar) - bundled inside npm inside node:24-slim base image, not a direct/transitive
 # project dependency
 # Remove once node:24-slim ships npm with tar 7.5.21+.
-CVE-2026-73566 expiry:2026-09-09
+CVE-2026-73566 expiry:2026-09-20
+
+# fast-uri - SSRF via repeated hostname percent-decoding
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-75899 exp:2026-09-20
+
+# fast-uri - Host confusion via skipped IDN canonicalization
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-75931 exp:2026-09-20
+
+# fast-uri - SSRF via malformed IPv6 normalization
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-75975 exp:2026-09-20
+
+# fast-uri - URI parsing flaw enables SSRF and redirects
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+CVE-2026-76172 exp:2026-09-20
+
+# mysql2 - Auth plugin downgrade leaks plaintext credentials
+# Transitive dep, not directly installed. No npm override possible without risking breakage.
+GHSA-3f6p-5ww8-9rcr exp:2026-09-20
